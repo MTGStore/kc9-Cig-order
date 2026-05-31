@@ -17,11 +17,34 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
+  
+  /* AUTH SCREEN */
+  .auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1916 0%,#2a2a26 100%);z-index:1000;position:fixed;inset:0;}
+  .auth-screen.hidden{display:none;}
+  .auth-box{background:var(--surface);border-radius:var(--radius);padding:40px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .auth-title{font-size:24px;font-weight:600;margin-bottom:10px;text-align:center;color:var(--text);}
+  .auth-subtitle{font-size:13px;color:var(--text-muted);text-align:center;margin-bottom:30px;}
+  .auth-field{margin-bottom:16px;display:flex;flex-direction:column;gap:6px;}
+  .auth-field label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);}
+  .auth-field input{font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px;background:var(--bg);color:var(--text);outline:none;}
+  .auth-field input:focus{border-color:var(--text);}
+  .auth-buttons{display:flex;gap:8px;margin-top:24px;}
+  .auth-buttons button{flex:1;padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s;}
+  .auth-btn-employee{background:var(--info-bg);color:var(--info);}
+  .auth-btn-employee:hover{background:#d4e5f7;}
+  .auth-btn-manager{background:var(--accent-bg);color:var(--accent);}
+  .auth-btn-manager:hover{background:#fce5d9;}
+  .auth-error{color:#c33;font-size:12px;margin-top:12px;text-align:center;display:none;}
+  
   header{background:var(--text);color:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start;}
   .title{font-size:16px;font-weight:600;}
+  .access-badge{font-size:10px;font-weight:600;text-transform:uppercase;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.2);color:#fff;}
+  .access-badge.manager{background:#ffa500;}
   .sub{font-size:12px;color:#9a9890;margin-top:1px;}
   .header-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
   .header-btns .full{grid-column:1/-1;}
+  .header-btns.employee .manager-only{display:none;}
   .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);background:var(--surface);}
   .stat{padding:12px 8px;border-right:1px solid var(--border);text-align:center;}
   .stat:last-child{border-right:none;}
@@ -137,6 +160,7 @@
   .item-name-td{font-weight:500;font-size:13px;}
   .item-meta-td{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:1px;}
   td input[type="number"]{width:68px;text-align:center;padding:4px 5px;font-family:'DM Mono',monospace;font-size:13px;background:var(--surface);}
+  td input[type="text"]{width:100%;padding:4px 5px;font-family:'DM Mono',monospace;font-size:12px;background:var(--surface);}
   .order-val-td{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;text-align:center;}
   .order-val-td.need{color:var(--accent);}
   .order-val-td.ok{color:var(--success);}
@@ -150,18 +174,40 @@
   .add-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px;}
   .add-field input{width:100%;}
   .add-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .manager-note{background:var(--accent-bg);border:1px solid var(--accent-border);padding:10px;border-radius:var(--radius-sm);font-size:12px;color:var(--accent);margin-bottom:14px;}
 </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <div class="title">Cigarette Order Guide</div>
-    <div class="sub">Scan UPC or enter counts manually</div>
+<!-- AUTH SCREEN -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-title">Cigarette Order Guide</div>
+    <div class="auth-subtitle">Select your access level</div>
+    <div class="auth-field" id="manager-password-field" style="display:none;">
+      <label>Manager Password</label>
+      <input type="password" id="manager-password" placeholder="Enter password"/>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-buttons">
+      <button class="auth-btn-employee" onclick="loginEmployee()">👤 Employee</button>
+      <button class="auth-btn-manager" onclick="promptManagerPassword()">🔐 Manager</button>
+    </div>
   </div>
-  <div class="header-btns">
+</div>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="title">Cigarette Order Guide</div>
+      <div class="sub">Scan UPC or enter counts manually</div>
+    </div>
+    <div class="access-badge" id="access-badge" style="display:none;">Employee</div>
+  </div>
+  <div class="header-btns" id="header-btns">
     <button class="btn danger" onclick="confirmClear()">&#8635; Clear</button>
-    <button class="btn info" onclick="openModal('add')">+ Add</button>
+    <button class="btn info manager-only" onclick="openModal('add')">+ Add Item</button>
+    <button class="btn info manager-only" onclick="openModal('edit')">✎ Edit Items</button>
     <button class="btn info" onclick="openModal('upload')">&#8593; Upload</button>
     <button class="btn scan-btn full" id="scan-toggle-btn" onclick="toggleScanner()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M12 2v20M17 2v20M2 7h5M2 12h5M2 17h5M17 7h5M17 12h5M17 17h5"/></svg>
@@ -171,6 +217,7 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       Send Order
     </button>
+    <button class="btn manager-only" onclick="logoutManager()" style="background:#ff6b6b;border-color:#ff6b6b;color:#fff;">Logout</button>
   </div>
 </header>
 
@@ -244,6 +291,8 @@
 <script>
 const OWNER_PHONE = '14046689091';
 const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=0&single=true&output=csv';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+const MANAGER_PASSWORD = '977381';
 
 let nextId = 0;
 let state = [];
@@ -251,18 +300,63 @@ let hideOk = false;
 let scannerActive = false;
 let lastScanned = '';
 let scanCooldown = false;
+let isManager = false;
 
+// ─── AUTH ─────────────────────────────────────────
+function loginEmployee(){
+  isManager = false;
+  showApp();
+}
+
+function promptManagerPassword(){
+  document.getElementById('manager-password-field').style.display = 'flex';
+  document.getElementById('manager-password').focus();
+}
+
+function loginManager(){
+  const pw = document.getElementById('manager-password').value;
+  const err = document.getElementById('auth-error');
+  if(pw === MANAGER_PASSWORD){
+    isManager = true;
+    err.style.display = 'none';
+    showApp();
+  } else {
+    err.textContent = 'Incorrect password';
+    err.style.display = 'block';
+  }
+}
+
+document.getElementById('manager-password')?.addEventListener('keypress', function(e){
+  if(e.key === 'Enter') loginManager();
+});
+
+function showApp(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('access-badge').style.display = 'inline-block';
+  document.getElementById('access-badge').textContent = isManager ? '🔐 Manager' : '👤 Employee';
+  document.getElementById('access-badge').classList.toggle('manager', isManager);
+  document.getElementById('header-btns').classList.toggle('employee', !isManager);
+  loadItemsFromSheets();
+}
+
+function logoutManager(){
+  isManager = false;
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('manager-password-field').style.display = 'none';
+  document.getElementById('manager-password').value = '';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+// ─── LOAD DATA FROM GOOGLE SHEETS ─────────────────
 async function loadItemsFromSheets() {
   try {
     const response = await fetch(SHEETS_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const csvText = await response.text();
     
-    // Parse CSV
     const lines = csvText.split('\n').filter(line => line.trim());
     if (lines.length < 2) throw new Error('Sheet is empty or invalid');
     
-    // Get headers
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
     const nameIdx = headers.findIndex(h => h.includes('item name'));
     const numIdx = headers.findIndex(h => h.includes('item number'));
@@ -271,7 +365,6 @@ async function loadItemsFromSheets() {
     
     if (nameIdx === -1) throw new Error('Could not find "Item Name" column');
     
-    // Parse rows
     state = [];
     for (let i = 1; i < lines.length; i++) {
       const cells = lines[i].split(',').map(c => c.trim());
@@ -297,14 +390,38 @@ async function loadItemsFromSheets() {
     document.getElementById('cards-list').innerHTML = `
       <div class="loading-msg" style="color:#c33;">
         <strong>⚠️ Could not load items from Google Sheets</strong><br>
-        ${error.message}<br>
-        <small>Make sure your Google Sheet is published to the web as CSV</small>
+        ${error.message}
       </div>
     `;
   }
 }
 
-window.addEventListener('load', loadItemsFromSheets);
+// ─── SAVE ITEMS TO GOOGLE SHEETS (Manager only) ────
+async function saveToSheets(){
+  if(!isManager) return;
+  try {
+    const data = state.map(item => ({
+      item_name: item.item_name,
+      item_number: item.item_number,
+      upc: item.upc,
+      must_have: item.must_have
+    }));
+    
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({action: 'saveItems', items: data})
+    });
+    
+    console.log('✅ Saved to Google Sheets');
+  } catch(e){
+    console.error('Save error:', e);
+    alert('Error saving to Google Sheets. Check console.');
+  }
+}
+
+window.addEventListener('load', () => {
+  // Don't auto-load yet, wait for auth
+});
 
 function calc(item){
   const combined = (parseFloat(item.loc1)||0) + (parseFloat(item.loc2)||0);
@@ -313,6 +430,7 @@ function calc(item){
   return {combined: +combined.toFixed(2), order};
 }
 
+// ─── SCANNER ──────────────────────────────────────
 function toggleScanner(){
   if(scannerActive){ closeScanner(); return; }
   scannerActive = true;
@@ -409,6 +527,7 @@ function flashItem(id){
   });
 }
 
+// ─── RENDER ───────────────────────────────────────
 function hl(text, q){
   if(!q) return text;
   const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
@@ -444,7 +563,7 @@ function render(){
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge ${order>0?'need':'ok'}">${order>0?'Order':'OK'}</span>
-          <button class="card-del" onclick="deleteItem(${item.id})">✕</button>
+          ${isManager?`<button class="card-del" onclick="deleteItem(${item.id})">✕</button>`:''}
         </div>
       </div>
       <div class="card-inputs">
@@ -490,7 +609,7 @@ function render(){
       <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:500">${combined}</td>
       <td><div class="order-val-td ${order>0?'need':'ok'}">${order>0?order:'—'}</div></td>
       <td style="text-align:center"><span class="badge ${order>0?'need':'ok'}">${order>0?'Order':'OK'}</span></td>
-      <td><button class="del-btn" onclick="deleteItem(${item.id})">✕</button></td>`;
+      <td>${isManager?`<button class="del-btn" onclick="deleteItem(${item.id})">✕</button>`:''}</td>`;
     tbody.appendChild(tr);
   }
   needItems.forEach(addRow);
@@ -506,7 +625,7 @@ function render(){
 }
 
 function upd(id,field,value){ const item=state.find(i=>i.id===id); if(item){item[field]=parseFloat(value)||0;render();} }
-function deleteItem(id){ if(confirm('Remove this item?')){state=state.filter(i=>i.id!==id);render();} }
+function deleteItem(id){ if(confirm('Remove this item?')){state=state.filter(i=>i.id!==id);render();saveToSheets();} }
 function confirmClear(){ if(confirm('Clear all counts and start fresh?')){state.forEach(i=>{i.loc1=0;i.loc2=0;});render();} }
 
 function getWeekNumber(d){
@@ -524,6 +643,7 @@ function openModal(type){
   if(type==='add'){
     title.textContent='Add New Item';
     mb.innerHTML=`
+      <div class="manager-note">✓ New items will be saved to Google Sheets</div>
       <div class="add-field"><label>Item Name *</label><input type="text" id="new-name" placeholder="e.g. Marlboro Red Short" style="width:100%"/></div>
       <div class="add-two">
         <div class="add-field"><label>Item #</label><input type="text" id="new-num" placeholder="4336145"/></div>
@@ -535,6 +655,35 @@ function openModal(type){
         <button class="btn primary" onclick="addItem()">Add Item</button>
       </div>`;
     setTimeout(()=>document.getElementById('new-name').focus(),100);
+  }
+  else if(type==='edit'){
+    title.textContent='Edit Items';
+    let rows = state.map((item,idx) => `
+      <tr>
+        <td style="padding:8px;border-bottom:1px solid var(--border)"><input type="text" value="${item.item_name}" onchange="state[${idx}].item_name=this.value;saveToSheets()" style="width:100%;padding:4px;font-size:12px;border:1px solid var(--border);border-radius:4px;"/></td>
+        <td style="padding:8px;border-bottom:1px solid var(--border)"><input type="text" value="${item.item_number}" onchange="state[${idx}].item_number=this.value;saveToSheets()" style="width:100%;padding:4px;font-size:12px;border:1px solid var(--border);border-radius:4px;"/></td>
+        <td style="padding:8px;border-bottom:1px solid var(--border)"><input type="text" value="${item.upc}" onchange="state[${idx}].upc=this.value;saveToSheets()" style="width:100%;padding:4px;font-size:12px;border:1px solid var(--border);border-radius:4px;"/></td>
+        <td style="padding:8px;border-bottom:1px solid var(--border);text-align:center"><input type="number" value="${item.must_have}" onchange="state[${idx}].must_have=parseFloat(this.value)||0;saveToSheets();render()" step="0.1" min="0" style="width:60px;padding:4px;font-size:12px;border:1px solid var(--border);border-radius:4px;text-align:center;"/></td>
+        <td style="padding:8px;border-bottom:1px solid var(--border);text-align:center"><button class="btn danger" onclick="deleteItem(${idx})" style="padding:4px 8px;font-size:11px;">Delete</button></td>
+      </tr>
+    `).join('');
+    mb.innerHTML=`
+      <div class="manager-note">✓ Changes are saved automatically to Google Sheets</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+        <thead>
+          <tr style="background:#f0ede6;">
+            <th style="padding:8px;text-align:left;font-size:11px;font-weight:600;">Item Name</th>
+            <th style="padding:8px;text-align:left;font-size:11px;font-weight:600;">Item #</th>
+            <th style="padding:8px;text-align:left;font-size:11px;font-weight:600;">UPC</th>
+            <th style="padding:8px;text-align:center;font-size:11px;font-weight:600;">Must Have</th>
+            <th style="padding:8px;text-align:center;font-size:11px;font-weight:600;"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn" onclick="closeModal()">Done</button>
+      </div>`;
   }
   else if(type==='upload'){
     title.textContent='Upload New Item List';
@@ -599,7 +748,9 @@ function addItem(){
   const name=document.getElementById('new-name').value.trim();
   if(!name){alert('Item name is required.');return;}
   state.push({id:nextId++,item_name:name,item_number:document.getElementById('new-num').value.trim(),upc:document.getElementById('new-upc').value.trim(),must_have:parseFloat(document.getElementById('new-must').value)||0,loc1:0,loc2:0});
-  closeModal();render();
+  saveToSheets();
+  closeModal();
+  render();
 }
 
 function handleUpload(input){
@@ -621,6 +772,8 @@ function handleUpload(input){
       newItems.push({id:nextId++,item_name:name,item_number:numIdx>=0?cols[numIdx]||'':'',upc:upcIdx>=0?cols[upcIdx]||'':'',must_have:mustIdx>=0?parseFloat(cols[mustIdx])||0:0,loc1:0,loc2:0});
     }
     state=newItems;
+    nextId=newItems.length;
+    saveToSheets();
     document.getElementById('upload-status').innerHTML=`<p style="color:var(--success);font-size:13px;margin-top:8px">✅ ${newItems.length} items loaded!</p>`;
     setTimeout(()=>{closeModal();render();},1000);
   };
