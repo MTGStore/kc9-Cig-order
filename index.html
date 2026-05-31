@@ -17,31 +17,23 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
-
-  /* HEADER */
   header{background:var(--text);color:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
   .title{font-size:16px;font-weight:600;}
   .sub{font-size:12px;color:#9a9890;margin-top:1px;}
   .header-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
   .header-btns .full{grid-column:1/-1;}
-
-  /* STATS */
   .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);background:var(--surface);}
   .stat{padding:12px 8px;border-right:1px solid var(--border);text-align:center;}
   .stat:last-child{border-right:none;}
   .stat-val{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;}
   .stat-val.red{color:var(--accent);}
   .stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:1px;}
-
-  /* TOOLBAR */
   .toolbar{padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;position:sticky;top:0;z-index:10;}
   .search-wrap{flex:1;position:relative;}
   .search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
   input[type="search"]{font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);padding:8px 10px 8px 30px;outline:none;width:100%;}
-  input[type="search"]:focus,input[type="number"]:focus,input[type="text"]:focus,input[type="email"]:focus{border-color:var(--text);}
-  input[type="number"],input[type="text"],input[type="email"]{font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);padding:8px 10px;outline:none;transition:border-color .15s;}
-
-  /* SCAN BANNER */
+  input[type="search"]:focus,input[type="number"]:focus,input[type="text"]:focus{border-color:var(--text);}
+  input[type="number"],input[type="text"]{font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);padding:8px 10px;outline:none;}
   .scan-banner{background:var(--info-bg);border-bottom:1px solid var(--info-border);padding:10px 14px;display:none;align-items:center;justify-content:space-between;gap:10px;}
   .scan-banner.active{display:flex;}
   .scan-banner-left{font-size:13px;color:var(--info);font-weight:500;}
@@ -49,8 +41,6 @@
   .scan-status{font-size:12px;padding:4px 10px;border-radius:99px;background:var(--info);color:#fff;font-weight:600;white-space:nowrap;}
   .scan-status.found{background:var(--success);}
   .scan-status.notfound{background:var(--accent);}
-
-  /* BUTTONS */
   .btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:background .12s;}
   .btn:hover{background:var(--bg);}
   .btn.active{background:var(--success-bg);border-color:var(--success-border);color:var(--success);}
@@ -61,8 +51,6 @@
   .btn.primary{background:var(--text);border-color:var(--text);color:#fff;}
   .btn.scan-btn{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600;}
   .btn.scan-btn.scanning{background:#dc2626;border-color:#dc2626;}
-
-  /* MOBILE CARDS */
   .items-list{padding:8px 12px;display:flex;flex-direction:column;gap:8px;}
   .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
   .item-card.ok-card{opacity:.4;}
@@ -84,17 +72,11 @@
   .card-stat-val.ok{color:var(--success);}
   .card-del{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:0 0 0 8px;line-height:1;}
   .card-del:hover{color:var(--accent);}
-
-  /* SECTION DIVIDER */
   .section-divider{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding:10px 0 4px;}
   .empty-msg{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;}
-
-  /* BADGE */
   .badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;}
   .badge.need{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);}
   .badge.ok{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
-
-  /* MODAL */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,8,.55);z-index:100;align-items:flex-end;justify-content:center;}
   .modal-overlay.open{display:flex;}
   .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:560px;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.2);max-height:90vh;display:flex;flex-direction:column;}
@@ -102,8 +84,6 @@
   .modal-close{background:none;border:none;color:#888;font-size:22px;cursor:pointer;line-height:1;}
   .modal-close:hover{color:#fff;}
   .modal-body{padding:16px;overflow-y:auto;}
-
-  /* ORDER BOX */
   .order-box{background:var(--bg);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;max-height:280px;overflow-y:auto;}
   .order-box-header{font-weight:600;font-size:14px;color:var(--text);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg);}
   .order-box-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border);align-items:center;}
@@ -115,8 +95,6 @@
   .order-box-footer{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;}
   .send-actions{display:flex;flex-direction:column;gap:8px;}
   .no-order-msg{background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-sm);padding:20px;color:var(--success);font-weight:500;text-align:center;font-size:14px;}
-
-  /* VIDEO SCANNER */
   #scanner-container{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column;}
   #scanner-container.active{display:flex;}
   #scanner-video{width:100%;flex:1;object-fit:cover;}
@@ -133,22 +111,8 @@
   .scanner-result.notfound{color:#f87171;}
   #manual-upc-input{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:100%;margin-top:10px;text-align:center;font-size:15px;}
   #manual-upc-input::placeholder{color:rgba(255,255,255,.5);}
-
-  /* SETUP NOTICE */
-  .setup-notice{background:#fffbec;border:1px solid #f0d080;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#7a6010;margin-bottom:14px;line-height:1.6;}
-  .setup-notice strong{color:#5a4008;}
-
-  /* ADD FORM */
-  .add-field{margin-bottom:10px;}
-  .add-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px;}
-  .add-field input{width:100%;}
-  .add-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-
-  /* UPLOAD */
   .upload-area{border:2px dashed var(--border-strong);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;}
   .upload-area p{font-size:13px;color:var(--text-muted);margin-top:6px;}
-
-  /* DESKTOP TABLE */
   @media(min-width:700px){
     header{flex-direction:row;align-items:center;}
     .header-btns{grid-template-columns:repeat(5,auto);gap:8px;}
@@ -181,9 +145,11 @@
   .dt-divider td{background:#f0ede6 !important;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding:5px 10px;}
   .dt-empty td{text-align:center;padding:36px;color:var(--text-muted);font-size:13px;background:var(--surface) !important;}
   mark{background:#ffe066;color:inherit;border-radius:2px;padding:0 1px;}
-
-  /* LOADING STATE */
   .loading-msg{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;}
+  .add-field{margin-bottom:10px;}
+  .add-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px;}
+  .add-field input{width:100%;}
+  .add-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 </style>
 </head>
 <body>
@@ -214,7 +180,6 @@
   <div class="stat"><div class="stat-val" id="stat-ok">0</div><div class="stat-label">At Par</div></div>
 </div>
 
-<!-- SCAN ACTIVE BANNER -->
 <div class="scan-banner" id="scan-banner">
   <div>
     <div class="scan-banner-left">&#128247; Scan mode active</div>
@@ -231,10 +196,8 @@
   <button class="btn" id="toggle-btn" onclick="toggleOk()">Hide OK</button>
 </div>
 
-<!-- MOBILE CARD LIST -->
 <div class="items-list" id="cards-list"></div>
 
-<!-- DESKTOP TABLE -->
 <div class="table-wrap">
   <table>
     <thead>
@@ -253,7 +216,6 @@
   </table>
 </div>
 
-<!-- CAMERA SCANNER -->
 <div id="scanner-container">
   <div class="scanner-top">
     <div class="scanner-title">&#128247; Scan UPC Barcode</div>
@@ -268,7 +230,6 @@
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <div class="modal-header">
@@ -281,12 +242,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 <script>
-// ─── CONFIG ───────────────────────────────────────────────
 const OWNER_PHONE = '14046689091';
-// Your new Google Apps Script URL - pulls data from Google Sheets
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzn3BlSJvNl7Pras-RfN85FSxex7cPB8FkN09yBuytz8kcpr9z119pY-yYf-7gixdW2Ug/exec';
+const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=0&single=true&output=csv';
 
-// ─── DATA ─────────────────────────────────────────────────
 let nextId = 0;
 let state = [];
 let hideOk = false;
@@ -294,23 +252,42 @@ let scannerActive = false;
 let lastScanned = '';
 let scanCooldown = false;
 
-// ─── LOAD DATA FROM GOOGLE SHEETS ─────────────────────────
 async function loadItemsFromSheets() {
   try {
     const response = await fetch(SHEETS_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const items = await response.json();
+    const csvText = await response.text();
     
-    // Convert to internal state format
-    state = items.map((item, idx) => ({
-      id: idx,
-      item_name: item.item_name || '',
-      item_number: item.item_number || '',
-      upc: item.upc || '',
-      must_have: parseFloat(item.must_have) || 0,
-      loc1: 0,
-      loc2: 0
-    }));
+    // Parse CSV
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) throw new Error('Sheet is empty or invalid');
+    
+    // Get headers
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const nameIdx = headers.findIndex(h => h.includes('item name'));
+    const numIdx = headers.findIndex(h => h.includes('item number'));
+    const upcIdx = headers.findIndex(h => h.includes('upc'));
+    const mustIdx = headers.findIndex(h => h.includes('must have'));
+    
+    if (nameIdx === -1) throw new Error('Could not find "Item Name" column');
+    
+    // Parse rows
+    state = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cells = lines[i].split(',').map(c => c.trim());
+      const name = cells[nameIdx] || '';
+      if (!name) continue;
+      
+      state.push({
+        id: state.length,
+        item_name: name,
+        item_number: numIdx >= 0 ? cells[numIdx] || '' : '',
+        upc: upcIdx >= 0 ? cells[upcIdx] || '' : '',
+        must_have: mustIdx >= 0 ? parseFloat(cells[mustIdx]) || 0 : 0,
+        loc1: 0,
+        loc2: 0
+      });
+    }
     
     nextId = state.length;
     render();
@@ -321,16 +298,14 @@ async function loadItemsFromSheets() {
       <div class="loading-msg" style="color:#c33;">
         <strong>⚠️ Could not load items from Google Sheets</strong><br>
         ${error.message}<br>
-        <small>Check that your Google Apps Script URL is correct</small>
+        <small>Make sure your Google Sheet is published to the web as CSV</small>
       </div>
     `;
   }
 }
 
-// Load on page startup
 window.addEventListener('load', loadItemsFromSheets);
 
-// ─── CALC ──────────────────────────────────────────────────
 function calc(item){
   const combined = (parseFloat(item.loc1)||0) + (parseFloat(item.loc2)||0);
   const need = parseFloat(item.must_have)||0;
@@ -338,7 +313,6 @@ function calc(item){
   return {combined: +combined.toFixed(2), order};
 }
 
-// ─── SCANNER ──────────────────────────────────────────────
 function toggleScanner(){
   if(scannerActive){ closeScanner(); return; }
   scannerActive = true;
@@ -435,7 +409,6 @@ function flashItem(id){
   });
 }
 
-// ─── RENDER ───────────────────────────────────────────────
 function hl(text, q){
   if(!q) return text;
   const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
@@ -455,7 +428,6 @@ function render(){
   const needItems = filtered.filter(i=>calc(i).order>0);
   const okItems = filtered.filter(i=>calc(i).order===0);
 
-  // MOBILE
   const cardsList = document.getElementById('cards-list');
   cardsList.innerHTML='';
 
@@ -503,7 +475,6 @@ function render(){
   if(filtered.length===0){const d=document.createElement('div');d.className='empty-msg';d.textContent=`No items match "${q}"`;cardsList.appendChild(d);}
   if(hideOk&&needItems.length===0&&okItems.length>0){const d=document.createElement('div');d.className='empty-msg';d.textContent='All items at par — nothing to order!';cardsList.appendChild(d);}
 
-  // DESKTOP TABLE
   const tbody=document.getElementById('table-body');
   tbody.innerHTML='';
   function addRow(item){
@@ -538,20 +509,6 @@ function upd(id,field,value){ const item=state.find(i=>i.id===id); if(item){item
 function deleteItem(id){ if(confirm('Remove this item?')){state=state.filter(i=>i.id!==id);render();} }
 function confirmClear(){ if(confirm('Clear all counts and start fresh?')){state.forEach(i=>{i.loc1=0;i.loc2=0;});render();} }
 
-// ─── GOOGLE SHEETS LOGGING ────────────────────────────────
-function logToSheets(orderItems){
-  if(!SHEETS_URL){ console.log('Sheets URL not configured'); return; }
-  const today = new Date().toLocaleDateString('en-US');
-  const weekNum = getWeekNumber(new Date());
-  const rows = orderItems.map(i=>{
-    const{order}=calc(i);
-    return{date:today, week:'Week '+weekNum, item_name:i.item_name, item_number:i.item_number||'', must_have:i.must_have, order_qty:order};
-  });
-  fetch(SHEETS_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({rows})})
-    .then(()=>console.log('Logged to Sheets'))
-    .catch(e=>console.log('Sheets log failed:',e));
-}
-
 function getWeekNumber(d){
   d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
   d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
@@ -559,7 +516,6 @@ function getWeekNumber(d){
   return Math.ceil((((d-yearStart)/86400000)+1)/7);
 }
 
-// ─── MODAL ────────────────────────────────────────────────
 function openModal(type){
   document.getElementById('modal').classList.add('open');
   const title=document.getElementById('modal-title');
@@ -580,11 +536,10 @@ function openModal(type){
       </div>`;
     setTimeout(()=>document.getElementById('new-name').focus(),100);
   }
-
   else if(type==='upload'){
     title.textContent='Upload New Item List';
     mb.innerHTML=`
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Upload a CSV file with columns: <strong>Item Number, Item Name, UPC Code, Must Have</strong>.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Upload a CSV file with columns: <strong>Item Name, Item Number, UPC Code, Must Have</strong>.</p>
       <div class="upload-area" onclick="document.getElementById('file-input').click()">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <p>Tap to choose a CSV file</p>
@@ -593,7 +548,6 @@ function openModal(type){
       <div id="upload-status"></div>
       <div style="display:flex;justify-content:flex-end"><button class="btn" onclick="closeModal()">Close</button></div>`;
   }
-
   else if(type==='send'){
     title.textContent='Send Order';
     const orderItems=state.filter(i=>calc(i).order>0);
@@ -606,9 +560,9 @@ function openModal(type){
     }
 
     let boxRows=orderItems.map(i=>{const{order}=calc(i);return`<div class="order-box-row"><div><div class="oname">${i.item_name}</div><div class="onum">${i.item_number?'#'+i.item_number:''}</div></div><div class="omust">Min: ${i.must_have}</div><div class="oqty">${order}</div></div>`;}).join('');
-    let waMsg=`🚬 CIGARETTE ORDER — Week ${weekNum}\n📅 ${today}\n${'─'.repeat(30)}\n`;
+    let waMsg=`🚬 CIGARETTE ORDER — Week ${weekNum}\n📅 ${today}\n${'-'.repeat(30)}\n`;
     orderItems.forEach(i=>{const{order}=calc(i);waMsg+=`• ${i.item_name}${i.item_number?' (#'+i.item_number+')':''}\n  Must Have: ${i.must_have} | Order: ${order}\n`;});
-    waMsg+=`${'─'.repeat(30)}\nTotal: ${orderItems.length} items`;
+    waMsg+=`${'-'.repeat(30)}\nTotal: ${orderItems.length} items`;
     let emailBody=`CIGARETTE ORDER REQUEST\n${today} (Week ${weekNum})\n${'='.repeat(40)}\n\n`;
     orderItems.forEach(i=>{const{order}=calc(i);emailBody+=`Item: ${i.item_name}\nItem #: ${i.item_number||'N/A'}\nMust Have: ${i.must_have}\nOrder Qty: ${order}\n\n`;});
     emailBody+=`${'='.repeat(40)}\nTotal items to order: ${orderItems.length}`;
@@ -627,13 +581,13 @@ function openModal(type){
         <div class="order-box-footer"><span>${orderItems.length} items · Week ${weekNum}</span><span>${new Date().toLocaleDateString()}</span></div>
       </div>
       <div class="send-actions">
-        <a href="${waURL}" target="_blank" style="text-decoration:none" onclick="logToSheets(state.filter(i=>calc(i).order>0));setTimeout(closeModal,400)">
+        <a href="${waURL}" target="_blank" style="text-decoration:none" onclick="setTimeout(closeModal,400)">
           <button class="btn wa" style="width:100%;justify-content:center;padding:13px">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
             Send via WhatsApp
           </button>
         </a>
-        <a href="${emailURL}" style="text-decoration:none" onclick="logToSheets(state.filter(i=>calc(i).order>0));setTimeout(closeModal,400)">
+        <a href="${emailURL}" style="text-decoration:none" onclick="setTimeout(closeModal,400)">
           <button class="btn info" style="width:100%;justify-content:center;padding:13px">&#9993; Send via Email</button>
         </a>
         <button class="btn" onclick="closeModal()" style="width:100%;justify-content:center">Cancel</button>
@@ -676,7 +630,6 @@ function handleUpload(input){
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-// Initial render
 render();
 </script>
 </body>
