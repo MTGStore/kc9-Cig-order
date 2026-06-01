@@ -118,6 +118,7 @@
             border-radius: 8px;
             text-align: center;
             margin: 20px 0;
+            font-weight: bold;
         }
         
         .refresh-button {
@@ -220,15 +221,25 @@
     </div>
 
     <script>
-        // CSV URL for Order Details sheet (gid=1734590286)
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=1734590286&single=true&output=csv';
+        // CORS Proxy + CSV URL for Order Details sheet
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk/export?format=csv&gid=1734590286';
+        const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
         let trendChart, unitsChart, topItemsChart, distributionChart;
 
         async function loadAndAnalyzeData() {
             try {
-                // Fetch CSV data
-                const response = await fetch(CSV_URL);
+                // Try direct fetch first (no CORS proxy)
+                let response;
+                try {
+                    response = await fetch(CSV_URL);
+                } catch (e) {
+                    // If that fails, try with CORS proxy
+                    console.log('Direct fetch failed, trying CORS proxy...');
+                    response = await fetch(CORS_PROXY + CSV_URL);
+                }
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const csv = await response.text();
                 
                 // Parse CSV
@@ -242,7 +253,7 @@
                 const qtyIdx = headers.indexOf('Qty');
                 
                 if (dateIdx === -1 || weekIdx === -1 || itemNameIdx === -1 || qtyIdx === -1) {
-                    throw new Error('Required columns not found in CSV');
+                    throw new Error('Required columns not found. Expected: Date, Week, Item Name, Qty');
                 }
                 
                 // Parse data
@@ -277,6 +288,10 @@
                     }
                     weekMap[week].count++;
                     weekMap[week].qty += qty;
+                }
+                
+                if (Object.keys(weekMap).length === 0) {
+                    throw new Error('No data found in Order Details sheet');
                 }
                 
                 // Calculate stats
@@ -316,7 +331,11 @@
                 console.error('Error:', error);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
-                document.getElementById('error').textContent = 'Error loading data: ' + error.message;
+                document.getElementById('error').innerHTML = `
+                    <strong>⚠️ Error loading data:</strong><br>
+                    ${error.message}<br><br>
+                    <small>This usually means the Google Sheets hasn't been published correctly or there's no data yet.</small>
+                `;
             }
         }
         
@@ -379,10 +398,9 @@
                 }
             });
             
-            // Top Items Chart
+            // Top Items Chart (Horizontal Bar)
             const topCtx = document.getElementById('topItemsChart').getContext('2d');
             topItemsChart = new Chart(topCtx, {
-                type: 'barH',
                 type: 'bar',
                 data: {
                     labels: topItemNames,
@@ -405,7 +423,7 @@
                 }
             });
             
-            // Distribution Chart
+            // Distribution Chart (Doughnut)
             const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#ff6b9d'];
             const distCtx = document.getElementById('distributionChart').getContext('2d');
             distributionChart = new Chart(distCtx, {
