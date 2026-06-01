@@ -86,6 +86,10 @@
             border-color: #2a5298;
         }
         
+        .mode-btn:hover {
+            border-color: #2a5298;
+        }
+        
         .auth-input {
             width: 100%;
             padding: 12px;
@@ -93,6 +97,12 @@
             border: 2px solid #2a5298;
             border-radius: 6px;
             font-size: 1em;
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 5px rgba(42, 82, 152, 0.3);
         }
         
         .password-section {
@@ -124,6 +134,11 @@
             box-shadow: 0 8px 12px rgba(0,0,0,0.2);
         }
         
+        .auth-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .error-msg {
             background: #f44336;
             color: white;
@@ -135,6 +150,17 @@
         
         .error-msg.show {
             display: block;
+        }
+        
+        .manager-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
         }
         
         .controls {
@@ -164,7 +190,7 @@
         
         .items-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -204,69 +230,6 @@
             font-size: 0.85em;
             color: #999;
             margin-bottom: 12px;
-        }
-        
-        .inventory-inputs {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            border: 2px solid #e0e0e0;
-        }
-        
-        .inv-input {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .inv-label {
-            font-size: 0.75em;
-            color: #666;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .inv-field {
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-        
-        .calc-display {
-            background: white;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            border-left: 3px solid #2a5298;
-            font-size: 0.9em;
-        }
-        
-        .calc-label {
-            color: #666;
-        }
-        
-        .calc-value {
-            font-weight: bold;
-            color: #2a5298;
-        }
-        
-        .rec-display {
-            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-            color: white;
-            padding: 12px;
-            border-radius: 6px;
-            text-align: center;
-            margin-bottom: 12px;
-            font-weight: bold;
-            font-size: 1.1em;
         }
         
         .item-stats {
@@ -331,6 +294,17 @@
             color: #2a5298;
         }
         
+        .recommended-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        
         .alert-badge {
             display: inline-block;
             background: #f44336;
@@ -379,6 +353,10 @@
         .clear-btn {
             background: #f44336;
             color: white;
+        }
+        
+        .clear-btn:hover {
+            opacity: 0.9;
         }
         
         .logout-btn {
@@ -430,6 +408,10 @@
                 font-size: 1.6em;
             }
             
+            .controls {
+                flex-direction: column;
+            }
+            
             .action-buttons {
                 bottom: 0;
                 left: 0;
@@ -447,7 +429,7 @@
     <div class="container">
         <div class="header">
             <h1>🚬 Smart Order App</h1>
-            <p>With inventory tracking & smart recommendations</p>
+            <p>Intelligent ordering with 4-week history & recommendations</p>
         </div>
         
         <div id="error" class="error" style="display: none;"></div>
@@ -500,7 +482,6 @@
         
         let allItems = [];
         let orderData = {};
-        let inventoryData = {};
         let employeeName = '';
         let userMode = 'employee';
         let isManager = false;
@@ -556,7 +537,6 @@
 
         function logout() {
             orderData = {};
-            inventoryData = {};
             document.getElementById('app').style.display = 'none';
             document.getElementById('actionButtons').style.display = 'none';
             document.getElementById('orderCount').style.display = 'none';
@@ -614,6 +594,7 @@
                 allItems = Object.values(itemStats).map(item => {
                     const avgPerWeek = (item.total / 4).toFixed(2);
                     const daysSinceLastOrder = Math.floor((now - item.lastOrdered) / (1000 * 60 * 60 * 24));
+                    const recommendedQty = Math.ceil(avgPerWeek * Math.max(1, daysSinceLastOrder / 7));
                     
                     let status = 'good';
                     if (daysSinceLastOrder > 21) status = 'alert';
@@ -623,11 +604,12 @@
                         ...item,
                         avgPerWeek: parseFloat(avgPerWeek),
                         daysSinceLastOrder,
+                        recommendedQty,
                         status
                     };
                 });
                 
-                allItems.sort((a, b) => b.avgPerWeek - a.avgPerWeek);
+                allItems.sort((a, b) => b.recommendedQty - a.recommendedQty);
                 
                 document.getElementById('loading').style.display = 'none';
                 renderItems();
@@ -648,13 +630,9 @@
             
             for (const item of filtered) {
                 const currentQty = orderData[item.name] || 0;
-                const inv = inventoryData[item.name] || { onDisplay: 0, onShelf: 0, mustHave: 1 };
-                
                 const lastOrderedText = item.daysSinceLastOrder === 0 ? 'Today' :
                                        item.daysSinceLastOrder === 1 ? 'Yesterday' :
                                        `${item.daysSinceLastOrder}d ago`;
-                
-                const recommendedQty = Math.max(0, inv.mustHave - (inv.onDisplay + inv.onShelf));
                 
                 const card = document.createElement('div');
                 card.className = `item-card ${item.status === 'alert' ? 'alert' : item.status === 'warning' ? 'warning' : ''}`;
@@ -672,25 +650,7 @@
                     
                     ${alertHTML}
                     
-                    <div class="inventory-inputs">
-                        <div class="inv-input">
-                            <label class="inv-label">On Display</label>
-                            <input type="number" class="inv-field" min="0" value="${inv.onDisplay}" onchange="updateInventory('${item.name}', 'onDisplay', this.value)">
-                        </div>
-                        <div class="inv-input">
-                            <label class="inv-label">On Shelf</label>
-                            <input type="number" class="inv-field" min="0" value="${inv.onShelf}" onchange="updateInventory('${item.name}', 'onShelf', this.value)">
-                        </div>
-                    </div>
-                    
-                    <div class="calc-display">
-                        <span class="calc-label">Must Have</span>
-                        <span class="calc-value">${inv.mustHave}</span>
-                    </div>
-                    
-                    <div class="rec-display">
-                        📋 REC: ${recommendedQty} units
-                    </div>
+                    <span class="recommended-badge">📦 Recommended: ${item.recommendedQty} units</span>
                     
                     <div class="item-stats">
                         <div class="stat-row">
@@ -709,7 +669,7 @@
                     
                     <div class="qty-control">
                         <button class="qty-btn" onclick="updateQty('${item.name}', -1)">➖</button>
-                        <button class="qty-btn" onclick="updateQty('${item.name}', ${recommendedQty})">📋 REC</button>
+                        <button class="qty-btn" onclick="updateQty('${item.name}', ${item.recommendedQty})">📋 Rec</button>
                         <button class="qty-btn" onclick="updateQty('${item.name}', 1)">➕</button>
                     </div>
                     
@@ -718,14 +678,6 @@
                 
                 grid.appendChild(card);
             }
-        }
-
-        function updateInventory(itemName, field, value) {
-            if (!inventoryData[itemName]) {
-                inventoryData[itemName] = { onDisplay: 0, onShelf: 0, mustHave: 1 };
-            }
-            inventoryData[itemName][field] = parseInt(value) || 0;
-            renderItems();
         }
 
         function filterItems() {
@@ -753,10 +705,7 @@
         function sendOrder() {
             const itemsToSend = Object.entries(orderData)
                 .filter(([_, qty]) => qty > 0)
-                .map(([name, qty]) => {
-                    const inv = inventoryData[name] || { onDisplay: 0, onShelf: 0 };
-                    return `${name}: ${qty} (Display: ${inv.onDisplay}, Shelf: ${inv.onShelf})`;
-                })
+                .map(([name, qty]) => `${name}: ${qty}`)
                 .join('\n');
             
             if (!itemsToSend) {
