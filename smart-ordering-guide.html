@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Ordering Guide</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-section label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .filter-section select {
+            padding: 10px 15px;
+            border: 2px solid #2a5298;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #2a5298;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-left: 5px solid #2a5298;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+        }
+        
+        .item-card.low-stock {
+            border-left-color: #ff9800;
+        }
+        
+        .item-card.alert {
+            border-left-color: #f44336;
+        }
+        
+        .item-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+        
+        .item-number {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 15px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            color: #2a5298;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .recommended-qty {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .status-good {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-low {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .status-alert {
+            background: #f44336;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: white;
+        }
+        
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .stats-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .stats-summary h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-item {
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .summary-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .summary-value {
+            color: #2a5298;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .refresh-button {
+            background: white;
+            color: #2a5298;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .refresh-button:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-section select,
+            .search-box input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Smart Ordering Guide</h1>
+            <p>Intelligent recommendations based on your 4-week order history</p>
+        </div>
+        
+        <div id="loading" class="loading">Loading your order data...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="dashboard" style="display: none;">
+            <div class="stats-summary">
+                <h3>📊 Summary</h3>
+                <div class="summary-row">
+                    <div class="summary-item">
+                        <div class="summary-label">Active Items</div>
+                        <div class="summary-value" id="activeItems">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Low Stock Alert</div>
+                        <div class="summary-value" id="lowStockCount">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Not Ordered (3+ weeks)</div>
+                        <div class="summary-value" id="notOrderedCount">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Order Frequency</div>
+                        <div class="summary-value" id="avgFrequency">0x</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <label for="statusFilter">Filter by Status:</label>
+                <select id="statusFilter" onchange="filterItems()">
+                    <option value="all">All Items</option>
+                    <option value="good">✅ Good Stock</option>
+                    <option value="low">⚠️ Low Stock</option>
+                    <option value="alert">🔴 Alert</option>
+                </select>
+                
+                <div class="search-box">
+                    <input type="text" id="searchBox" placeholder="Search by item name..." onkeyup="filterItems()">
+                </div>
+            </div>
+            
+            <div class="items-grid" id="itemsGrid"></div>
+            
+            <center>
+                <button class="refresh-button" onclick="location.reload()">🔄 Refresh Guide</button>
+            </center>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec?action=getOrderData';
+        let allItems = [];
+        let filteredStatus = 'all';
+        let searchTerm = '';
+
+        async function loadAndAnalyzeData() {
+            try {
+                console.log('Fetching order data...');
+                const response = await fetch(APPS_SCRIPT_URL);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                if (!data.orders || data.orders.length === 0) throw new Error('No order data found');
+                
+                // Process data for last 4 weeks
+                const now = new Date();
+                const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+                
+                const itemStats = {};
+                
+                for (const order of data.orders) {
+                    const orderDate = new Date(order.date);
+                    if (orderDate < fourWeeksAgo) continue; // Skip orders older than 4 weeks
+                    
+                    const itemName = String(order.itemName);
+                    const qty = parseFloat(order.qty) || 0;
+                    
+                    if (!itemStats[itemName]) {
+                        itemStats[itemName] = {
+                            name: itemName,
+                            total: 0,
+                            count: 0,
+                            lastOrdered: orderDate,
+                            orders: []
+                        };
+                    }
+                    
+                    itemStats[itemName].total += qty;
+                    itemStats[itemName].count++;
+                    itemStats[itemName].orders.push({ date: orderDate, qty: qty });
+                    
+                    if (orderDate > itemStats[itemName].lastOrdered) {
+                        itemStats[itemName].lastOrdered = orderDate;
+                    }
+                }
+                
+                // Convert to array and calculate metrics
+                allItems = Object.values(itemStats).map(item => {
+                    const avgPerOrder = item.count > 0 ? item.total / item.count : 0;
+                    const avgPerWeek = (item.total / 4).toFixed(2);
+                    const daysSinceLastOrder = Math.floor((now - item.lastOrdered) / (1000 * 60 * 60 * 24));
+                    const recommendedQty = Math.ceil(avgPerWeek * Math.max(1, daysSinceLastOrder / 7));
+                    
+                    let status = 'good';
+                    if (daysSinceLastOrder > 21) {
+                        status = 'alert';
+                    } else if (daysSinceLastOrder > 14) {
+                        status = 'low';
+                    }
+                    
+                    return {
+                        ...item,
+                        avgPerWeek: parseFloat(avgPerWeek),
+                        avgPerOrder: avgPerOrder.toFixed(2),
+                        daysSinceLastOrder,
+                        recommendedQty,
+                        status
+                    };
+                });
+                
+                // Sort by recommended quantity (highest first)
+                allItems.sort((a, b) => b.recommendedQty - a.recommendedQty);
+                
+                // Update summary stats
+                const lowStock = allItems.filter(i => i.status === 'low').length;
+                const alert = allItems.filter(i => i.status === 'alert').length;
+                const avgFreq = (allItems.reduce((sum, i) => sum + i.count, 0) / allItems.length).toFixed(1);
+                
+                document.getElementById('activeItems').textContent = allItems.length;
+                document.getElementById('lowStockCount').textContent = lowStock;
+                document.getElementById('notOrderedCount').textContent = alert;
+                document.getElementById('avgFrequency').textContent = avgFreq + 'x/4wks';
+                
+                // Render items
+                renderItems();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = `
+                    <strong>⚠️ Error loading data:</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        function filterItems() {
+            filteredStatus = document.getElementById('statusFilter').value;
+            searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            renderItems();
+        }
+        
+        function renderItems() {
+            let filtered = allItems;
+            
+            if (filteredStatus !== 'all') {
+                filtered = filtered.filter(item => {
+                    if (filteredStatus === 'good') return item.status === 'good';
+                    if (filteredStatus === 'low') return item.status === 'low';
+                    if (filteredStatus === 'alert') return item.status === 'alert';
+                    return true;
+                });
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(item => item.name.toLowerCase().includes(searchTerm));
+            }
+            
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: white; font-size: 1.2em;">No items match your filter</div>';
+                return;
+            }
+            
+            for (const item of filtered) {
+                const lastOrderedText = item.daysSinceLastOrder === 0 ? 'Today' : 
+                                       item.daysSinceLastOrder === 1 ? 'Yesterday' :
+                                       `${item.daysSinceLastOrder} days ago`;
+                
+                let statusClass = `status-${item.status}`;
+                let statusText = '';
+                if (item.status === 'good') statusText = '✅ Good Stock';
+                else if (item.status === 'low') statusText = '⚠️ Low Stock';
+                else if (item.status === 'alert') statusText = '🔴 Not Ordered (3+ weeks)';
+                
+                const card = document.createElement('div');
+                card.className = `item-card ${item.status === 'alert' ? 'alert' : item.status === 'low' ? 'low-stock' : ''}`;
+                card.innerHTML = `
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-number">#${item.orders[0]?.itemNumber || 'N/A'}</div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Avg Units/Week</span>
+                        <span class="stat-value">${item.avgPerWeek}</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Last Ordered</span>
+                        <span class="stat-value">${lastOrderedText}</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Times Ordered</span>
+                        <span class="stat-value">${item.count}x (4 weeks)</span>
+                    </div>
+                    
+                    <div class="recommended-qty">
+                        📦 Order: ${item.recommendedQty} units
+                    </div>
+                    
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+        
+        window.addEventListener('load', loadAndAnalyzeData);
+    </script>
+</body>
+</html>
