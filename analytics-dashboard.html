@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cigarette Order Analytics Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Cigarette Order Analytics Dashboard</h1>
+            <p>KC Mart #09 - Weekly Ordering Trends & Insights</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-box">
+                <div class="value" id="totalOrders">-</div>
+                <div class="label">Total Orders</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="totalUnits">-</div>
+                <div class="label">Total Units</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="avgPerOrder">-</div>
+                <div class="label">Avg Units/Order</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="topItem">-</div>
+                <div class="label">Top Item</div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>📈 Weekly Order Trend</h2>
+                <div class="loading" id="chartWeekly">Loading...</div>
+                <canvas id="weeklyChart"></canvas>
+            </div>
+            
+            <div class="card">
+                <h2>📦 Total Units per Week</h2>
+                <div class="loading" id="chartUnits">Loading...</div>
+                <canvas id="unitsChart"></canvas>
+            </div>
+            
+            <div class="card">
+                <h2>🏆 Top 10 Items Ordered</h2>
+                <div class="loading" id="chartTop10">Loading...</div>
+                <canvas id="top10Chart"></canvas>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Items Count Distribution</h2>
+                <div class="loading" id="chartDistribution">Loading...</div>
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
+        const ORDER_DETAILS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=1734590286&single=true&output=csv';
+        
+        let charts = {};
+        
+        async function loadData() {
+            try {
+                const response = await fetch(ORDER_DETAILS_CSV);
+                const csv = await response.text();
+                const rows = csv.split('\n').slice(1).filter(row => row.trim());
+                
+                const data = rows.map(row => {
+                    const parts = row.split(',');
+                    return {
+                        date: parts[0],
+                        week: parts[1],
+                        itemName: parts[2],
+                        itemNum: parts[3],
+                        qty: parseFloat(parts[4]) || 0,
+                        timestamp: parts[5]
+                    };
+                });
+                
+                analyzeData(data);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.querySelectorAll('.loading').forEach(el => el.textContent = '❌ Error loading data');
+            }
+        }
+        
+        function analyzeData(data) {
+            // Weekly aggregation
+            const weeklyData = {};
+            const itemData = {};
+            
+            data.forEach(row => {
+                const week = row.week;
+                if (!weeklyData[week]) {
+                    weeklyData[week] = { orders: 0, units: 0, items: new Set() };
+                }
+                weeklyData[week].units += row.qty;
+                weeklyData[week].items.add(row.itemName);
+                
+                // Item-level tracking
+                if (!itemData[row.itemName]) {
+                    itemData[row.itemName] = { qty: 0, count: 0 };
+                }
+                itemData[row.itemName].qty += row.qty;
+                itemData[row.itemName].count += 1;
+            });
+            
+            // Count orders per week
+            Object.keys(weeklyData).forEach(week => {
+                weeklyData[week].orders = weeklyData[week].items.size;
+            });
+            
+            // Stats
+            const totalOrders = Object.values(weeklyData).reduce((sum, w) => sum + w.orders, 0);
+            const totalUnits = Object.values(weeklyData).reduce((sum, w) => sum + w.units, 0);
+            const avgUnits = (totalUnits / totalOrders).toFixed(1);
+            const topItem = Object.keys(itemData).reduce((a, b) => itemData[a].qty > itemData[b].qty ? a : b);
+            
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalUnits').textContent = totalUnits.toFixed(0);
+            document.getElementById('avgPerOrder').textContent = avgUnits;
+            document.getElementById('topItem').textContent = topItem.split(' ')[0];
+            
+            // Charts
+            createWeeklyChart(weeklyData);
+            createUnitsChart(weeklyData);
+            createTop10Chart(itemData);
+            createDistributionChart(weeklyData);
+        }
+        
+        function createWeeklyChart(weeklyData) {
+            const weeks = Object.keys(weeklyData).sort();
+            const orders = weeks.map(w => weeklyData[w].orders);
+            
+            const ctx = document.getElementById('weeklyChart');
+            if (charts.weekly) charts.weekly.destroy();
+            charts.weekly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weeks.map(w => `Week ${w}`),
+                    datasets: [{
+                        label: 'Items Ordered',
+                        data: orders,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+            document.getElementById('chartWeekly').style.display = 'none';
+        }
+        
+        function createUnitsChart(weeklyData) {
+            const weeks = Object.keys(weeklyData).sort();
+            const units = weeks.map(w => weeklyData[w].units);
+            
+            const ctx = document.getElementById('unitsChart');
+            if (charts.units) charts.units.destroy();
+            charts.units = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks.map(w => `Week ${w}`),
+                    datasets: [{
+                        label: 'Total Units',
+                        data: units,
+                        backgroundColor: '#2196F3'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+            document.getElementById('chartUnits').style.display = 'none';
+        }
+        
+        function createTop10Chart(itemData) {
+            const top10 = Object.entries(itemData)
+                .sort((a, b) => b[1].qty - a[1].qty)
+                .slice(0, 10);
+            
+            const ctx = document.getElementById('top10Chart');
+            if (charts.top10) charts.top10.destroy();
+            charts.top10 = new Chart(ctx, {
+                type: 'barh',
+                data: {
+                    labels: top10.map(([name]) => name.substring(0, 20)),
+                    datasets: [{
+                        label: 'Total Units',
+                        data: top10.map(([_, data]) => data.qty),
+                        backgroundColor: '#FF9800'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+            document.getElementById('chartTop10').style.display = 'none';
+        }
+        
+        function createDistributionChart(weeklyData) {
+            const weeks = Object.keys(weeklyData).sort();
+            const distribution = weeks.map(w => weeklyData[w].orders);
+            
+            const ctx = document.getElementById('distributionChart');
+            if (charts.dist) charts.dist.destroy();
+            charts.dist = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: weeks.map(w => `Week ${w}`),
+                    datasets: [{
+                        data: distribution,
+                        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#F44336', '#9C27B0']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+            document.getElementById('chartDistribution').style.display = 'none';
+        }
+        
+        loadData();
+    </script>
+</body>
+</html>
