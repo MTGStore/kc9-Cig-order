@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cigarette Ordering App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 25px;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .auth-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .auth-section.show {
+            display: block;
+        }
+        
+        .auth-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn.active {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+        
+        .mode-btn:hover {
+            border-color: #2a5298;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #2a5298;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 5px rgba(42, 82, 152, 0.3);
+        }
+        
+        .password-section {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+        
+        .password-section.show {
+            display: block;
+        }
+        
+        .auth-button {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+        }
+        
+        .auth-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .error-msg {
+            background: #f44336;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .error-msg.show {
+            display: block;
+        }
+        
+        .manager-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #2a5298;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        
+        .items-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-top: 4px solid #2a5298;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+        }
+        
+        .item-card.alert {
+            border-top-color: #f44336;
+            background: #fff3e0;
+        }
+        
+        .item-card.warning {
+            border-top-color: #ff9800;
+        }
+        
+        .item-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        
+        .item-number {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        
+        .item-stats {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 4px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #666;
+        }
+        
+        .stat-value {
+            color: #2a5298;
+            font-weight: bold;
+        }
+        
+        .qty-control {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .qty-btn {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #2a5298;
+            background: white;
+            color: #2a5298;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .qty-btn:hover {
+            background: #2a5298;
+            color: white;
+        }
+        
+        .qty-display {
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #2a5298;
+        }
+        
+        .recommended-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        
+        .alert-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-bottom: 8px;
+        }
+        
+        .action-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .clear-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .clear-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .logout-btn {
+            background: #999;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        
+        .order-count {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff9800;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.1em;
+        }
+        
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .items-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-radius: 12px 12px 0 0;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="order-count" id="orderCount" style="display: none;">0 items</div>
+    <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display: none;">🚪 Logout</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚬 Smart Order App</h1>
+            <p>Intelligent ordering with 4-week history & recommendations</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <!-- LOGIN SECTION -->
+        <div class="auth-section show" id="authSection">
+            <h2>Welcome</h2>
+            
+            <div class="error-msg" id="errorMsg"></div>
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="setMode('employee')" id="employeeBtn">👤 Employee</button>
+                <button class="mode-btn" onclick="setMode('manager')" id="managerBtn">👨‍💼 Manager</button>
+            </div>
+            
+            <input type="text" id="employeeName" class="auth-input" placeholder="Your name">
+            
+            <div class="password-section" id="passwordSection">
+                <input type="password" id="managerPassword" class="auth-input" placeholder="Manager password">
+            </div>
+            
+            <button class="auth-button" onclick="startOrdering()">Enter</button>
+        </div>
+        
+        <!-- APP SECTION -->
+        <div id="app" style="display: none;">
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchBox" placeholder="🔍 Search items..." onkeyup="filterItems()">
+                </div>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">Loading items...</div>
+            
+            <div class="items-container" id="itemsContainer"></div>
+            
+            <div style="height: 100px;"></div>
+        </div>
+    </div>
+    
+    <div class="action-buttons" id="actionButtons" style="display: none;">
+        <button class="action-btn send-btn" onclick="sendOrder()">📱 Send Order</button>
+        <button class="action-btn clear-btn" onclick="clearOrder()">❌ Clear All</button>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec?action=getOrderData';
+        const OWNER_PHONE = '14046689091';
+        const MANAGER_PASSWORD = '977381';
+        
+        let allItems = [];
+        let orderData = {};
+        let employeeName = '';
+        let userMode = 'employee';
+        let isManager = false;
+
+        function setMode(mode) {
+            userMode = mode;
+            const employeeBtn = document.getElementById('employeeBtn');
+            const managerBtn = document.getElementById('managerBtn');
+            const passwordSection = document.getElementById('passwordSection');
+            
+            if (mode === 'employee') {
+                employeeBtn.classList.add('active');
+                managerBtn.classList.remove('active');
+                passwordSection.classList.remove('show');
+                document.getElementById('managerPassword').value = '';
+            } else {
+                employeeBtn.classList.remove('active');
+                managerBtn.classList.add('active');
+                passwordSection.classList.add('show');
+            }
+        }
+
+        function startOrdering() {
+            const name = document.getElementById('employeeName').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if (!name) {
+                errorMsg.textContent = '⚠️ Please enter your name';
+                errorMsg.classList.add('show');
+                return;
+            }
+            
+            if (userMode === 'manager') {
+                const password = document.getElementById('managerPassword').value;
+                if (password !== MANAGER_PASSWORD) {
+                    errorMsg.textContent = '❌ Incorrect manager password';
+                    errorMsg.classList.add('show');
+                    return;
+                }
+                isManager = true;
+            }
+            
+            employeeName = name;
+            errorMsg.classList.remove('show');
+            document.getElementById('authSection').classList.remove('show');
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'flex';
+            document.getElementById('orderCount').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'block';
+            
+            loadItems();
+        }
+
+        function logout() {
+            orderData = {};
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('orderCount').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('authSection').classList.add('show');
+            document.getElementById('employeeName').value = '';
+            document.getElementById('managerPassword').value = '';
+            document.getElementById('errorMsg').classList.remove('show');
+            setMode('employee');
+            isManager = false;
+        }
+
+        async function loadItems() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(APPS_SCRIPT_URL);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                if (!data.orders || data.orders.length === 0) throw new Error('No order data');
+                
+                const now = new Date();
+                const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+                
+                const itemStats = {};
+                
+                for (const order of data.orders) {
+                    const orderDate = new Date(order.date);
+                    if (orderDate < fourWeeksAgo) continue;
+                    
+                    const itemName = String(order.itemName);
+                    const qty = parseFloat(order.qty) || 0;
+                    
+                    if (!itemStats[itemName]) {
+                        itemStats[itemName] = {
+                            name: itemName,
+                            total: 0,
+                            count: 0,
+                            lastOrdered: orderDate,
+                            orders: []
+                        };
+                    }
+                    
+                    itemStats[itemName].total += qty;
+                    itemStats[itemName].count++;
+                    itemStats[itemName].orders.push({ date: orderDate, qty: qty });
+                    
+                    if (orderDate > itemStats[itemName].lastOrdered) {
+                        itemStats[itemName].lastOrdered = orderDate;
+                    }
+                }
+                
+                allItems = Object.values(itemStats).map(item => {
+                    const avgPerWeek = (item.total / 4).toFixed(2);
+                    const daysSinceLastOrder = Math.floor((now - item.lastOrdered) / (1000 * 60 * 60 * 24));
+                    const recommendedQty = Math.ceil(avgPerWeek * Math.max(1, daysSinceLastOrder / 7));
+                    
+                    let status = 'good';
+                    if (daysSinceLastOrder > 21) status = 'alert';
+                    else if (daysSinceLastOrder > 14) status = 'warning';
+                    
+                    return {
+                        ...item,
+                        avgPerWeek: parseFloat(avgPerWeek),
+                        daysSinceLastOrder,
+                        recommendedQty,
+                        status
+                    };
+                });
+                
+                allItems.sort((a, b) => b.recommendedQty - a.recommendedQty);
+                
+                document.getElementById('loading').style.display = 'none';
+                renderItems();
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = '⚠️ Error: ' + error.message;
+            }
+        }
+
+        function renderItems() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            let filtered = allItems.filter(item => item.name.toLowerCase().includes(searchTerm));
+            
+            const grid = document.getElementById('itemsContainer');
+            grid.innerHTML = '';
+            
+            for (const item of filtered) {
+                const currentQty = orderData[item.name] || 0;
+                const lastOrderedText = item.daysSinceLastOrder === 0 ? 'Today' :
+                                       item.daysSinceLastOrder === 1 ? 'Yesterday' :
+                                       `${item.daysSinceLastOrder}d ago`;
+                
+                const card = document.createElement('div');
+                card.className = `item-card ${item.status === 'alert' ? 'alert' : item.status === 'warning' ? 'warning' : ''}`;
+                
+                let alertHTML = '';
+                if (item.status === 'alert') {
+                    alertHTML = '<span class="alert-badge">🔴 Not ordered in 3+ weeks</span>';
+                } else if (item.status === 'warning') {
+                    alertHTML = '<span class="alert-badge">⚠️ Not ordered in 2+ weeks</span>';
+                }
+                
+                card.innerHTML = `
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-number">#${item.orders[0]?.itemNumber || 'N/A'}</div>
+                    
+                    ${alertHTML}
+                    
+                    <span class="recommended-badge">📦 Recommended: ${item.recommendedQty} units</span>
+                    
+                    <div class="item-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Avg/Week</span>
+                            <span class="stat-value">${item.avgPerWeek}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Last Ordered</span>
+                            <span class="stat-value">${lastOrderedText}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Times (4wks)</span>
+                            <span class="stat-value">${item.count}x</span>
+                        </div>
+                    </div>
+                    
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="updateQty('${item.name}', -1)">➖</button>
+                        <button class="qty-btn" onclick="updateQty('${item.name}', ${item.recommendedQty})">📋 Rec</button>
+                        <button class="qty-btn" onclick="updateQty('${item.name}', 1)">➕</button>
+                    </div>
+                    
+                    <div class="qty-display" id="qty-${item.name}">${currentQty}</div>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+
+        function filterItems() {
+            renderItems();
+        }
+
+        function updateQty(itemName, change) {
+            if (!orderData[itemName]) {
+                orderData[itemName] = 0;
+            }
+            
+            orderData[itemName] += change;
+            if (orderData[itemName] < 0) orderData[itemName] = 0;
+            
+            document.getElementById(`qty-${itemName}`).textContent = orderData[itemName];
+            updateOrderCount();
+        }
+
+        function updateOrderCount() {
+            const totalItems = Object.values(orderData).reduce((sum, qty) => sum + qty, 0);
+            const uniqueItems = Object.values(orderData).filter(qty => qty > 0).length;
+            document.getElementById('orderCount').textContent = `${uniqueItems} items`;
+        }
+
+        function sendOrder() {
+            const itemsToSend = Object.entries(orderData)
+                .filter(([_, qty]) => qty > 0)
+                .map(([name, qty]) => `${name}: ${qty}`)
+                .join('\n');
+            
+            if (!itemsToSend) {
+                alert('Please select items to order');
+                return;
+            }
+            
+            const modeLabel = isManager ? '(Manager)' : '(Employee)';
+            const message = `🚬 CIGARETTE ORDER ${modeLabel}\nEmployee: ${employeeName}\n📅 ${new Date().toLocaleDateString()}\n\n${itemsToSend}`;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappURL = `https://wa.me/${OWNER_PHONE}?text=${encodedMessage}`;
+            
+            window.open(whatsappURL, '_blank');
+            
+            setTimeout(() => {
+                clearOrder();
+            }, 1000);
+        }
+
+        function clearOrder() {
+            orderData = {};
+            renderItems();
+            updateOrderCount();
+        }
+    </script>
+</body>
+</html>
