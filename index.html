@@ -149,6 +149,7 @@
         .btn-submit {
             background: #2196F3;
             color: white;
+            flex: 1;
         }
         
         .btn-submit:hover {
@@ -158,6 +159,7 @@
         .btn-cancel {
             background: #f44336;
             color: white;
+            flex: 1;
         }
         
         .btn-cancel:hover {
@@ -183,6 +185,7 @@
             align-items: center;
             gap: 15px;
             font-size: 14px;
+            flex-wrap: wrap;
         }
         
         .btn-logout {
@@ -484,8 +487,8 @@
             <h2>Manager Login</h2>
             <input type="password" id="passwordInput" placeholder="Enter password" />
             <div class="modal-buttons">
-                <button class="modal-buttons button btn-submit" onclick="submitPassword()">Submit</button>
-                <button class="modal-buttons button btn-cancel" onclick="cancelPassword()">Cancel</button>
+                <button class="btn-submit" onclick="submitPassword()">Submit</button>
+                <button class="btn-cancel" onclick="cancelPassword()">Cancel</button>
             </div>
         </div>
     </div>
@@ -613,19 +616,33 @@
                 const lines = csv.split('\n');
                 console.log(`📝 Total lines: ${lines.length}`);
                 
+                // Skip header row (row 0)
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
                     
-                    const parts = line.split(',');
-                    if (parts.length >= 4) {
-                        allItems.push({
-                            id: parts[0].trim(),
-                            name: parts[1].trim(),
-                            itemNumber: parts[2].trim(),
-                            upc: parts[3].trim(),
-                            mustHave: parseFloat(parts[4]) || 0
-                        });
+                    // CSV parsing - handle quoted fields
+                    const parts = parseCSVLine(line);
+                    
+                    if (parts.length >= 2) {
+                        // CORRECT ORDER from Main CIG LIST sheet:
+                        // Column A (parts[0]): Item Name
+                        // Column B (parts[1]): Item Number
+                        // Column C (parts[2]): UPC Code
+                        // Column D (parts[3]): Must Have Qty
+                        
+                        const item = {
+                            id: parts[1] ? parts[1].trim() : '', // Item Number
+                            name: parts[0] ? parts[0].trim() : '', // Item Name
+                            itemNumber: parts[1] ? parts[1].trim() : '', // Item Number (duplicate for clarity)
+                            upc: parts[2] ? parts[2].trim() : '', // UPC Code
+                            mustHave: parseFloat(parts[3]) || 0 // Must Have Qty
+                        };
+                        
+                        // Only add if we have a name and item number
+                        if (item.name && item.itemNumber) {
+                            allItems.push(item);
+                        }
                     }
                 }
                 
@@ -637,6 +654,34 @@
                 document.getElementById('itemsContainer').innerHTML = 
                     `<div class="error-message">❌ Error loading items: ${error.message}</div>`;
             }
+        }
+        
+        // Helper function to parse CSV lines (handles quoted fields)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let insideQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
         }
         
         function renderItems() {
@@ -653,7 +698,7 @@
                     <div class="item-name">${escapeHtml(item.name)}</div>
                     <div class="item-meta">
                         <div>📦 Item #: ${escapeHtml(item.itemNumber)}</div>
-                        <div>🔢 UPC: ${escapeHtml(item.upc)}</div>
+                        <div>🔢 UPC: ${escapeHtml(item.upc || 'N/A')}</div>
                         <div>⭐ Must Have: ${item.mustHave}</div>
                     </div>
                     <div class="item-inputs">
@@ -668,7 +713,7 @@
                     </div>
                     <div class="input-group">
                         <label>📥 Order Qty</label>
-                        <input type="number" min="0" value="0" data-idx="${idx}" data-field="orderQty" onchange="updateSummary()">
+                        <input type="number" min="0" step="0.1" value="0" data-idx="${idx}" data-field="orderQty" onchange="updateSummary()">
                     </div>
                 </div>
             `).join('');
@@ -686,7 +731,7 @@
                 filteredItems = allItems.filter(item =>
                     item.name.toLowerCase().includes(searchTerm) ||
                     item.itemNumber.includes(searchTerm) ||
-                    item.upc.includes(searchTerm)
+                    item.upc.toLowerCase().includes(searchTerm)
                 );
             }
             
@@ -695,18 +740,15 @@
         }
         
         function updateSummary() {
-            const inputs = document.querySelectorAll('.item-inputs input, .input-group input[data-field="orderQty"]');
+            const inputs = document.querySelectorAll('[data-field="orderQty"]');
             let orderedCount = 0;
             let totalQty = 0;
             
             inputs.forEach(input => {
-                const idx = input.dataset.idx;
-                if (input.dataset.field === 'orderQty') {
-                    const qty = parseFloat(input.value) || 0;
-                    if (qty > 0) {
-                        orderedCount++;
-                        totalQty += qty;
-                    }
+                const qty = parseFloat(input.value) || 0;
+                if (qty > 0) {
+                    orderedCount++;
+                    totalQty += qty;
                 }
             });
             
@@ -809,7 +851,7 @@
                 });
                 
                 console.log('✅ Order logged successfully');
-                showSuccessPopup(`✅ Order Logged!\n${ordered.length} items saved`);
+                showSuccessPopup();
                 
                 // Reset form after successful log
                 setTimeout(() => {
@@ -826,10 +868,11 @@
             }
         }
         
-        function showSuccessPopup(message) {
+        function showSuccessPopup() {
             console.log('🎉 Showing success popup');
             const popup = document.getElementById('successPopup');
-            document.getElementById('successMessage').textContent = `✅ ${getOrderedItems().length} items saved to sheet`;
+            const itemCount = getOrderedItems().length;
+            document.getElementById('successMessage').textContent = `✅ ${itemCount} items saved to sheet`;
             popup.classList.add('active');
             
             let countdown = 3;
@@ -873,6 +916,7 @@
         }
         
         function escapeHtml(text) {
+            if (!text) return '';
             const map = {
                 '&': '&amp;',
                 '<': '&lt;',
