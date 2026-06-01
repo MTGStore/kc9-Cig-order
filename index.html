@@ -283,17 +283,6 @@
             font-size: 14px;
         }
         
-        .btn-secondary {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #0b7dda;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-        }
-        
         .items-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -393,7 +382,7 @@
             color: #333;
         }
         
-        .order-qty-display.negative {
+        .order-qty-display.zero-or-negative {
             background: #ffe0e0;
             border-color: #f44336;
             color: #c62828;
@@ -594,7 +583,7 @@
         let allItems = [];
         let userRole = null;
         let filteredItems = [];
-        let itemValues = {}; // Track On Display & Under Cabinet values
+        let itemValues = {};
         
         async function initApp() {
             console.log('🚀 Initializing app...');
@@ -735,19 +724,19 @@
         }
         
         function sortAndRenderItems() {
-            // Separate items with orders from those without
-            const itemsWithOrders = filteredItems.filter(item => {
+            // ONLY POSITIVE orders (> 0) at top - everything else at bottom
+            const itemsWithPositiveOrders = filteredItems.filter(item => {
                 const orderQty = calculateOrderQty(item.id);
-                return orderQty !== 0;
+                return orderQty > 0;  // ← POSITIVE ONLY
             });
             
-            const itemsWithoutOrders = filteredItems.filter(item => {
+            const itemsOther = filteredItems.filter(item => {
                 const orderQty = calculateOrderQty(item.id);
-                return orderQty === 0;
+                return orderQty <= 0;  // ← 0 and NEGATIVE go down
             });
             
-            // Render with items that have orders first
-            const sortedItems = [...itemsWithOrders, ...itemsWithoutOrders];
+            // Render positive orders first, others below
+            const sortedItems = [...itemsWithPositiveOrders, ...itemsOther];
             renderItems(sortedItems);
         }
         
@@ -762,12 +751,11 @@
             
             container.innerHTML = itemsToRender.map((item, idx) => {
                 const orderQty = calculateOrderQty(item.id);
-                const isNegative = orderQty < 0;
-                const hasOrder = orderQty !== 0;
+                const isPositive = orderQty > 0;
                 const values = itemValues[item.id] || { onDisplay: 0, underCabinet: 0 };
                 
                 return `
-                    <div class="item-card ${hasOrder ? 'has-order' : ''}">
+                    <div class="item-card ${isPositive ? 'has-order' : ''}">
                         <div class="item-name">${escapeHtml(item.name)}</div>
                         <div class="item-meta">
                             <div>📦 Item #: ${escapeHtml(item.itemNumber)}</div>
@@ -786,7 +774,7 @@
                         </div>
                         <div class="input-group">
                             <label>📥 Order Qty (Auto)</label>
-                            <div class="order-qty-display ${isNegative ? 'negative' : ''}">
+                            <div class="order-qty-display ${!isPositive ? 'zero-or-negative' : ''}">
                                 ${orderQty}
                             </div>
                         </div>
@@ -821,7 +809,7 @@
             
             allItems.forEach(item => {
                 const orderQty = calculateOrderQty(item.id);
-                if (orderQty !== 0) {
+                if (orderQty > 0) {
                     orderedCount++;
                     totalQty += orderQty;
                 }
@@ -848,7 +836,7 @@
             const ordered = [];
             allItems.forEach(item => {
                 const orderQty = calculateOrderQty(item.id);
-                if (orderQty !== 0) {
+                if (orderQty > 0) {
                     ordered.push({
                         name: item.name,
                         itemNumber: item.itemNumber,
@@ -862,7 +850,7 @@
         function sendWhatsApp(format) {
             const ordered = getOrderedItems();
             if (ordered.length === 0) {
-                alert('❌ No items with orders');
+                alert('❌ No items with positive orders');
                 return;
             }
             
@@ -895,7 +883,7 @@
             const ordered = getOrderedItems();
             
             if (ordered.length === 0) {
-                alert('❌ No items with orders');
+                alert('❌ No items with positive orders');
                 return;
             }
             
