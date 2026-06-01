@@ -221,60 +221,40 @@
     </div>
 
     <script>
-        // CORS Proxy + CSV URL for Order Details sheet
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk/export?format=csv&gid=1734590286';
-        const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+        // Apps Script URL - THIS IS THE KEY CHANGE
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec?action=getOrderData';
 
         let trendChart, unitsChart, topItemsChart, distributionChart;
 
         async function loadAndAnalyzeData() {
             try {
-                // Try direct fetch first (no CORS proxy)
-                let response;
-                try {
-                    response = await fetch(CSV_URL);
-                } catch (e) {
-                    // If that fails, try with CORS proxy
-                    console.log('Direct fetch failed, trying CORS proxy...');
-                    response = await fetch(CORS_PROXY + CSV_URL);
-                }
+                console.log('Fetching from Apps Script:', APPS_SCRIPT_URL);
+                const response = await fetch(APPS_SCRIPT_URL);
                 
+                console.log('Response status:', response.status);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const csv = await response.text();
                 
-                // Parse CSV
-                const lines = csv.split('\n');
-                const headers = lines[0].split(',').map(h => h.trim());
+                const data = await response.json();
+                console.log('Data received:', data);
                 
-                // Find column indices
-                const dateIdx = headers.indexOf('Date');
-                const weekIdx = headers.indexOf('Week');
-                const itemNameIdx = headers.indexOf('Item Name');
-                const qtyIdx = headers.indexOf('Qty');
-                
-                if (dateIdx === -1 || weekIdx === -1 || itemNameIdx === -1 || qtyIdx === -1) {
-                    throw new Error('Required columns not found. Expected: Date, Week, Item Name, Qty');
+                if (data.error) {
+                    throw new Error(data.error);
                 }
                 
-                // Parse data
-                const orders = [];
+                if (!data.orders || data.orders.length === 0) {
+                    throw new Error('No order data found in Google Sheet');
+                }
+                
+                // Analyze data
                 const itemMap = {};
                 const weekMap = {};
                 
-                for (let i = 1; i < lines.length; i++) {
-                    if (lines[i].trim() === '') continue;
+                for (const order of data.orders) {
+                    const week = String(order.week);
+                    const itemName = String(order.itemName);
+                    const qty = parseFloat(order.qty) || 0;
                     
-                    const parts = lines[i].split(',');
-                    if (parts.length < qtyIdx + 1) continue;
-                    
-                    const date = parts[dateIdx].trim();
-                    const week = parts[weekIdx].trim();
-                    const itemName = parts[itemNameIdx].trim();
-                    const qty = parseFloat(parts[qtyIdx].trim());
-                    
-                    if (isNaN(qty) || qty === 0) continue;
-                    
-                    orders.push({ date, week, itemName, qty });
+                    if (qty === 0) continue;
                     
                     // Track items
                     if (!itemMap[itemName]) {
@@ -291,7 +271,7 @@
                 }
                 
                 if (Object.keys(weekMap).length === 0) {
-                    throw new Error('No data found in Order Details sheet');
+                    throw new Error('No valid order data to analyze');
                 }
                 
                 // Calculate stats
@@ -334,7 +314,7 @@
                 document.getElementById('error').innerHTML = `
                     <strong>⚠️ Error loading data:</strong><br>
                     ${error.message}<br><br>
-                    <small>This usually means the Google Sheets hasn't been published correctly or there's no data yet.</small>
+                    <small>Check that Apps Script is deployed with "Anyone" access.</small>
                 `;
             }
         }
