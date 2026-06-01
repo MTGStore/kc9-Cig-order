@@ -1,1 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cigarette Order Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  :root{
+    --bg:#f5f4f0;--surface:#fff;--border:#e2e0d8;--border-strong:#c8c5ba;
+    --text:#1a1916;--text-muted:#7a7870;
+    --accent:#c8440a;--accent-bg:#fdf1ec;--accent-border:#f0c4b0;
+    --success:#2a7a4b;--success-bg:#edf7f1;--success-border:#b0dcc0;
+    --wa:#25d366;--wa-dark:#1aad52;
+    --info:#1a6bb5;--info-bg:#e8f1fb;--info-border:#b0cef0;
+    --radius:10px;--radius-sm:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
+  header{background:var(--text);color:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+  .title{font-size:16px;font-weight:600;}
+  .sub{font-size:12px;color:#9a9890;margin-top:1px;}
+  .header-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .header-btns .full{grid-column:1/-1;}
+  .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);background:var(--surface);}
+  .stat{padding:12px 8px;border-right:1px solid var(--border);text-align:center;}
+  .stat:last-child{border-right:none;}
+  .stat-val{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;}
+  .stat-val.red{color:var(--accent);}
+  .stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:1px;}
+  .toolbar{padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;position:sticky;top:0;z-index:10;}
+  .search-wrap{flex:1;position:relative;}
+  .search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
+  input[type="search"]{font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);padding:8px 10px 8px 30px;outline:none;width:100%;}
+  input[type="search"]:focus,input[type="number"]:focus,input[type="text"]:focus{border-color:var(--text);}
+  input[type="number"],input[type="text"]{font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);padding:8px 10px;outline:none;}
+  .scan-banner{background:var(--info-bg);border-bottom:1px solid var(--info-border);padding:10px 14px;display:none;align-items:center;justify-content:space-between;gap:10px;}
+  .scan-banner.active{display:flex;}
+  .scan-banner-left{font-size:13px;color:var(--info);font-weight:500;}
+  .scan-banner-sub{font-size:11px;color:var(--info);opacity:.8;margin-top:1px;}
+  .scan-status{font-size:12px;padding:4px 10px;border-radius:99px;background:var(--info);color:#fff;font-weight:600;white-space:nowrap;}
+  .scan-status.found{background:var(--success);}
+  .scan-status.notfound{background:var(--accent);}
+  .btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:background .12s;}
+  .btn:hover{background:var(--bg);}
+  .btn.active{background:var(--success-bg);border-color:var(--success-border);color:var(--success);}
+  .btn.danger{background:#fff5f5;border-color:#f0b0b0;color:#a32d2d;}
+  .btn.wa{background:var(--wa);border-color:var(--wa);color:#fff;font-weight:600;}
+  .btn.wa:hover{background:var(--wa-dark);}
+  .btn.info{background:var(--info-bg);border-color:var(--info-border);color:var(--info);font-weight:600;}
+  .btn.primary{background:var(--text);border-color:var(--text);color:#fff;}
+  .btn.scan-btn{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600;}
+  .btn.scan-btn.scanning{background:#dc2626;border-color:#dc2626;}
+  .items-list{padding:8px 12px;display:flex;flex-direction:column;gap:8px;}
+  .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+  .item-card.ok-card{opacity:.4;}
+  .item-card.need-card{border-left:3px solid var(--accent);}
+  .item-card.scan-highlight{border:2px solid var(--success);animation:pulse .4s ease;}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
+  .card-name{font-weight:600;font-size:14px;flex:1;}
+  .card-num{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:2px;}
+  .card-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .card-input-group{display:flex;flex-direction:column;gap:3px;}
+  .card-input-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);}
+  .card-input-group input[type="number"]{width:100%;text-align:center;font-family:'DM Mono',monospace;font-size:16px;padding:9px 6px;}
+  .card-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;background:var(--bg);border-radius:var(--radius-sm);padding:8px 10px;}
+  .card-stat{text-align:center;}
+  .card-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;}
+  .card-stat-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;margin-top:2px;}
+  .card-stat-val.need{color:var(--accent);}
+  .card-stat-val.ok{color:var(--success);}
+  .card-del{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:0 0 0 8px;line-height:1;}
+  .card-del:hover{color:var(--accent);}
+  .section-divider{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding:10px 0 4px;}
+  .empty-msg{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;}
+  .badge.need{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);}
+  .badge.ok{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,8,.55);z-index:100;align-items:flex-end;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:560px;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.2);max-height:90vh;display:flex;flex-direction:column;}
+  .modal-header{background:var(--text);color:#fff;padding:14px 18px;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+  .modal-close{background:none;border:none;color:#888;font-size:22px;cursor:pointer;line-height:1;}
+  .modal-close:hover{color:#fff;}
+  .modal-body{padding:16px;overflow-y:auto;}
+  .order-box{background:var(--bg);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;max-height:280px;overflow-y:auto;}
+  .order-box-header{font-weight:600;font-size:14px;color:var(--text);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg);}
+  .order-box-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border);align-items:center;}
+  .order-box-row:last-child{border-bottom:none;}
+  .oname{font-size:13px;font-weight:500;}
+  .onum{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+  .omust{font-size:12px;color:var(--text-muted);white-space:nowrap;}
+  .oqty{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
+  .order-box-footer{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;}
+  .send-actions{display:flex;flex-direction:column;gap:8px;}
+  .no-order-msg{background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-sm);padding:20px;color:var(--success);font-weight:500;text-align:center;font-size:14px;}
+  #scanner-container{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column;}
+  #scanner-container.active{display:flex;}
+  #scanner-video{width:100%;flex:1;object-fit:cover;}
+  .scanner-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:120px;border:2px solid #fff;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);}
+  .scanner-line{position:absolute;top:50%;left:0;right:0;height:2px;background:#25d366;animation:scanline 1.5s ease-in-out infinite;}
+  @keyframes scanline{0%{top:10%}100%{top:90%}}
+  .scanner-top{position:absolute;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);}
+  .scanner-title{color:#fff;font-size:15px;font-weight:600;}
+  .scanner-close-btn{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;cursor:pointer;padding:6px 12px;border-radius:var(--radius-sm);}
+  .scanner-bottom{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 32px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);text-align:center;}
+  .scanner-hint{color:rgba(255,255,255,.8);font-size:13px;margin-bottom:10px;}
+  .scanner-result{color:#fff;font-size:14px;font-weight:600;min-height:20px;}
+  .scanner-result.found{color:#25d366;}
+  .scanner-result.notfound{color:#f87171;}
+  #manual-upc-input{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:100%;margin-top:10px;text-align:center;font-size:15px;}
+  #manual-upc-input::placeholder{color:rgba(255,255,255,.5);}
+  .upload-area{border:2px dashed var(--border-strong);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;}
+  .upload-area p{font-size:13px;color:var(--text-muted);margin-top:6px;}
+  @media(min-width:700px){
+    header{flex-direction:row;align-items:center;}
+    .header-btns{grid-template-columns:repeat(5,auto);gap:8px;}
+    .header-btns .full{grid-column:auto;}
+    .items-list{display:none;}
+    .table-wrap{display:block;}
+    .modal-overlay{align-items:center;}
+    .modal{border-radius:var(--radius);max-height:90vh;}
+  }
+  @media(max-width:699px){
+    .table-wrap{display:none;}
+    .send-actions .btn{width:100%;padding:13px;}
+  }
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{background:#f0ede6;padding:9px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--border);}
+  tbody tr:hover td{background:#fafaf7;}
+  tbody tr.ok-row td{opacity:.35;}
+  tbody tr.scan-highlight-row td{background:#edf7f1 !important;transition:background .3s;}
+  td{padding:8px 10px;vertical-align:middle;background:var(--surface);}
+  .item-name-td{font-weight:500;font-size:13px;}
+  .item-meta-td{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:1px;}
+  td input[type="number"]{width:68px;text-align:center;padding:4px 5px;font-family:'DM Mono',monospace;font-size:13px;background:var(--surface);}
+  .order-val-td{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;text-align:center;}
+  .order-val-td.need{color:var(--accent);}
+  .order-val-td.ok{color:var(--success);}
+  .del-btn{background:none;border:none;color:#ccc;font-size:15px;cursor:pointer;padding:2px 5px;}
+  .del-btn:hover{color:var(--accent);}
+  .dt-divider td{background:#f0ede6 !important;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding:5px 10px;}
+  .dt-empty td{text-align:center;padding:36px;color:var(--text-muted);font-size:13px;background:var(--surface) !important;}
+  mark{background:#ffe066;color:inherit;border-radius:2px;padding:0 1px;}
+  .loading-msg{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;}
+  .add-field{margin-bottom:10px;}
+  .add-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px;}
+  .add-field input{width:100%;}
+  .add-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+</style>
+</head>
+<body>
 
+<header>
+  <div>
+    <div class="title">Cigarette Order Guide</div>
+    <div class="sub">Scan UPC or enter counts manually</div>
+  </div>
+  <div class="header-btns">
+    <button class="btn danger" onclick="confirmClear()">&#8635; Clear</button>
+    <button class="btn info" onclick="openModal('add')">+ Add</button>
+    <button class="btn info" onclick="openModal('upload')">&#8593; Upload</button>
+    <button class="btn scan-btn full" id="scan-toggle-btn" onclick="toggleScanner()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M12 2v20M17 2v20M2 7h5M2 12h5M2 17h5M17 7h5M17 12h5M17 17h5"/></svg>
+      Scan UPC
+    </button>
+    <button class="btn wa full" onclick="openModal('send')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Send Order
+    </button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Total</div></div>
+  <div class="stat"><div class="stat-val red" id="stat-need">0</div><div class="stat-label">To Order</div></div>
+  <div class="stat"><div class="stat-val" id="stat-ok">0</div><div class="stat-label">At Par</div></div>
+</div>
+
+<div class="scan-banner" id="scan-banner">
+  <div>
+    <div class="scan-banner-left">&#128247; Scan mode active</div>
+    <div class="scan-banner-sub">Each scan adds +1 to that item's count</div>
+  </div>
+  <span class="scan-status" id="scan-status-badge">Ready</span>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="search" id="search" placeholder="Search name, item #, UPC..." oninput="render()"/>
+  </div>
+  <button class="btn" id="toggle-btn" onclick="toggleOk()">Hide OK</button>
+</div>
+
+<div class="items-list" id="cards-list"></div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30%">Item</th>
+        <th style="width:12%;text-align:center">On Display</th>
+        <th style="width:13%;text-align:center">Under Cabinets</th>
+        <th style="width:11%;text-align:center">Must Have</th>
+        <th style="width:10%;text-align:center">Combined</th>
+        <th style="width:10%;text-align:center">Order Qty</th>
+        <th style="width:8%;text-align:center">Status</th>
+        <th style="width:4%"></th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<div id="scanner-container">
+  <div class="scanner-top">
+    <div class="scanner-title">&#128247; Scan UPC Barcode</div>
+    <button class="scanner-close-btn" onclick="closeScanner()">&times;</button>
+  </div>
+  <video id="scanner-video" playsinline autoplay muted></video>
+  <div class="scanner-overlay"><div class="scanner-line"></div></div>
+  <div class="scanner-bottom">
+    <div class="scanner-hint">Point camera at barcode — or type UPC below</div>
+    <div class="scanner-result" id="scanner-result">Scanning...</div>
+    <input type="text" id="manual-upc-input" placeholder="Type or paste UPC manually" oninput="manualUPCInput(this.value)" autocomplete="off"/>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modal-title">Modal</span>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<script>
+const OWNER_PHONE = '14046689091';
+const SHEETS_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=0&single=true&output=csv');
+
+let nextId = 0;
+let state = [];
+let hideOk = false;
+let scannerActive = false;
+let lastScanned = '';
+let scanCooldown = false;
+
+async function loadItemsFromSheets() {
+  try {
+    const response = await fetch(SHEETS_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const csvText = await response.text();
+    
+    // Parse CSV
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) throw new Error('Sheet is empty or invalid');
+    
+    // Get headers
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const nameIdx = headers.findIndex(h => h.includes('item name'));
+    const numIdx = headers.findIndex(h => h.includes('item number'));
+    const upcIdx = headers.findIndex(h => h.includes('upc'));
+    const mustIdx = headers.findIndex(h => h.includes('must have'));
+    
+    if (nameIdx === -1) throw new Error('Could not find "Item Name" column');
+    
+    // Parse rows
+    state = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cells = lines[i].split(',').map(c => c.trim());
+      const name = cells[nameIdx] || '';
+      if (!name) continue;
+      
+      state.push({
+        id: state.length,
+        item_name: name,
+        item_number: numIdx >= 0 ? cells[numIdx] || '' : '',
+        upc: upcIdx >= 0 ? cells[upcIdx] || '' : '',
+        must_have: mustIdx >= 0 ? parseFloat(cells[mustIdx]) || 0 : 0,
+        loc1: 0,
+        loc2: 0
+      });
+    }
+    
+    nextId = state.length;
+    render();
+    console.log(`✅ Loaded ${state.length} items from Google Sheets`);
+  } catch(error) {
+    console.error('Error loading from Sheets:', error);
+    document.getElementById('cards-list').innerHTML = `
+      <div class="loading-msg" style="color:#c33;">
+        <strong>⚠️ Could not load items from Google Sheets</strong><br>
+        ${error.message}<br>
+        <small>Make sure your Google Sheet is published to the web as CSV</small>
+      </div>
+    `;
+  }
+}
+
+window.addEventListener('load', loadItemsFromSheets);
+
+function calc(item){
+  const combined = (parseFloat(item.loc1)||0) + (parseFloat(item.loc2)||0);
+  const need = parseFloat(item.must_have)||0;
+  const order = Math.max(0, +(need - combined).toFixed(2));
+  return {combined: +combined.toFixed(2), order};
+}
+
+function toggleScanner(){
+  if(scannerActive){ closeScanner(); return; }
+  scannerActive = true;
+  document.getElementById('scanner-container').classList.add('active');
+  document.getElementById('scan-banner').classList.add('active');
+  document.getElementById('scan-toggle-btn').textContent = '⏹ Stop Scanning';
+  document.getElementById('scan-toggle-btn').classList.add('scanning');
+  startCamera();
+}
+
+function closeScanner(){
+  scannerActive = false;
+  document.getElementById('scanner-container').classList.remove('active');
+  document.getElementById('scan-banner').classList.remove('active');
+  document.getElementById('scan-toggle-btn').innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M12 2v20M17 2v20M2 7h5M2 12h5M2 17h5M17 7h5M17 12h5M17 17h5"/></svg> Scan UPC`;
+  document.getElementById('scan-toggle-btn').classList.remove('scanning');
+  stopCamera();
+  setScanStatus('Ready','');
+}
+
+let videoStream = null;
+let quaggaRunning = false;
+
+function startCamera(){
+  const video = document.getElementById('scanner-video');
+  if(typeof Quagga !== 'undefined'){
+    Quagga.init({
+      inputStream:{type:'LiveStream', target: video, constraints:{facingMode:'environment', width:640, height:480}},
+      decoder:{readers:['ean_reader','upc_reader','upc_e_reader','code_128_reader']},
+      locate: true
+    }, function(err){
+      if(err){ fallbackCamera(video); return; }
+      Quagga.start();
+      quaggaRunning = true;
+      Quagga.onDetected(onBarcodeDetected);
+    });
+  } else { fallbackCamera(video); }
+}
+
+function fallbackCamera(video){
+  navigator.mediaDevices && navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    .then(stream=>{ videoStream=stream; video.srcObject=stream; document.getElementById('scanner-result').textContent='Camera active — type UPC below if auto-scan fails'; })
+    .catch(()=>{ document.getElementById('scanner-result').textContent='Camera not available — use manual UPC input below'; });
+}
+
+function stopCamera(){
+  if(quaggaRunning){ try{Quagga.stop();}catch(e){} quaggaRunning=false; }
+  if(videoStream){ videoStream.getTracks().forEach(t=>t.stop()); videoStream=null; }
+}
+
+function onBarcodeDetected(result){
+  const code = result.codeResult.code;
+  if(scanCooldown || code === lastScanned) return;
+  lastScanned = code;
+  scanCooldown = true;
+  setTimeout(()=>{ scanCooldown=false; lastScanned=''; }, 2000);
+  processUPC(code);
+}
+
+function manualUPCInput(val){
+  const v = val.trim();
+  if(v.length >= 8){ processUPC(v); document.getElementById('manual-upc-input').value=''; }
+}
+
+function processUPC(upc){
+  const clean = upc.replace(/\D/g,'');
+  let item = state.find(i => i.upc && i.upc.replace(/\D/g,'') === clean);
+  if(!item && clean.length > 0) item = state.find(i => i.upc && i.upc.replace(/\D/g,'').replace(/^0+/,'') === clean.replace(/^0+/,''));
+
+  if(item){
+    item.loc1 = +(parseFloat(item.loc1||0) + 1).toFixed(1);
+    setScanStatus(`✓ ${item.item_name}`, 'found');
+    flashItem(item.id);
+    render();
+  } else {
+    setScanStatus(`Not found: ${upc}`, 'notfound');
+  }
+  document.getElementById('scanner-result').textContent = item ? `✓ Added to: ${item.item_name}` : `UPC ${upc} not in list`;
+  document.getElementById('scanner-result').className = 'scanner-result ' + (item?'found':'notfound');
+}
+
+function setScanStatus(msg, type){
+  const el = document.getElementById('scan-status-badge');
+  el.textContent = msg;
+  el.className = 'scan-status ' + (type||'');
+}
+
+function flashItem(id){
+  document.querySelectorAll('.item-card').forEach(el=>{
+    if(el.dataset.id == id){ el.classList.add('scan-highlight'); setTimeout(()=>el.classList.remove('scan-highlight'),800); }
+  });
+  document.querySelectorAll('tr[data-id]').forEach(el=>{
+    if(el.dataset.id == id){ el.classList.add('scan-highlight-row'); setTimeout(()=>el.classList.remove('scan-highlight-row'),800); }
+  });
+}
+
+function hl(text, q){
+  if(!q) return text;
+  const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return text.replace(re,'<mark>$1</mark>');
+}
+
+function toggleOk(){
+  hideOk=!hideOk;
+  document.getElementById('toggle-btn').textContent = hideOk?'Show All':'Hide OK';
+  document.getElementById('toggle-btn').classList.toggle('active',hideOk);
+  render();
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  let filtered = state.filter(i=>!q||i.item_name.toLowerCase().includes(q)||i.item_number.toLowerCase().includes(q)||(i.upc&&i.upc.toLowerCase().includes(q)));
+  const needItems = filtered.filter(i=>calc(i).order>0);
+  const okItems = filtered.filter(i=>calc(i).order===0);
+
+  const cardsList = document.getElementById('cards-list');
+  cardsList.innerHTML='';
+
+  function addCard(item){
+    const{combined,order}=calc(item);
+    const div=document.createElement('div');
+    div.className='item-card '+(order>0?'need-card':'ok-card');
+    div.dataset.id=item.id;
+    div.innerHTML=`
+      <div class="card-top">
+        <div style="flex:1">
+          <div class="card-name">${hl(item.item_name,q)}</div>
+          <div class="card-num">${item.item_number?'#'+hl(item.item_number,q):''}${item.upc?' · UPC: '+hl(item.upc,q):''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="badge ${order>0?'need':'ok'}">${order>0?'Order':'OK'}</span>
+          <button class="card-del" onclick="deleteItem(${item.id})">✕</button>
+        </div>
+      </div>
+      <div class="card-inputs">
+        <div class="card-input-group">
+          <span class="card-input-label">On Display</span>
+          <input type="number" min="0" step="0.5" value="${item.loc1}" onchange="upd(${item.id},'loc1',this.value)"/>
+        </div>
+        <div class="card-input-group">
+          <span class="card-input-label">Under Cabinets</span>
+          <input type="number" min="0" step="0.5" value="${item.loc2}" onchange="upd(${item.id},'loc2',this.value)"/>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-stat"><div class="card-stat-label">Must Have</div><div class="card-stat-val">${item.must_have}</div></div>
+        <div class="card-stat"><div class="card-stat-label">Combined</div><div class="card-stat-val">${combined}</div></div>
+        <div class="card-stat"><div class="card-stat-label">Order Qty</div><div class="card-stat-val ${order>0?'need':'ok'}">${order>0?order:'—'}</div></div>
+      </div>`;
+    cardsList.appendChild(div);
+  }
+
+  needItems.forEach(addCard);
+  if(!hideOk){
+    if(needItems.length>0&&okItems.length>0){
+      const d=document.createElement('div');d.className='section-divider';d.textContent='Items at par — no order needed';cardsList.appendChild(d);
+    }
+    okItems.forEach(addCard);
+  }
+  if(filtered.length===0){const d=document.createElement('div');d.className='empty-msg';d.textContent=`No items match "${q}"`;cardsList.appendChild(d);}
+  if(hideOk&&needItems.length===0&&okItems.length>0){const d=document.createElement('div');d.className='empty-msg';d.textContent='All items at par — nothing to order!';cardsList.appendChild(d);}
+
+  const tbody=document.getElementById('table-body');
+  tbody.innerHTML='';
+  function addRow(item){
+    const{combined,order}=calc(item);
+    const tr=document.createElement('tr');
+    if(order===0)tr.classList.add('ok-row');
+    tr.dataset.id=item.id;
+    tr.innerHTML=`
+      <td><div class="item-name-td">${hl(item.item_name,q)}</div><div class="item-meta-td">${item.item_number?'#'+hl(item.item_number,q):'—'}${item.upc?' · UPC:'+hl(item.upc,q):''}</div></td>
+      <td style="text-align:center"><input type="number" min="0" step="0.5" value="${item.loc1}" onchange="upd(${item.id},'loc1',this.value)"/></td>
+      <td style="text-align:center"><input type="number" min="0" step="0.5" value="${item.loc2}" onchange="upd(${item.id},'loc2',this.value)"/></td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:500">${item.must_have}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:500">${combined}</td>
+      <td><div class="order-val-td ${order>0?'need':'ok'}">${order>0?order:'—'}</div></td>
+      <td style="text-align:center"><span class="badge ${order>0?'need':'ok'}">${order>0?'Order':'OK'}</span></td>
+      <td><button class="del-btn" onclick="deleteItem(${item.id})">✕</button></td>`;
+    tbody.appendChild(tr);
+  }
+  needItems.forEach(addRow);
+  if(!hideOk){
+    if(needItems.length>0&&okItems.length>0){const d=document.createElement('tr');d.classList.add('dt-divider');d.innerHTML='<td colspan="8">Items at par — no order needed</td>';tbody.appendChild(d);}
+    okItems.forEach(addRow);
+  }
+  if(filtered.length===0){const t=document.createElement('tr');t.classList.add('dt-empty');t.innerHTML=`<td colspan="8">No match for "${q}"</td>`;tbody.appendChild(t);}
+
+  document.getElementById('stat-total').textContent=state.length;
+  document.getElementById('stat-need').textContent=state.filter(i=>calc(i).order>0).length;
+  document.getElementById('stat-ok').textContent=state.filter(i=>calc(i).order===0).length;
+}
+
+function upd(id,field,value){ const item=state.find(i=>i.id===id); if(item){item[field]=parseFloat(value)||0;render();} }
+function deleteItem(id){ if(confirm('Remove this item?')){state=state.filter(i=>i.id!==id);render();} }
+function confirmClear(){ if(confirm('Clear all counts and start fresh?')){state.forEach(i=>{i.loc1=0;i.loc2=0;});render();} }
+
+function getWeekNumber(d){
+  d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-yearStart)/86400000)+1)/7);
+}
+
+function openModal(type){
+  document.getElementById('modal').classList.add('open');
+  const title=document.getElementById('modal-title');
+  const mb=document.getElementById('modal-body');
+
+  if(type==='add'){
+    title.textContent='Add New Item';
+    mb.innerHTML=`
+      <div class="add-field"><label>Item Name *</label><input type="text" id="new-name" placeholder="e.g. Marlboro Red Short" style="width:100%"/></div>
+      <div class="add-two">
+        <div class="add-field"><label>Item #</label><input type="text" id="new-num" placeholder="4336145"/></div>
+        <div class="add-field"><label>Must Have</label><input type="number" id="new-must" placeholder="2" min="0" step="0.1"/></div>
+      </div>
+      <div class="add-field"><label>UPC (for scanning)</label><input type="text" id="new-upc" placeholder="e.g. 12345678901" style="width:100%"/></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn primary" onclick="addItem()">Add Item</button>
+      </div>`;
+    setTimeout(()=>document.getElementById('new-name').focus(),100);
+  }
+  else if(type==='upload'){
+    title.textContent='Upload New Item List';
+    mb.innerHTML=`
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Upload a CSV file with columns: <strong>Item Name, Item Number, UPC Code, Must Have</strong>.</p>
+      <div class="upload-area" onclick="document.getElementById('file-input').click()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>Tap to choose a CSV file</p>
+      </div>
+      <input type="file" id="file-input" accept=".csv" style="display:none" onchange="handleUpload(this)"/>
+      <div id="upload-status"></div>
+      <div style="display:flex;justify-content:flex-end"><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  else if(type==='send'){
+    title.textContent='Send Order';
+    const orderItems=state.filter(i=>calc(i).order>0);
+    const today=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const weekNum=getWeekNumber(new Date());
+
+    if(orderItems.length===0){
+      mb.innerHTML='<div class="no-order-msg">Everything is fully stocked — nothing to order today!</div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Close</button></div>';
+      return;
+    }
+
+    let boxRows=orderItems.map(i=>{const{order}=calc(i);return`<div class="order-box-row"><div><div class="oname">${i.item_name}</div><div class="onum">${i.item_number?'#'+i.item_number:''}</div></div><div class="omust">Min: ${i.must_have}</div><div class="oqty">${order}</div></div>`;}).join('');
+    let waMsg=`🚬 CIGARETTE ORDER — Week ${weekNum}\n📅 ${today}\n${'-'.repeat(30)}\n`;
+    orderItems.forEach(i=>{const{order}=calc(i);waMsg+=`• ${i.item_name}${i.item_number?' (#'+i.item_number+')':''}\n  Must Have: ${i.must_have} | Order: ${order}\n`;});
+    waMsg+=`${'-'.repeat(30)}\nTotal: ${orderItems.length} items`;
+    let emailBody=`CIGARETTE ORDER REQUEST\n${today} (Week ${weekNum})\n${'='.repeat(40)}\n\n`;
+    orderItems.forEach(i=>{const{order}=calc(i);emailBody+=`Item: ${i.item_name}\nItem #: ${i.item_number||'N/A'}\nMust Have: ${i.must_have}\nOrder Qty: ${order}\n\n`;});
+    emailBody+=`${'='.repeat(40)}\nTotal items to order: ${orderItems.length}`;
+    const waURL=`https://wa.me/${OWNER_PHONE}?text=${encodeURIComponent(waMsg)}`;
+    const emailURL=`mailto:?subject=${encodeURIComponent('Cigarette Order Week '+weekNum+' — '+today)}&body=${encodeURIComponent(emailBody)}`;
+
+    mb.innerHTML=`
+      <div class="order-box">
+        <div class="order-box-header"><span>📋 Order Summary — Week ${weekNum}</span><span style="color:var(--accent);font-family:'DM Mono',monospace">${orderItems.length} items</span></div>
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:3px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px">
+          <span style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Item</span>
+          <span style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Min</span>
+          <span style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Order</span>
+        </div>
+        ${boxRows}
+        <div class="order-box-footer"><span>${orderItems.length} items · Week ${weekNum}</span><span>${new Date().toLocaleDateString()}</span></div>
+      </div>
+      <div class="send-actions">
+        <a href="${waURL}" target="_blank" style="text-decoration:none" onclick="setTimeout(closeModal,400)">
+          <button class="btn wa" style="width:100%;justify-content:center;padding:13px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Send via WhatsApp
+          </button>
+        </a>
+        <a href="${emailURL}" style="text-decoration:none" onclick="setTimeout(closeModal,400)">
+          <button class="btn info" style="width:100%;justify-content:center;padding:13px">&#9993; Send via Email</button>
+        </a>
+        <button class="btn" onclick="closeModal()" style="width:100%;justify-content:center">Cancel</button>
+      </div>`;
+  }
+}
+
+function addItem(){
+  const name=document.getElementById('new-name').value.trim();
+  if(!name){alert('Item name is required.');return;}
+  state.push({id:nextId++,item_name:name,item_number:document.getElementById('new-num').value.trim(),upc:document.getElementById('new-upc').value.trim(),must_have:parseFloat(document.getElementById('new-must').value)||0,loc1:0,loc2:0});
+  closeModal();render();
+}
+
+function handleUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    if(lines.length<2){document.getElementById('upload-status').innerHTML='<p style="color:var(--accent);font-size:13px;margin-top:8px">File empty or invalid.</p>';return;}
+    const headers=lines[0].toLowerCase().split(',').map(h=>h.trim().replace(/"/g,''));
+    const nameIdx=headers.findIndex(h=>h.includes('name'));
+    const numIdx=headers.findIndex(h=>h.includes('number')||h.includes('item #'));
+    const upcIdx=headers.findIndex(h=>h.includes('upc'));
+    const mustIdx=headers.findIndex(h=>h.includes('must')||h.includes('par'));
+    if(nameIdx===-1){document.getElementById('upload-status').innerHTML='<p style="color:var(--accent);font-size:13px;margin-top:8px">Could not find "Item Name" column.</p>';return;}
+    const newItems=[];
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(',').map(c=>c.trim().replace(/"/g,''));
+      const name=cols[nameIdx]||'';if(!name)continue;
+      newItems.push({id:nextId++,item_name:name,item_number:numIdx>=0?cols[numIdx]||'':'',upc:upcIdx>=0?cols[upcIdx]||'':'',must_have:mustIdx>=0?parseFloat(cols[mustIdx])||0:0,loc1:0,loc2:0});
+    }
+    state=newItems;
+    document.getElementById('upload-status').innerHTML=`<p style="color:var(--success);font-size:13px;margin-top:8px">✅ ${newItems.length} items loaded!</p>`;
+    setTimeout(()=>{closeModal();render();},1000);
+  };
+  reader.readAsText(file);
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+render();
+</script>
+</body>
+</html>
