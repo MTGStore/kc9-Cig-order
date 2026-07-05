@@ -199,11 +199,6 @@
             background: #da190b;
         }
         
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        
         .button-group {
             display: flex;
             gap: 10px;
@@ -228,6 +223,74 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
+        }
+        
+        .search-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            display: none;
+        }
+        
+        .search-section.active {
+            display: block;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-results {
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .search-results.show {
+            display: block;
+        }
+        
+        .search-result-item {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .search-result-item:hover {
+            background: #f0f0ff;
+            border-left: 4px solid #667eea;
+            padding-left: 8px;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .search-result-number {
+            font-size: 12px;
+            color: #999;
         }
         
         .items-section {
@@ -576,6 +639,12 @@
             </div>
         </div>
         
+        <!-- SEARCH SECTION -->
+        <div class="search-section" id="searchSection">
+            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search items by name or #..." onkeyup="searchItems()">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        
         <!-- ITEMS SECTION -->
         <div class="items-section" id="itemsSection">
             <h2 style="margin-bottom: 20px; color: #333;" id="itemsTitle">Count Your Inventory</h2>
@@ -714,6 +783,7 @@
             document.getElementById('headerSection').style.display = 'block';
             document.getElementById('itemsSection').classList.add('active');
             document.getElementById('summarySection').classList.add('active');
+            document.getElementById('searchSection').classList.add('active');
             
             // Manager controls
             if (currentUser.isManager) {
@@ -739,9 +809,12 @@
             document.getElementById('headerSection').style.display = 'none';
             document.getElementById('itemsSection').classList.remove('active');
             document.getElementById('summarySection').classList.remove('active');
+            document.getElementById('searchSection').classList.remove('active');
             document.getElementById('controlsSection').classList.remove('active');
             document.getElementById('loginName').value = '';
             document.getElementById('loginPassword').value = '';
+            document.getElementById('searchBox').value = '';
+            document.getElementById('searchResults').classList.remove('show');
             allItems = [];
             countData = {};
         }
@@ -784,6 +857,51 @@
             }
         }
         
+        function searchItems() {
+            const query = document.getElementById('searchBox').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!query) {
+                resultsDiv.classList.remove('show');
+                resultsDiv.innerHTML = '';
+                return;
+            }
+            
+            const filtered = allItems.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                item.number.toLowerCase().includes(query)
+            );
+            
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No items found</div>';
+                resultsDiv.classList.add('show');
+                return;
+            }
+            
+            resultsDiv.innerHTML = filtered.map(item => `
+                <div class="search-result-item" onclick="jumpToItem('${item.number}')">
+                    <div class="search-result-name">${item.name}</div>
+                    <div class="search-result-number">#${item.number} | Must Have: ${item.mustHave}</div>
+                </div>
+            `).join('');
+            
+            resultsDiv.classList.add('show');
+        }
+        
+        function jumpToItem(itemNumber) {
+            const element = document.getElementById(`card-${itemNumber}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.boxShadow = '0 0 20px rgba(255, 152, 0, 0.8)';
+                setTimeout(() => {
+                    element.style.boxShadow = '';
+                }, 2000);
+            }
+            // Clear search
+            document.getElementById('searchBox').value = '';
+            document.getElementById('searchResults').classList.remove('show');
+        }
+        
         function renderItems() {
             const grid = document.getElementById('itemsGrid');
             grid.innerHTML = '';
@@ -792,6 +910,7 @@
                 const data = countData[item.number];
                 const div = document.createElement('div');
                 div.className = 'item-card';
+                div.id = `card-${item.number}`;
                 
                 const location1 = parseInt(data.location1) || 0;
                 const location2 = parseInt(data.location2) || 0;
@@ -874,14 +993,12 @@
                 return;
             }
             
-            // Update in memory
             const item = allItems.find(i => i.number === editingItemNumber);
             if (item) {
                 item.mustHave = newValue;
                 countData[editingItemNumber].mustHave = newValue;
             }
             
-            // Save to Sheets
             updateItemInSheets(editingItemNumber, item.name, newValue);
             
             closeModal('editMustHaveModal');
@@ -912,13 +1029,11 @@
                 return;
             }
             
-            // Check if item already exists
             if (allItems.find(i => i.number === number)) {
                 showAlert('Item number already exists', 'error');
                 return;
             }
             
-            // Add to memory
             const newItem = {
                 name: name,
                 number: number,
@@ -935,7 +1050,6 @@
                 location2: 0
             };
             
-            // Save to Sheets
             addItemToSheets(name, number, mustHave);
             
             closeModal('addItemModal');
@@ -1160,7 +1274,6 @@
             }, 5000);
         }
         
-        // Click outside modal to close
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('show');
