@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KC9 Inventory Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .controls-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e68900;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .items-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .item-card {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+        
+        .item-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .item-card.needs-order {
+            border-color: #ff9800;
+            background: #fff8f0;
+        }
+        
+        .item-card.complete {
+            border-color: #4caf50;
+            background: #f0fff0;
+        }
+        
+        .item-header {
+            margin-bottom: 15px;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        
+        .item-number {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .must-have-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .location-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .location-input {
+            flex: 1;
+        }
+        
+        .location-input label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .location-input input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .location-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .order-summary {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        
+        .order-summary.hidden {
+            display: none;
+        }
+        
+        .order-qty {
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .summary-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .summary-table thead {
+            background: #667eea;
+            color: white;
+        }
+        
+        .summary-table th,
+        .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        
+        .summary-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .summary-table tbody tr.needs-order {
+            background: #fff8f0;
+        }
+        
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .location-inputs {
+                flex-direction: column;
+            }
+            
+            .summary-table {
+                font-size: 11px;
+            }
+            
+            .summary-table th,
+            .summary-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📦 KC9 Inventory Counter</h1>
+            <p>Count display + back stock, auto-calculate orders, send reports</p>
+        </div>
+        
+        <!-- ALERTS -->
+        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alert alert-error" id="alertError"></div>
+        <div class="alert alert-info" id="alertInfo"></div>
+        
+        <!-- CONTROLS -->
+        <div class="controls-section">
+            <div class="control-group">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="yourName" placeholder="e.g., Manager">
+                </div>
+                <div class="form-group">
+                    <label>Count Date</label>
+                    <input type="date" id="countDate">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="loadItems()">Load All Items</button>
+                <button class="btn btn-secondary" onclick="resetAll()">Reset Count</button>
+                <button class="btn btn-warning" onclick="showSummary()">📊 View Summary</button>
+            </div>
+        </div>
+        
+        <!-- ITEMS TO COUNT -->
+        <div class="items-section" id="itemsSection" style="display: none;">
+            <h2 style="margin-bottom: 20px; color: #333;">Count Your Inventory</h2>
+            <div class="items-grid" id="itemsGrid"></div>
+        </div>
+        
+        <!-- SUMMARY SECTION -->
+        <div class="summary-section" id="summarySection" style="display: none;">
+            <h2 style="margin-bottom: 20px; color: #333;">📋 Order Summary</h2>
+            <table class="summary-table" id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Item #</th>
+                        <th>Must Have</th>
+                        <th>Location 1</th>
+                        <th>Location 2</th>
+                        <th>Total Stock</th>
+                        <th>Order Qty</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryBody"></tbody>
+            </table>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px; color: #333;">Send Report</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div class="form-group">
+                        <label>WhatsApp Phone (with country code)</label>
+                        <input type="text" id="whatsappPhone" placeholder="+1 404-668-9091" value="+14046689091">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="emailAddress" placeholder="your@email.com">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="sendWhatsApp()">📱 Send WhatsApp Report</button>
+                    <button class="btn btn-success" onclick="sendEmail()">📧 Send Email Report</button>
+                    <button class="btn btn-primary" onclick="saveToSheets()">💾 Save to Google Sheets</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=0&single=true&output=csv';
+        
+        let allItems = [];
+        let countData = {};
+        
+        // Set today's date
+        document.getElementById('countDate').valueAsDate = new Date();
+        
+        async function loadItems() {
+            try {
+                showAlert('Loading items...', 'info');
+                
+                const response = await fetch(SHEETS_CSV_URL);
+                const csv = await response.text();
+                parseCSV(csv);
+                
+                renderItems();
+                document.getElementById('itemsSection').style.display = 'block';
+                showAlert(`Loaded ${allItems.length} items. Start counting!`, 'success');
+                
+            } catch (error) {
+                showAlert('Error loading items: ' + error.message, 'error');
+            }
+        }
+        
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            const headers = lines[0].split(',');
+            allItems = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values[0] && values[1]) { // Must have name and number
+                    allItems.push({
+                        name: values[0],
+                        number: values[1],
+                        upc: values[2] || '',
+                        mustHave: parseFloat(values[3]) || 0
+                    });
+                    
+                    // Initialize count data
+                    countData[values[1]] = {
+                        name: values[0],
+                        number: values[1],
+                        mustHave: parseFloat(values[3]) || 0,
+                        location1: 0,
+                        location2: 0
+                    };
+                }
+            }
+        }
+        
+        function renderItems() {
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = '';
+            
+            allItems.forEach(item => {
+                const data = countData[item.number];
+                const div = document.createElement('div');
+                div.className = 'item-card';
+                div.id = `card-${item.number}`;
+                
+                const location1 = parseInt(data.location1) || 0;
+                const location2 = parseInt(data.location2) || 0;
+                const total = location1 + location2;
+                const orderQty = Math.max(0, item.mustHave - total);
+                
+                let needsOrder = orderQty > 0;
+                if (needsOrder) {
+                    div.classList.add('needs-order');
+                } else {
+                    div.classList.add('complete');
+                }
+                
+                // Skip location 2 if location 1 satisfies minimum
+                let showLocation2 = location1 < item.mustHave;
+                
+                div.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-number">#${item.number}</div>
+                        <div class="must-have-badge">Must Have: ${item.mustHave}</div>
+                    </div>
+                    
+                    <div class="location-inputs">
+                        <div class="location-input">
+                            <label>Display (Loc 1)</label>
+                            <input type="number" min="0" value="${location1}" 
+                                onchange="updateCount('${item.number}', 'location1', this.value)">
+                        </div>
+                        ${showLocation2 ? `
+                        <div class="location-input">
+                            <label>Back Stock (Loc 2)</label>
+                            <input type="number" min="0" value="${location2}" 
+                                onchange="updateCount('${item.number}', 'location2', this.value)">
+                        </div>
+                        ` : `
+                        <div class="location-input" style="opacity: 0.5;">
+                            <label>Back Stock (Loc 2)</label>
+                            <input type="number" min="0" value="${location2}" disabled>
+                        </div>
+                        `}
+                    </div>
+                    
+                    ${orderQty > 0 ? `
+                    <div class="order-summary">
+                        Total in stock: ${total} | Need to order: <span class="order-qty">${orderQty}</span>
+                    </div>
+                    ` : `
+                    <div class="order-summary" style="background: #e8f5e9; border-color: #4caf50; color: #2e7d32;">
+                        ✅ Stock OK (${total} in stock)
+                    </div>
+                    `}
+                `;
+                
+                grid.appendChild(div);
+            });
+        }
+        
+        function updateCount(itemNum, location, value) {
+            countData[itemNum][location] = parseInt(value) || 0;
+            
+            const item = allItems.find(i => i.number === itemNum);
+            const location1 = parseInt(countData[itemNum].location1) || 0;
+            
+            // Re-render to show/hide Location 2
+            renderItems();
+        }
+        
+        function resetAll() {
+            if (confirm('Reset all counts?')) {
+                allItems.forEach(item => {
+                    countData[item.number] = {
+                        name: item.name,
+                        number: item.number,
+                        mustHave: item.mustHave,
+                        location1: 0,
+                        location2: 0
+                    };
+                });
+                renderItems();
+                showAlert('All counts reset', 'info');
+            }
+        }
+        
+        function showSummary() {
+            const itemsWithOrders = [];
+            let totalToOrder = 0;
+            
+            allItems.forEach(item => {
+                const data = countData[item.number];
+                const total = (parseInt(data.location1) || 0) + (parseInt(data.location2) || 0);
+                const orderQty = Math.max(0, item.mustHave - total);
+                
+                if (orderQty > 0) {
+                    itemsWithOrders.push({
+                        name: item.name,
+                        number: item.number,
+                        mustHave: item.mustHave,
+                        location1: parseInt(data.location1) || 0,
+                        location2: parseInt(data.location2) || 0,
+                        total: total,
+                        orderQty: orderQty
+                    });
+                    totalToOrder += orderQty;
+                }
+            });
+            
+            // Sort by order qty descending
+            itemsWithOrders.sort((a, b) => b.orderQty - a.orderQty);
+            
+            // Populate summary table
+            const tbody = document.getElementById('summaryBody');
+            tbody.innerHTML = '';
+            
+            itemsWithOrders.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'needs-order';
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>#${item.number}</td>
+                    <td>${item.mustHave}</td>
+                    <td>${item.location1}</td>
+                    <td>${item.location2}</td>
+                    <td>${item.total}</td>
+                    <td style="font-weight: 600; color: #ff6b6b;">${item.orderQty}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Show summary section
+            document.getElementById('summarySection').style.display = 'block';
+            
+            if (itemsWithOrders.length === 0) {
+                showAlert('✅ No items need ordering! Stock levels are good.', 'success');
+            } else {
+                showAlert(`Found ${itemsWithOrders.length} items to order (${totalToOrder} total units)`, 'info');
+            }
+            
+            // Scroll to summary
+            document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function sendWhatsApp() {
+            const phone = document.getElementById('whatsappPhone').value.replace(/\D/g, '');
+            if (!phone) {
+                showAlert('Please enter a phone number', 'error');
+                return;
+            }
+            
+            let message = buildMessage();
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+        
+        function sendEmail() {
+            const email = document.getElementById('emailAddress').value;
+            if (!email) {
+                showAlert('Please enter an email address', 'error');
+                return;
+            }
+            
+            let message = buildMessage();
+            const subject = `KC9 Inventory Count - ${document.getElementById('countDate').value}`;
+            const body = encodeURIComponent(message);
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
+        }
+        
+        function buildMessage() {
+            const name = document.getElementById('yourName').value || 'Manager';
+            const date = document.getElementById('countDate').value;
+            
+            let message = `KC9 INVENTORY COUNT REPORT\n`;
+            message += `Date: ${date}\n`;
+            message += `Counted by: ${name}\n\n`;
+            message += `ITEMS TO ORDER:\n`;
+            message += `================\n\n`;
+            
+            const itemsWithOrders = [];
+            let totalToOrder = 0;
+            
+            allItems.forEach(item => {
+                const data = countData[item.number];
+                const total = (parseInt(data.location1) || 0) + (parseInt(data.location2) || 0);
+                const orderQty = Math.max(0, item.mustHave - total);
+                
+                if (orderQty > 0) {
+                    itemsWithOrders.push({
+                        name: item.name,
+                        number: item.number,
+                        mustHave: item.mustHave,
+                        orderQty: orderQty
+                    });
+                    totalToOrder += orderQty;
+                }
+            });
+            
+            itemsWithOrders.sort((a, b) => b.orderQty - a.orderQty);
+            
+            itemsWithOrders.forEach(item => {
+                message += `${item.name}\n`;
+                message += `  Item #: ${item.number}\n`;
+                message += `  Must Have: ${item.mustHave}\n`;
+                message += `  Order Qty: ${item.orderQty}\n\n`;
+            });
+            
+            message += `\nTOTAL UNITS TO ORDER: ${totalToOrder}\n`;
+            message += `ITEMS NEEDING ORDER: ${itemsWithOrders.length}\n`;
+            
+            return message;
+        }
+        
+        function saveToSheets() {
+            const name = document.getElementById('yourName').value || 'Manager';
+            const date = document.getElementById('countDate').value;
+            
+            const itemsData = [];
+            allItems.forEach(item => {
+                const data = countData[item.number];
+                const location1 = parseInt(data.location1) || 0;
+                const location2 = parseInt(data.location2) || 0;
+                const total = location1 + location2;
+                const orderQty = Math.max(0, item.mustHave - total);
+                
+                if (orderQty > 0) {
+                    itemsData.push({
+                        date: date,
+                        countedBy: name,
+                        itemName: item.name,
+                        itemNumber: item.number,
+                        mustHave: item.mustHave,
+                        location1: location1,
+                        location2: location2,
+                        totalStock: total,
+                        orderQty: orderQty,
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            });
+            
+            const payload = {
+                action: 'saveInventoryCount',
+                data: itemsData
+            };
+            
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                showAlert('✅ Saved to Google Sheets successfully!', 'success');
+            })
+            .catch(error => {
+                showAlert('Error saving to Sheets: ' + error.message, 'error');
+            });
+        }
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById(`alert${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            alertBox.textContent = message;
+            alertBox.classList.add('show');
+            
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
