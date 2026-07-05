@@ -99,44 +99,29 @@
             font-size: 1em;
         }
         
-        .auth-input:focus {
-            outline: none;
-            border-color: #1e3c72;
-            box-shadow: 0 0 5px rgba(42, 82, 152, 0.3);
-        }
-        
         .password-section {
             display: none;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px solid #eee;
         }
         
         .password-section.show {
             display: block;
         }
         
-        .auth-button {
-            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2a5298;
             color: white;
-            padding: 12px 24px;
             border: none;
             border-radius: 6px;
-            cursor: pointer;
+            font-size: 1.05em;
             font-weight: bold;
-            font-size: 1em;
-            width: 100%;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
         
-        .auth-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.2);
-        }
-        
-        .auth-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .auth-btn:hover {
+            background: #1e2d5f;
         }
         
         .error-msg {
@@ -152,116 +137,71 @@
             display: block;
         }
         
-        .manager-badge {
-            display: inline-block;
-            background: #ff9800;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
-            margin-left: 10px;
+        #app {
+            display: none;
         }
         
         .controls {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             display: flex;
             gap: 15px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
-            align-items: center;
         }
         
         .search-box {
             flex: 1;
             min-width: 200px;
-        }
-        
-        .search-box input {
-            width: 100%;
             padding: 12px;
-            border: 2px solid #2a5298;
+            border: 2px solid white;
             border-radius: 6px;
             font-size: 1em;
         }
         
-        .items-container {
+        #itemsContainer {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
         
-        .item-card {
+        .item {
             background: white;
-            border-radius: 12px;
             padding: 18px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border-top: 4px solid #2a5298;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
         }
         
-        .item-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
-        }
-        
-        .item-card.alert {
-            border-top-color: #f44336;
-            background: #fff3e0;
-        }
-        
-        .item-card.warning {
-            border-top-color: #ff9800;
+        .item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
         
         .item-name {
-            font-size: 1.1em;
             font-weight: bold;
-            color: #333;
+            font-size: 0.95em;
             margin-bottom: 8px;
-            word-break: break-word;
+            color: #333;
         }
         
         .item-number {
             font-size: 0.85em;
             color: #999;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         
-        .item-stats {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 6px;
+        .item-rec {
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
             margin-bottom: 12px;
             font-size: 0.9em;
+            text-align: center;
         }
         
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 6px 0;
-            padding: 4px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .stat-row:last-child {
-            border-bottom: none;
-        }
-        
-        .stat-label {
-            color: #666;
-        }
-        
-        .stat-value {
-            color: #2a5298;
-            font-weight: bold;
-        }
-        
-        .qty-control {
+        .qty-controls {
             display: flex;
             gap: 8px;
             margin-bottom: 12px;
@@ -273,10 +213,11 @@
             border: 2px solid #2a5298;
             background: white;
             color: #2a5298;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
             font-size: 0.9em;
+            transition: all 0.3s ease;
         }
         
         .qty-btn:hover {
@@ -285,69 +226,62 @@
         }
         
         .qty-display {
-            text-align: center;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 1.2em;
-            color: #2a5298;
-        }
-        
-        .recommended-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-        
-        .alert-badge {
-            display: inline-block;
-            background: #f44336;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75em;
-            margin-bottom: 8px;
-        }
-        
-        .action-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            display: flex;
-            gap: 10px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        
-        .action-btn {
             flex: 1;
-            padding: 12px;
+            text-align: center;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-weight: bold;
+            background: #f9f9f9;
+        }
+        
+        .add-btn {
+            width: 100%;
+            padding: 10px;
+            background: #4caf50;
+            color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.95em;
             transition: all 0.3s ease;
         }
         
+        .add-btn:hover {
+            background: #45a049;
+        }
+        
+        #actionButtons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+            display: none;
+            gap: 10px;
+            z-index: 1000;
+            max-width: 1030px;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
         .send-btn {
-            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            flex: 1;
+            padding: 12px;
+            background: #4caf50;
             color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
         }
         
         .send-btn:hover {
-            transform: scale(1.05);
+            background: #45a049;
         }
         
         .clear-btn {
@@ -400,7 +334,7 @@
         }
         
         @media (max-width: 768px) {
-            .items-container {
+            #itemsContainer {
                 grid-template-columns: 1fr;
             }
             
@@ -412,7 +346,7 @@
                 flex-direction: column;
             }
             
-            .action-buttons {
+            #actionButtons {
                 bottom: 0;
                 left: 0;
                 right: 0;
@@ -451,32 +385,27 @@
                 <input type="password" id="managerPassword" class="auth-input" placeholder="Manager password">
             </div>
             
-            <button class="auth-button" onclick="startOrdering()">Enter</button>
+            <button class="auth-btn" onclick="startOrdering()">Start Ordering</button>
         </div>
         
         <!-- APP SECTION -->
-        <div id="app" style="display: none;">
+        <div id="app">
             <div class="controls">
-                <div class="search-box">
-                    <input type="text" id="searchBox" placeholder="🔍 Search items..." onkeyup="filterItems()">
-                </div>
+                <input type="text" id="searchBox" class="search-box" placeholder="Search items..." onkeyup="renderItems()">
             </div>
             
             <div id="loading" class="loading" style="display: none;">Loading items...</div>
-            
-            <div class="items-container" id="itemsContainer"></div>
-            
-            <div style="height: 100px;"></div>
+            <div id="itemsContainer"></div>
         </div>
     </div>
     
-    <div class="action-buttons" id="actionButtons" style="display: none;">
-        <button class="action-btn send-btn" onclick="sendOrder()">📱 Send Order</button>
-        <button class="action-btn clear-btn" onclick="clearOrder()">❌ Clear All</button>
+    <div id="actionButtons">
+        <button class="send-btn" onclick="sendOrder()">📤 Send Order (WhatsApp)</button>
+        <button class="send-btn clear-btn" onclick="clearOrder()">🗑️ Clear</button>
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec?action=getOrderData';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
         const OWNER_PHONE = '14046689091';
         const MANAGER_PASSWORD = '977381';
         
@@ -552,64 +481,108 @@
         async function loadItems() {
             try {
                 document.getElementById('loading').style.display = 'block';
-                const response = await fetch(APPS_SCRIPT_URL);
                 
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
+                // STEP 1: Load all products from Main CIG LIST
+                const itemsResponse = await fetch(APPS_SCRIPT_URL + '?action=getItems');
+                if (!itemsResponse.ok) throw new Error(`HTTP ${itemsResponse.status} getting items`);
+                const itemsData = await itemsResponse.json();
                 
-                if (data.error) throw new Error(data.error);
-                if (!data.orders || data.orders.length === 0) throw new Error('No order data');
+                if (!itemsData.success || !itemsData.items) throw new Error('Failed to load items');
+                allItems = itemsData.items.filter(item => item.number); // Filter out empty items
+                
+                // STEP 2: Load order history for recommendations
+                const orderResponse = await fetch(APPS_SCRIPT_URL + '?action=getOrderData');
+                if (!orderResponse.ok) throw new Error(`HTTP ${orderResponse.status} getting orders`);
+                const orderData = await orderResponse.json();
+                
+                if (!orderData.success) throw new Error('Failed to load order data');
+                const orders = orderData.orders || [];
                 
                 const now = new Date();
                 const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
                 
                 const itemStats = {};
                 
-                for (const order of data.orders) {
+                // Initialize stats for all items
+                allItems.forEach(item => {
+                    itemStats[item.number] = {
+                        name: item.name,
+                        number: item.number,
+                        totalQty: 0,
+                        orderCount: 0,
+                        lastOrderDate: null,
+                        avgPerWeek: 0
+                    };
+                });
+                
+                // Calculate stats from order history
+                for (const order of orders) {
                     const orderDate = new Date(order.date);
                     if (orderDate < fourWeeksAgo) continue;
                     
                     const itemName = String(order.itemName);
                     const qty = parseFloat(order.qty) || 0;
                     
-                    if (!itemStats[itemName]) {
-                        itemStats[itemName] = {
+                    // Find matching item by name
+                    const matchingItem = allItems.find(item => item.name === itemName);
+                    if (!matchingItem) continue;
+                    
+                    const itemNum = matchingItem.number;
+                    if (!itemStats[itemNum]) {
+                        itemStats[itemNum] = {
                             name: itemName,
-                            total: 0,
-                            count: 0,
-                            lastOrdered: orderDate,
-                            orders: []
+                            number: itemNum,
+                            totalQty: 0,
+                            orderCount: 0,
+                            lastOrderDate: null,
+                            avgPerWeek: 0
                         };
                     }
                     
-                    itemStats[itemName].total += qty;
-                    itemStats[itemName].count++;
-                    itemStats[itemName].orders.push({ date: orderDate, qty: qty });
+                    itemStats[itemNum].totalQty += qty;
+                    itemStats[itemNum].orderCount++;
                     
-                    if (orderDate > itemStats[itemName].lastOrdered) {
-                        itemStats[itemName].lastOrdered = orderDate;
+                    if (!itemStats[itemNum].lastOrderDate || orderDate > itemStats[itemNum].lastOrderDate) {
+                        itemStats[itemNum].lastOrderDate = orderDate;
                     }
                 }
                 
-                allItems = Object.values(itemStats).map(item => {
-                    const avgPerWeek = (item.total / 4).toFixed(2);
-                    const daysSinceLastOrder = Math.floor((now - item.lastOrdered) / (1000 * 60 * 60 * 24));
-                    const recommendedQty = Math.ceil(avgPerWeek * Math.max(1, daysSinceLastOrder / 7));
+                // Build final item list with recommendations
+                const itemsToDisplay = allItems.map(item => {
+                    const stats = itemStats[item.number];
                     
+                    let avgPerWeek = 0;
+                    let daysSinceLastOrder = 999;
+                    let recommendedQty = item.mustHave || 1;
                     let status = 'good';
-                    if (daysSinceLastOrder > 21) status = 'alert';
-                    else if (daysSinceLastOrder > 14) status = 'warning';
+                    
+                    if (stats && stats.orderCount > 0) {
+                        avgPerWeek = stats.totalQty / 4;
+                        daysSinceLastOrder = Math.floor((now - new Date(stats.lastOrderDate)) / (1000 * 60 * 60 * 24));
+                        recommendedQty = Math.ceil(avgPerWeek * Math.max(1, daysSinceLastOrder / 7));
+                        
+                        if (daysSinceLastOrder > 21) status = 'alert';
+                        else if (daysSinceLastOrder > 14) status = 'warning';
+                    }
                     
                     return {
                         ...item,
-                        avgPerWeek: parseFloat(avgPerWeek),
+                        avgPerWeek: avgPerWeek.toFixed(2),
                         daysSinceLastOrder,
-                        recommendedQty,
-                        status
+                        recommendedQty: Math.max(item.mustHave || 1, recommendedQty),
+                        status,
+                        orderCount: stats ? stats.orderCount : 0
                     };
                 });
                 
-                allItems.sort((a, b) => b.recommendedQty - a.recommendedQty);
+                // Sort by recently ordered first, then by recommended qty
+                itemsToDisplay.sort((a, b) => {
+                    if (a.orderCount > 0 && b.orderCount === 0) return -1;
+                    if (a.orderCount === 0 && b.orderCount > 0) return 1;
+                    return b.recommendedQty - a.recommendedQty;
+                });
+                
+                allItems = itemsToDisplay;
                 
                 document.getElementById('loading').style.display = 'none';
                 renderItems();
@@ -628,106 +601,84 @@
             const grid = document.getElementById('itemsContainer');
             grid.innerHTML = '';
             
-            for (const item of filtered) {
-                const currentQty = orderData[item.name] || 0;
-                const lastOrderedText = item.daysSinceLastOrder === 0 ? 'Today' :
-                                       item.daysSinceLastOrder === 1 ? 'Yesterday' :
-                                       `${item.daysSinceLastOrder}d ago`;
-                
-                const card = document.createElement('div');
-                card.className = `item-card ${item.status === 'alert' ? 'alert' : item.status === 'warning' ? 'warning' : ''}`;
-                
-                let alertHTML = '';
-                if (item.status === 'alert') {
-                    alertHTML = '<span class="alert-badge">🔴 Not ordered in 3+ weeks</span>';
-                } else if (item.status === 'warning') {
-                    alertHTML = '<span class="alert-badge">⚠️ Not ordered in 2+ weeks</span>';
-                }
-                
-                card.innerHTML = `
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
                     <div class="item-name">${item.name}</div>
-                    <div class="item-number">#${item.orders[0]?.itemNumber || 'N/A'}</div>
-                    
-                    ${alertHTML}
-                    
-                    <span class="recommended-badge">📦 Recommended: ${item.recommendedQty} units</span>
-                    
-                    <div class="item-stats">
-                        <div class="stat-row">
-                            <span class="stat-label">Avg/Week</span>
-                            <span class="stat-value">${item.avgPerWeek}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Last Ordered</span>
-                            <span class="stat-value">${lastOrderedText}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Times (4wks)</span>
-                            <span class="stat-value">${item.count}x</span>
-                        </div>
+                    <div class="item-number">#${item.number}</div>
+                    <div class="item-rec">📦 Recommended: ${item.recommendedQty} units</div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="decrementQty('${item.number}')">➖</button>
+                        <div class="qty-display" id="qty-${item.number}">0</div>
+                        <button class="qty-btn" onclick="incrementQty('${item.number}')">➕</button>
                     </div>
-                    
-                    <div class="qty-control">
-                        <button class="qty-btn" onclick="updateQty('${item.name}', -1)">➖</button>
-                        <button class="qty-btn" onclick="updateQty('${item.name}', ${item.recommendedQty})">📋 Rec</button>
-                        <button class="qty-btn" onclick="updateQty('${item.name}', 1)">➕</button>
-                    </div>
-                    
-                    <div class="qty-display" id="qty-${item.name}">${currentQty}</div>
+                    <button class="add-btn" onclick="addItem('${item.number}', '${item.name}', ${item.recommendedQty})">Add to Order</button>
                 `;
-                
-                grid.appendChild(card);
-            }
+                grid.appendChild(div);
+            });
         }
 
-        function filterItems() {
-            renderItems();
+        function incrementQty(itemNum) {
+            const display = document.getElementById(`qty-${itemNum}`);
+            display.textContent = parseInt(display.textContent) + 1;
         }
 
-        function updateQty(itemName, change) {
-            if (!orderData[itemName]) {
-                orderData[itemName] = 0;
+        function decrementQty(itemNum) {
+            const display = document.getElementById(`qty-${itemNum}`);
+            let current = parseInt(display.textContent);
+            if (current > 0) display.textContent = current - 1;
+        }
+
+        function addItem(itemNum, itemName, recommendedQty) {
+            const qtyDisplay = document.getElementById(`qty-${itemNum}`);
+            const qty = parseInt(qtyDisplay.textContent);
+            
+            if (qty === 0) {
+                alert('Please enter a quantity');
+                return;
             }
             
-            orderData[itemName] += change;
-            if (orderData[itemName] < 0) orderData[itemName] = 0;
+            if (!orderData[itemNum]) {
+                orderData[itemNum] = { name: itemName, qty: 0 };
+            }
+            orderData[itemNum].qty += qty;
+            qtyDisplay.textContent = '0';
             
-            document.getElementById(`qty-${itemName}`).textContent = orderData[itemName];
             updateOrderCount();
         }
 
         function updateOrderCount() {
-            const totalItems = Object.values(orderData).reduce((sum, qty) => sum + qty, 0);
-            const uniqueItems = Object.values(orderData).filter(qty => qty > 0).length;
-            document.getElementById('orderCount').textContent = `${uniqueItems} items`;
+            const count = Object.keys(orderData).length;
+            const total = Object.values(orderData).reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('orderCount').textContent = `${count} items (${total} units)`;
         }
 
         function sendOrder() {
-            const itemsToSend = Object.entries(orderData)
-                .filter(([_, qty]) => qty > 0)
-                .map(([name, qty]) => `${name}: ${qty}`)
-                .join('\n');
-            
-            if (!itemsToSend) {
-                alert('Please select items to order');
+            if (Object.keys(orderData).length === 0) {
+                alert('Order is empty');
                 return;
             }
             
-            const modeLabel = isManager ? '(Manager)' : '(Employee)';
-            const message = `🚬 CIGARETTE ORDER ${modeLabel}\nEmployee: ${employeeName}\n📅 ${new Date().toLocaleDateString()}\n\n${itemsToSend}`;
-            const encodedMessage = encodeURIComponent(message);
-            const whatsappURL = `https://wa.me/${OWNER_PHONE}?text=${encodedMessage}`;
+            let message = `Order from ${employeeName}:\n\n`;
+            let totalUnits = 0;
             
-            window.open(whatsappURL, '_blank');
+            for (const [itemNum, item] of Object.entries(orderData)) {
+                message += `${item.name} (#${itemNum}): ${item.qty}\n`;
+                totalUnits += item.qty;
+            }
             
-            setTimeout(() => {
-                clearOrder();
-            }, 1000);
+            message += `\nTotal: ${totalUnits} units`;
+            
+            const whatsappUrl = `https://wa.me/${OWNER_PHONE}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            clearOrder();
         }
 
         function clearOrder() {
             orderData = {};
-            renderItems();
+            document.querySelectorAll('.qty-display').forEach(el => el.textContent = '0');
             updateOrderCount();
         }
     </script>
