@@ -253,44 +253,10 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        .search-results {
-            display: none;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-        
-        .search-results.show {
-            display: block;
-        }
-        
-        .search-result-item {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .search-result-item:hover {
-            background: #f0f0ff;
-            border-left: 4px solid #667eea;
-            padding-left: 8px;
-        }
-        
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-        
-        .search-result-name {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .search-result-number {
-            font-size: 12px;
-            color: #999;
+        .search-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
         }
         
         .items-section {
@@ -457,6 +423,13 @@
             background: #d1ecf1;
             border: 1px solid #bee5eb;
             color: #0c5460;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 16px;
         }
         
         /* MODAL */
@@ -640,8 +613,8 @@
         
         <!-- SEARCH SECTION -->
         <div class="search-section" id="searchSection">
-            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search items by name or #..." onkeyup="searchItems()">
-            <div class="search-results" id="searchResults"></div>
+            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search items (e.g., Camel, Marlboro, etc.)..." onkeyup="searchItems()">
+            <div class="search-info" id="searchInfo"></div>
         </div>
         
         <!-- ITEMS SECTION -->
@@ -813,7 +786,7 @@
             document.getElementById('loginName').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('searchBox').value = '';
-            document.getElementById('searchResults').classList.remove('show');
+            document.getElementById('searchInfo').innerHTML = '';
             allItems = [];
             countData = {};
         }
@@ -858,11 +831,10 @@
         
         function searchItems() {
             const query = document.getElementById('searchBox').value.toLowerCase().trim();
-            const resultsDiv = document.getElementById('searchResults');
+            const searchInfo = document.getElementById('searchInfo');
             
             if (!query) {
-                resultsDiv.classList.remove('show');
-                resultsDiv.innerHTML = '';
+                searchInfo.innerHTML = '';
                 renderItems(); // Show all items
                 return;
             }
@@ -873,35 +845,12 @@
             );
             
             if (filtered.length === 0) {
-                resultsDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No items found</div>';
-                resultsDiv.classList.add('show');
+                searchInfo.innerHTML = `<span style="color: #f44336; font-weight: 600;">❌ No items match "${query}"</span>`;
                 renderItems([]); // Show empty grid
-                return;
+            } else {
+                searchInfo.innerHTML = `<span style="color: #4caf50; font-weight: 600;">✅ Found ${filtered.length} item(s)</span>`;
+                renderItems(filtered); // Show only filtered items
             }
-            
-            resultsDiv.innerHTML = filtered.map(item => `
-                <div class="search-result-item" onclick="jumpToItem('${item.number}')">
-                    <div class="search-result-name">${item.name}</div>
-                    <div class="search-result-number">#${item.number} | Must Have: ${item.mustHave}</div>
-                </div>
-            `).join('');
-            
-            resultsDiv.classList.add('show');
-            renderItems(filtered); // Show only filtered items
-        }
-        
-        function jumpToItem(itemNumber) {
-            const element = document.getElementById(`card-${itemNumber}`);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                element.style.boxShadow = '0 0 20px rgba(255, 152, 0, 0.8)';
-                setTimeout(() => {
-                    element.style.boxShadow = '';
-                }, 2000);
-            }
-            // Clear search
-            document.getElementById('searchBox').value = '';
-            document.getElementById('searchResults').classList.remove('show');
         }
         
         function renderItems(itemsToRender = null) {
@@ -910,6 +859,11 @@
             
             // Use filtered items if provided, otherwise use all items
             const itemsToDisplay = itemsToRender !== null ? itemsToRender : allItems;
+            
+            if (itemsToDisplay.length === 0 && document.getElementById('searchBox').value.trim()) {
+                grid.innerHTML = `<div class="no-results">No items found. Try a different search.</div>`;
+                return;
+            }
             
             itemsToDisplay.forEach(item => {
                 const data = countData[item.number];
