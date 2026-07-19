@@ -408,7 +408,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
-            inputmode: numeric;
         }
         
         .location-input input:focus {
@@ -648,7 +647,7 @@
         <!-- ITEMS SECTION -->
         <div class="items-section" id="itemsSection">
             <h2 style="margin-bottom: 20px; color: #333;" id="itemsTitle">Count Your Inventory</h2>
-            <p style="margin-bottom: 20px; color: #666; font-size: 13px;">Items needing order (orange) appear first. Click Must Have (manager only) to edit.</p>
+            <p style="margin-bottom: 20px; color: #666; font-size: 13px;">Items needing order (orange) appear first. Click Must Have (manager only) to edit. You can enter decimals like 0.5, 1.25, etc.</p>
             <div class="items-grid" id="itemsGrid"></div>
         </div>
         
@@ -677,7 +676,7 @@
                 <div class="control-group">
                     <div class="form-group">
                         <label>WhatsApp Phone (with country code)</label>
-                        <input type="tel" id="whatsappPhone" placeholder="+1 404-668-9091" value="+14046689091" inputmode="numeric">
+                        <input type="tel" id="whatsappPhone" placeholder="+1 404-668-9091" value="+14046689091">
                     </div>
                     <div class="form-group" id="emailGroup" style="display: none;">
                         <label>Email Address</label>
@@ -702,7 +701,7 @@
             <p id="editItemName" style="color: #666; margin-bottom: 15px; font-size: 14px;"></p>
             <div class="form-group">
                 <label>Must Have Quantity</label>
-                <input type="number" id="editMustHaveInput" step="0.5" placeholder="e.g., 11 or 1.5">
+                <input type="text" id="editMustHaveInput" placeholder="e.g., 11 or 1.5">
             </div>
             <p style="color: #999; font-size: 12px; margin-bottom: 15px;">⚠️ Are you sure you want to change this?</p>
             <div class="modal-buttons">
@@ -726,7 +725,7 @@
             </div>
             <div class="form-group">
                 <label>Must Have Qty</label>
-                <input type="number" id="newItemMustHave" step="0.5" placeholder="e.g., 11 or 1.5">
+                <input type="text" id="newItemMustHave" placeholder="e.g., 11 or 1.5">
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-success" onclick="addNewItem()">➕ Add Item</button>
@@ -918,8 +917,8 @@
                 div.className = 'item-card';
                 div.id = `card-${item.number}`;
                 
-                const location1 = parseInt(data.location1) || 0;
-                const location2 = parseInt(data.location2) || 0;
+                const location1 = parseFloat(data.location1) || 0;
+                const location2 = parseFloat(data.location2) || 0;
                 const total = location1 + location2;
                 const orderQty = Math.max(0, item.mustHave - total);
                 
@@ -946,30 +945,30 @@
                     <div class="location-inputs">
                         <div class="location-input">
                             <label>Display (Loc 1)</label>
-                            <input type="number" inputmode="numeric" min="0" value="${location1}" 
-                                onchange="updateCount('${item.number}', 'location1', this.value)" placeholder="0">
+                            <input type="text" value="${location1}" 
+                                onchange="updateCount('${item.number}', 'location1', this.value)" placeholder="0 or 0.5">
                         </div>
                         ${showLocation2 ? `
                         <div class="location-input">
                             <label>Back Stock (Loc 2)</label>
-                            <input type="number" inputmode="numeric" min="0" value="${location2}" 
-                                onchange="updateCount('${item.number}', 'location2', this.value)" placeholder="0">
+                            <input type="text" value="${location2}" 
+                                onchange="updateCount('${item.number}', 'location2', this.value)" placeholder="0 or 0.5">
                         </div>
                         ` : `
                         <div class="location-input" style="opacity: 0.4;">
                             <label>Back Stock (Loc 2)</label>
-                            <input type="number" inputmode="numeric" min="0" value="${location2}" disabled placeholder="0">
+                            <input type="text" value="${location2}" disabled placeholder="0 or 0.5">
                         </div>
                         `}
                     </div>
                     
                     ${orderQty > 0 ? `
                     <div class="order-summary">
-                        Total: ${total} | Order: <span class="order-qty">${orderQty}</span>
+                        Total: ${total.toFixed(2)} | Order: <span class="order-qty">${orderQty.toFixed(2)}</span>
                     </div>
                     ` : `
                     <div class="order-summary" style="background: #e8f5e9; border-color: #4caf50; color: #2e7d32;">
-                        ✅ Stock OK (${total})
+                        ✅ Stock OK (${total.toFixed(2)})
                     </div>
                     `}
                 `;
@@ -979,7 +978,12 @@
         }
         
         function updateCount(itemNum, location, value) {
-            countData[itemNum][location] = parseInt(value) || 0;
+            const numValue = parseFloat(value) || 0;
+            if (numValue < 0) {
+                showAlert('Cannot enter negative numbers', 'error');
+                return;
+            }
+            countData[itemNum][location] = numValue;
             
             // If search is active, keep showing filtered results
             const searchQuery = document.getElementById('searchBox').value.toLowerCase().trim();
@@ -1095,7 +1099,7 @@
             
             allItems.forEach(item => {
                 const data = countData[item.number];
-                const total = (parseInt(data.location1) || 0) + (parseInt(data.location2) || 0);
+                const total = (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0);
                 const orderQty = Math.max(0, item.mustHave - total);
                 
                 if (orderQty > 0) {
@@ -1103,8 +1107,8 @@
                         name: item.name,
                         number: item.number,
                         mustHave: item.mustHave,
-                        location1: parseInt(data.location1) || 0,
-                        location2: parseInt(data.location2) || 0,
+                        location1: parseFloat(data.location1) || 0,
+                        location2: parseFloat(data.location2) || 0,
                         total: total,
                         orderQty: orderQty
                     });
@@ -1124,10 +1128,10 @@
                     <td>${item.name}</td>
                     <td>#${item.number}</td>
                     <td>${item.mustHave}</td>
-                    <td>${item.location1}</td>
-                    <td>${item.location2}</td>
-                    <td>${item.total}</td>
-                    <td style="font-weight: 600; color: #ff6b6b;">${item.orderQty}</td>
+                    <td>${item.location1.toFixed(2)}</td>
+                    <td>${item.location2.toFixed(2)}</td>
+                    <td>${item.total.toFixed(2)}</td>
+                    <td style="font-weight: 600; color: #ff6b6b;">${item.orderQty.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1135,7 +1139,7 @@
             if (itemsWithOrders.length === 0) {
                 showAlert('✅ No items need ordering!', 'success');
             } else {
-                showAlert(`Found ${itemsWithOrders.length} items to order (${totalToOrder} units)`, 'info');
+                showAlert(`Found ${itemsWithOrders.length} items to order (${totalToOrder.toFixed(2)} units)`, 'info');
             }
         }
         
@@ -1179,7 +1183,7 @@
             
             allItems.forEach(item => {
                 const data = countData[item.number];
-                const total = (parseInt(data.location1) || 0) + (parseInt(data.location2) || 0);
+                const total = (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0);
                 const orderQty = Math.max(0, item.mustHave - total);
                 
                 if (orderQty > 0) {
@@ -1199,10 +1203,10 @@
                 message += `${item.name}\n`;
                 message += `  Item #: ${item.number}\n`;
                 message += `  Must Have: ${item.mustHave}\n`;
-                message += `  Order Qty: ${item.orderQty}\n\n`;
+                message += `  Order Qty: ${item.orderQty.toFixed(2)}\n\n`;
             });
             
-            message += `\nTOTAL UNITS TO ORDER: ${totalToOrder}\n`;
+            message += `\nTOTAL UNITS TO ORDER: ${totalToOrder.toFixed(2)}\n`;
             message += `ITEMS NEEDING ORDER: ${itemsWithOrders.length}\n`;
             
             return message;
@@ -1215,8 +1219,8 @@
             const itemsData = [];
             allItems.forEach(item => {
                 const data = countData[item.number];
-                const location1 = parseInt(data.location1) || 0;
-                const location2 = parseInt(data.location2) || 0;
+                const location1 = parseFloat(data.location1) || 0;
+                const location2 = parseFloat(data.location2) || 0;
                 const total = location1 + location2;
                 const orderQty = Math.max(0, item.mustHave - total);
                 
