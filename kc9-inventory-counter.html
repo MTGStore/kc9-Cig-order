@@ -1063,7 +1063,7 @@
                         mustHave: item.mustHave,
                         location1: parseFloat(data.location1) || 0,
                         location2: parseFloat(data.location2) || 0,
-                        total: total,
+                        currentStock: (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0),
                         orderQty: orderQty
                     });
                     totalToOrder += orderQty;
@@ -1084,7 +1084,7 @@
                     <td>${item.mustHave}</td>
                     <td>${item.location1.toFixed(2)}</td>
                     <td>${item.location2.toFixed(2)}</td>
-                    <td>${item.total.toFixed(2)}</td>
+                    <td>${item.currentStock.toFixed(2)}</td>
                     <td style="font-weight: 600; color: #ff6b6b;">${item.orderQty.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
@@ -1128,16 +1128,17 @@
             
             let message = `KC9 INVENTORY COUNT REPORT\n`;
             message += `Date: ${date}\n`;
-            message += `Counted by: ${currentUser.name}\n\n`;
-            message += `ITEMS TO ORDER:\n`;
-            message += `================\n\n`;
+            message += `Counted by: ${currentUser.name}\n`;
+            message += `════════════════════════════\n\n`;
             
             const itemsWithOrders = [];
             let totalToOrder = 0;
             
             allItems.forEach(item => {
                 const data = countData[item.number];
-                const total = (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0);
+                const location1 = parseFloat(data.location1) || 0;
+                const location2 = parseFloat(data.location2) || 0;
+                const total = location1 + location2;
                 const orderQty = Math.max(0, item.mustHave - total);
                 
                 if (orderQty > 0) {
@@ -1145,6 +1146,7 @@
                         name: item.name,
                         number: item.number,
                         mustHave: item.mustHave,
+                        currentStock: total,
                         orderQty: orderQty
                     });
                     totalToOrder += orderQty;
@@ -1154,13 +1156,16 @@
             itemsWithOrders.sort((a, b) => b.orderQty - a.orderQty);
             
             itemsWithOrders.forEach(item => {
-                message += `${item.name}\n`;
-                message += `  Item #: ${item.number}\n`;
-                message += `  Must Have: ${item.mustHave}\n`;
-                message += `  Order Qty: ${item.orderQty.toFixed(2)}\n\n`;
+                message += `Item Name: ${item.name}\n`;
+                message += `Item #: ${item.number}\n`;
+                message += `Must Have: ${item.mustHave}\n`;
+                message += `Currently Have: ${item.currentStock.toFixed(2)}\n`;
+                message += `*Order Qty: ${item.orderQty.toFixed(2)}*\n`;
+                message += `\n`;
             });
             
-            message += `\nTOTAL UNITS TO ORDER: ${totalToOrder.toFixed(2)}\n`;
+            message += `════════════════════════════\n`;
+            message += `TOTAL UNITS TO ORDER: *${totalToOrder.toFixed(2)}*\n`;
             message += `ITEMS NEEDING ORDER: ${itemsWithOrders.length}\n`;
             
             return message;
