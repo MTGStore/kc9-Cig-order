@@ -1183,20 +1183,19 @@
                 const total = location1 + location2;
                 const orderQty = Math.max(0, item.mustHave - total);
                 
-                if (orderQty > 0) {
-                    itemsData.push({
-                        date: date,
-                        countedBy: currentUser.name,
-                        itemName: item.name,
-                        itemNumber: item.number,
-                        mustHave: item.mustHave,
-                        location1: location1,
-                        location2: location2,
-                        totalStock: total,
-                        orderQty: orderQty,
-                        timestamp: new Date().toLocaleString()
-                    });
-                }
+                // SAVE ALL ITEMS (not just ones with orderQty > 0)
+                itemsData.push({
+                    date: date,
+                    countedBy: currentUser.name,
+                    itemName: item.name,
+                    itemNumber: item.number,
+                    mustHave: item.mustHave,
+                    location1: location1,
+                    location2: location2,
+                    totalStock: total,
+                    orderQty: orderQty,
+                    timestamp: new Date().toLocaleString()
+                });
             });
             
             const payload = {
@@ -1204,14 +1203,18 @@
                 data: itemsData
             };
             
+            console.log('Sending payload with ' + itemsData.length + ' items');
+            
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload)
             })
             .then(response => {
-                showAlert('✅ Saved to Google Sheets!', 'success');
+                console.log('Save response received');
+                showAlert('✅ Saved ' + itemsData.length + ' items to Google Sheets!', 'success');
             })
             .catch(error => {
+                console.log('Save error:', error);
                 showAlert('Error saving to Sheets: ' + error.message, 'error');
             });
         }
