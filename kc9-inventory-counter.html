@@ -646,19 +646,8 @@
             <div class="report-section" id="reportSection">
                 <h3 style="margin-bottom: 15px; color: #333;">📤 Send Report</h3>
                 
-                <div class="control-group">
-                    <div class="form-group">
-                        <label>WhatsApp Phone (with country code)</label>
-                        <input type="tel" id="whatsappPhone" placeholder="+1 404-668-9091" value="+14046689091">
-                    </div>
-                    <div class="form-group" id="emailGroup" style="display: none;">
-                        <label>Email Address</label>
-                        <input type="email" id="emailAddress" placeholder="your@email.com">
-                    </div>
-                </div>
-                
                 <div class="report-buttons">
-                    <button class="btn btn-success" onclick="sendWhatsApp()">📱 WhatsApp</button>
+                    <button class="btn btn-success" onclick="sendWhatsAppReport()">📱 WhatsApp Report</button>
                     <button class="btn btn-success" id="emailBtn" style="display: none;" onclick="sendEmail()">📧 Email</button>
                     <button class="btn btn-primary" onclick="saveToSheets()">💾 Save to Sheets</button>
                 </div>
@@ -693,12 +682,20 @@
                 <input type="text" id="newItemName" placeholder="e.g., Marlboro Gold">
             </div>
             <div class="form-group">
-                <label>Item Number</label>
+                <label>Item Number (111 if unknown)</label>
                 <input type="text" id="newItemNumber" placeholder="e.g., 4337382">
             </div>
             <div class="form-group">
                 <label>Must Have Qty</label>
                 <input type="text" id="newItemMustHave" placeholder="e.g., 11 or 1.5">
+            </div>
+            <div class="form-group">
+                <label>Location 1 (Display) Count</label>
+                <input type="text" id="newItemLoc1" placeholder="e.g., 5">
+            </div>
+            <div class="form-group">
+                <label>Location 2 (Back Stock) Count</label>
+                <input type="text" id="newItemLoc2" placeholder="e.g., 3">
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-success" onclick="addNewItem()">➕ Add Item</button>
@@ -766,8 +763,6 @@
             } else {
                 document.getElementById('userBadge').textContent = '👤 EMPLOYEE';
                 document.getElementById('userRole').textContent = 'Employee Mode - Count Inventory';
-                document.getElementById('emailBtn').style.display = 'block';
-                document.getElementById('emailGroup').style.display = 'block';
             }
             
             document.getElementById('userBadge').textContent += ': ' + name;
@@ -985,17 +980,21 @@
             document.getElementById('newItemName').value = '';
             document.getElementById('newItemNumber').value = '';
             document.getElementById('newItemMustHave').value = '';
+            document.getElementById('newItemLoc1').value = '';
+            document.getElementById('newItemLoc2').value = '';
             document.getElementById('addItemModal').classList.add('show');
             document.getElementById('newItemName').focus();
         }
         
         function addNewItem() {
             const name = document.getElementById('newItemName').value.trim();
-            const number = document.getElementById('newItemNumber').value.trim();
+            const number = document.getElementById('newItemNumber').value.trim() || '111';
             const mustHave = parseFloat(document.getElementById('newItemMustHave').value);
+            const loc1 = parseFloat(document.getElementById('newItemLoc1').value) || 0;
+            const loc2 = parseFloat(document.getElementById('newItemLoc2').value) || 0;
             
-            if (!name || !number) {
-                showAlert('Please fill in all fields', 'error');
+            if (!name) {
+                showAlert('Please enter item name', 'error');
                 return;
             }
             
@@ -1021,8 +1020,8 @@
                 name: name,
                 number: number,
                 mustHave: mustHave,
-                location1: 0,
-                location2: 0
+                location1: loc1,
+                location2: loc2
             };
             
             addItemToSheets(name, number, mustHave);
@@ -1047,87 +1046,13 @@
             }
         }
         
-        function showSummary() {
-            const itemsWithOrders = [];
-            let totalToOrder = 0;
-            
-            allItems.forEach(item => {
-                const data = countData[item.number];
-                const total = (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0);
-                const orderQty = Math.max(0, item.mustHave - total);
-                
-                if (orderQty > 0) {
-                    itemsWithOrders.push({
-                        name: item.name,
-                        number: item.number,
-                        mustHave: item.mustHave,
-                        location1: parseFloat(data.location1) || 0,
-                        location2: parseFloat(data.location2) || 0,
-                        currentStock: (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0),
-                        orderQty: orderQty
-                    });
-                    totalToOrder += orderQty;
-                }
-            });
-            
-            itemsWithOrders.sort((a, b) => b.orderQty - a.orderQty);
-            
-            const tbody = document.getElementById('summaryBody');
-            tbody.innerHTML = '';
-            
-            itemsWithOrders.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'needs-order';
-                tr.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>#${item.number}</td>
-                    <td>${item.mustHave}</td>
-                    <td>${item.location1.toFixed(2)}</td>
-                    <td>${item.location2.toFixed(2)}</td>
-                    <td>${item.currentStock.toFixed(2)}</td>
-                    <td style="font-weight: 600; color: #ff6b6b;">${item.orderQty.toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            
-            if (itemsWithOrders.length === 0) {
-                showAlert('✅ No items need ordering!', 'success');
-            } else {
-                showAlert(`Found ${itemsWithOrders.length} items to order (${totalToOrder.toFixed(2)} units)`, 'info');
-            }
-        }
-        
-        function sendWhatsApp() {
-            const phone = document.getElementById('whatsappPhone').value.replace(/\D/g, '');
-            if (!phone) {
-                showAlert('Please enter a phone number', 'error');
-                return;
-            }
-            
-            showSummary();
-            let message = buildMessage();
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
-        }
-        
-        function sendEmail() {
-            const email = document.getElementById('emailAddress').value;
-            if (!email) {
-                showAlert('Please enter an email address', 'error');
-                return;
-            }
-            
-            showSummary();
-            let message = buildMessage();
-            const subject = `KC9 Inventory Count - ${document.getElementById('countDate').value}`;
-            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-        }
-        
-        function buildMessage() {
-            const date = document.getElementById('countDate').value;
+        function buildOrderReport() {
+            const dateInput = document.getElementById('countDate').value;
+            // CONVERT DATE FROM "2026-09-07" TO "20260907" FORMAT FOR SHEETS
+            const dateKey = dateInput.replace(/-/g, '');
             
             let message = `KC9 INVENTORY COUNT REPORT\n`;
-            message += `Date: ${date}\n`;
+            message += `Date: ${dateInput}\n`;
             message += `Counted by: ${currentUser.name}\n`;
             message += `════════════════════════════\n\n`;
             
@@ -1168,11 +1093,87 @@
             message += `TOTAL UNITS TO ORDER: *${totalToOrder.toFixed(2)}*\n`;
             message += `ITEMS NEEDING ORDER: ${itemsWithOrders.length}\n`;
             
-            return message;
+            return { message, dateKey };
+        }
+        
+        function sendWhatsAppReport() {
+            showSummary();
+            const { message } = buildOrderReport();
+            const phone = '14046689091';  // Your phone number
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            showAlert('✅ WhatsApp report opened. Copy & send the message!', 'success');
+        }
+        
+        function sendEmail() {
+            showSummary();
+            const dateInput = document.getElementById('countDate').value;
+            const { message } = buildOrderReport();
+            const email = document.getElementById('emailAddress').value;
+            if (!email) {
+                showAlert('Please enter an email address', 'error');
+                return;
+            }
+            
+            const subject = `KC9 Inventory Count - ${dateInput}`;
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+        }
+        
+        function showSummary() {
+            const itemsWithOrders = [];
+            let totalToOrder = 0;
+            
+            allItems.forEach(item => {
+                const data = countData[item.number];
+                const total = (parseFloat(data.location1) || 0) + (parseFloat(data.location2) || 0);
+                const orderQty = Math.max(0, item.mustHave - total);
+                
+                if (orderQty > 0) {
+                    itemsWithOrders.push({
+                        name: item.name,
+                        number: item.number,
+                        mustHave: item.mustHave,
+                        location1: parseFloat(data.location1) || 0,
+                        location2: parseFloat(data.location2) || 0,
+                        currentStock: total,
+                        orderQty: orderQty
+                    });
+                    totalToOrder += orderQty;
+                }
+            });
+            
+            itemsWithOrders.sort((a, b) => b.orderQty - a.orderQty);
+            
+            const tbody = document.getElementById('summaryBody');
+            tbody.innerHTML = '';
+            
+            itemsWithOrders.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'needs-order';
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>#${item.number}</td>
+                    <td>${item.mustHave}</td>
+                    <td>${item.location1.toFixed(2)}</td>
+                    <td>${item.location2.toFixed(2)}</td>
+                    <td>${item.currentStock.toFixed(2)}</td>
+                    <td style="font-weight: 600; color: #ff6b6b;">${item.orderQty.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (itemsWithOrders.length === 0) {
+                showAlert('✅ No items need ordering!', 'success');
+            } else {
+                showAlert(`Found ${itemsWithOrders.length} items to order (${totalToOrder.toFixed(2)} units)`, 'info');
+            }
         }
         
         function saveToSheets() {
-            const date = document.getElementById('countDate').value;
+            const dateInput = document.getElementById('countDate').value;
+            // CONVERT DATE FROM "2026-09-07" TO "20260907" FORMAT
+            const dateKey = dateInput.replace(/-/g, '');
+            
             showSummary();
             
             const itemsData = [];
@@ -1185,7 +1186,7 @@
                 
                 // SAVE ALL ITEMS (not just ones with orderQty > 0)
                 itemsData.push({
-                    date: date,
+                    date: dateKey,  // SEND AS "20260907" FORMAT
                     countedBy: currentUser.name,
                     itemName: item.name,
                     itemNumber: item.number,
