@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPC to Item Mapper - KC9</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .progress {
+            background: rgba(255,255,255,0.2);
+            height: 6px;
+            margin-top: 15px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: white;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .content {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .upc-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .upc-item.completed {
+            background: #f0f9ff;
+            border-color: #0ea5e9;
+        }
+        
+        .upc-item.skipped {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            opacity: 0.6;
+        }
+        
+        .upc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .upc-code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            background: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .status {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.done {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status.skipped {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-submit {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-submit:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-skip {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-skip:hover {
+            background: #d1d5db;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .footer-text {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .summary {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .summary.show {
+            display: block;
+        }
+        
+        .summary h2 {
+            color: #0369a1;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .summary p {
+            color: #0c4a6e;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        
+        .error-message {
+            color: #dc2626;
+            font-size: 11px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 UPC to Item Mapper</h1>
+            <p>Map unmatched scan codes to item numbers (69 total)</p>
+            <div class="progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="mappings-container"></div>
+            
+            <div id="summary" class="summary">
+                <h2>✅ All mappings reviewed!</h2>
+                <p>Copy the results below to share with Harry:</p>
+                <textarea id="results" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #0ea5e9; border-radius: 6px; font-family: monospace; font-size: 12px;" readonly></textarea>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-text">
+                <strong id="counter">0 / 69</strong> processed
+            </div>
+            <div class="footer-text" id="stats"></div>
+        </div>
+    </div>
+
+    <script>
+        const allUPCs = [
+            "01100000000", "01100000002", "01100000063", "01230000007", "01230020059", 
+            "01230084400", "01230084417", "02610000573", "02610000575", "02610000576", 
+            "02610000577", "02610000578", "02610000657", "02610000660", "02610000670", 
+            "02720000185", "02720000862", "02720020589", "02720020592", "02720020595", 
+            "02720020953", "02720020956", "02820000264", "02820000368", "02820000376", 
+            "02820000386", "02820000465", "02820000478", "02820000481", "02820000485", 
+            "02820000565", "02820000735", "02820000744", "02820000774", "02820000775", 
+            "02820000778", "02820000815", "02820017932", "02820033682", "02820033692", 
+            "02820033722", "02820033732", "04330000095", "04330010917", "04330010926", 
+            "04330018714", "04799585505", "04799585507", "04799585525", "09050000038", 
+            "09050000039", "09050000051", "09050000054", "09050000057", "09050000058", 
+            "09050000073", "09050000086", "09050000090", "09050000092", "09050000094", 
+            "09050001000", "09050001003", "09050001061", "09050001062", "68146700318", 
+            "68146700327", "68146700354", "68146700360", "68514191012"
+        ];
+        
+        const mappings = {};
+        const skipped = new Set();
+        let completed = 0;
+
+        function renderUPCForm(upc, index) {
+            const html = `
+                <div class="upc-item" id="upc-${index}">
+                    <div class="upc-header">
+                        <div class="upc-code">${upc}</div>
+                        <span class="status pending" id="status-${index}">Pending</span>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label for="item-id-${index}">Item Number</label>
+                            <input type="text" id="item-id-${index}" placeholder="e.g. 4336442" data-upc="${upc}">
+                        </div>
+                        <div>
+                            <label for="item-name-${index}">Item Name</label>
+                            <input type="text" id="item-name-${index}" placeholder="e.g. Marlboro Gold Short" data-upc="${upc}">
+                        </div>
+                    </div>
+                    <div class="error-message" id="error-${index}"></div>
+                    <div class="button-group">
+                        <button class="btn-submit" onclick="saveMapping('${upc}', ${index})">✓ Save</button>
+                        <button class="btn-skip" onclick="skipMapping('${upc}', ${index})">Skip</button>
+                    </div>
+                </div>
+            `;
+            return html;
+        }
+
+        function saveMapping(upc, index) {
+            const itemId = document.getElementById(`item-id-${index}`).value.trim();
+            const itemName = document.getElementById(`item-name-${index}`).value.trim();
+            
+            if (!itemId || !itemName) {
+                const errorEl = document.getElementById(`error-${index}`);
+                errorEl.textContent = "Both fields required";
+                errorEl.classList.add('show');
+                return;
+            }
+            
+            mappings[upc] = { itemId, itemName };
+            skipped.delete(upc);
+            
+            const upcEl = document.getElementById(`upc-${index}`);
+            const statusEl = document.getElementById(`status-${index}`);
+            
+            upcEl.classList.remove('skipped');
+            upcEl.classList.add('completed');
+            statusEl.textContent = '✓ Done';
+            statusEl.classList.remove('pending');
+            statusEl.classList.add('done');
+            
+            document.getElementById(`item-id-${index}`).disabled = true;
+            document.getElementById(`item-name-${index}`).disabled = true;
+            document.getElementById(`item-id-${index}`).parentElement.parentElement.style.opacity = '0.7';
+            
+            completed++;
+            updateUI();
+            checkIfComplete();
+        }
+
+        function skipMapping(upc, index) {
+            skipped.add(upc);
+            delete mappings[upc];
+            
+            const upcEl = document.getElementById(`upc-${index}`);
+            const statusEl = document.getElementById(`status-${index}`);
+            
+            upcEl.classList.add('skipped');
+            statusEl.textContent = '⊘ Skipped';
+            statusEl.classList.remove('pending');
+            statusEl.classList.add('skipped');
+            
+            completed++;
+            updateUI();
+            checkIfComplete();
+        }
+
+        function updateUI() {
+            document.getElementById('counter').textContent = `${completed} / ${allUPCs.length}`;
+            const percent = (completed / allUPCs.length) * 100;
+            document.querySelector('.progress-bar').style.width = percent + '%';
+            
+            const statsText = `${Object.keys(mappings).length} mapped · ${skipped.size} skipped`;
+            document.getElementById('stats').textContent = statsText;
+        }
+
+        function checkIfComplete() {
+            if (completed === allUPCs.length) {
+                const results = Object.entries(mappings)
+                    .map(([upc, data]) => `${upc} | ${data.itemId} | ${data.itemName}`)
+                    .join('\n');
+                
+                document.getElementById('results').value = results;
+                document.getElementById('summary').classList.add('show');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('mappings-container');
+            allUPCs.forEach((upc, index) => {
+                container.innerHTML += renderUPCForm(upc, index);
+            });
+            updateUI();
+        });
+    </script>
+</body>
+</html>
