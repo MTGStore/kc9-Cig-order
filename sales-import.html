@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Sales Import - KC9</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .main-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 200px;
+            font-family: monospace;
+        }
+        
+        .instructions {
+            background: #f0f8ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            display: none;
+        }
+        
+        .results-section.show {
+            display: block;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        .results-table thead {
+            background: #667eea;
+            color: white;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .results-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .matched {
+            background: #e8f5e9;
+        }
+        
+        .unmatched {
+            background: #fff3cd;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .main-section,
+            .results-section {
+                padding: 20px;
+            }
+            
+            .results-table {
+                font-size: 11px;
+            }
+            
+            .results-table th,
+            .results-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Weekly Sales Import</h1>
+            <p>Import POS sales data to calculate recommended orders</p>
+        </div>
+        
+        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alert alert-error" id="alertError"></div>
+        <div class="alert alert-info" id="alertInfo"></div>
+        
+        <div class="main-section">
+            <div class="instructions">
+                <strong>📋 How to use:</strong><br>
+                1. Set the week/date of sales<br>
+                2. Paste your POS data (Scan Code | Description | # Sold) from your POS report<br>
+                3. Click "Process Sales" to match items<br>
+                4. Review matches and click "Save to Sheets"
+            </div>
+            
+            <div class="form-group">
+                <label>Sales Date (Week Ending)</label>
+                <input type="date" id="salesDate">
+            </div>
+            
+            <div class="form-group">
+                <label>POS Data (Paste here)</label>
+                <textarea id="posData" placeholder="Scan Code | Description | # Sold&#10;Example:&#10;01230000003 | Camel Filters | 15&#10;01230000007 | Camel Blue | 3"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="processSales()">🔍 Process Sales</button>
+                <button class="btn btn-secondary" onclick="clearForm()">🔄 Clear</button>
+            </div>
+        </div>
+        
+        <div class="results-section" id="resultsSection">
+            <h2 style="margin-bottom: 20px; color: #333;">📈 Matched Items</h2>
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Scan Code</th>
+                        <th>Description</th>
+                        <th>Item Name</th>
+                        <th>Item #</th>
+                        <th># Sold</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+            
+            <div class="button-group">
+                <button class="btn btn-success" onclick="saveToSheets()">💾 Save to Sheets</button>
+                <button class="btn btn-secondary" onclick="goBack()">← Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpUHvtahTvaxfYti/pub?gid=0&single=true&output=csv';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        
+        let allItems = [];
+        let matchedSales = [];
+        
+        // Set today's date
+        document.getElementById('salesDate').valueAsDate = new Date();
+        
+        async function loadItems() {
+            try {
+                const response = await fetch(SHEETS_CSV_URL);
+                const csv = await response.text();
+                parseCSV(csv);
+            } catch (error) {
+                showAlert('Error loading items: ' + error.message, 'error');
+            }
+        }
+        
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            allItems = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values[0] && values[1]) {
+                    allItems.push({
+                        name: values[0].trim(),
+                        number: values[1].trim(),
+                        upc: values[2] ? values[2].trim() : '',
+                        mustHave: parseFloat(values[3]) || 0
+                    });
+                }
+            }
+        }
+        
+        function processSales() {
+            const posData = document.getElementById('posData').value.trim();
+            const salesDate = document.getElementById('salesDate').value;
+            
+            if (!posData) {
+                showAlert('Please paste POS data', 'error');
+                return;
+            }
+            
+            if (!salesDate) {
+                showAlert('Please select a sales date', 'error');
+                return;
+            }
+            
+            matchedSales = [];
+            const lines = posData.split('\n');
+            
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                
+                // Try to parse: ScanCode | Description | #Sold
+                const parts = line.split('|').map(p => p.trim());
+                
+                if (parts.length >= 3) {
+                    const scanCode = parts[0];
+                    const description = parts[1];
+                    const qtySold = parseInt(parts[2]) || 0;
+                    
+                    // Try to match by UPC or Name
+                    let matched = allItems.find(item => 
+                        item.upc === scanCode || 
+                        item.name.toLowerCase() === description.toLowerCase()
+                    );
+                    
+                    if (matched) {
+                        matchedSales.push({
+                            status: '✅ Matched',
+                            scanCode: scanCode,
+                            description: description,
+                            itemName: matched.name,
+                            itemNumber: matched.number,
+                            qtySold: qtySold,
+                            matched: true
+                        });
+                    } else {
+                        matchedSales.push({
+                            status: '⚠️ Unmatched',
+                            scanCode: scanCode,
+                            description: description,
+                            itemName: '-',
+                            itemNumber: '-',
+                            qtySold: qtySold,
+                            matched: false
+                        });
+                    }
+                }
+            });
+            
+            if (matchedSales.length === 0) {
+                showAlert('Could not parse POS data. Format: ScanCode | Description | #Sold', 'error');
+                return;
+            }
+            
+            showResults();
+            showAlert(`Processed ${matchedSales.length} items (${matchedSales.filter(s => s.matched).length} matched)`, 'info');
+        }
+        
+        function showResults() {
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            
+            matchedSales.forEach(sale => {
+                const tr = document.createElement('tr');
+                tr.className = sale.matched ? 'matched' : 'unmatched';
+                tr.innerHTML = `
+                    <td>${sale.status}</td>
+                    <td>${sale.scanCode}</td>
+                    <td>${sale.description}</td>
+                    <td>${sale.itemName}</td>
+                    <td>${sale.itemNumber}</td>
+                    <td style="font-weight: 600; color: #ff6b6b;">${sale.qtySold}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('resultsSection').classList.add('show');
+        }
+        
+        function saveToSheets() {
+            const salesDate = document.getElementById('salesDate').value;
+            const matchedOnly = matchedSales.filter(s => s.matched);
+            
+            if (matchedOnly.length === 0) {
+                showAlert('No matched items to save', 'error');
+                return;
+            }
+            
+            const salesData = matchedOnly.map(sale => ({
+                date: salesDate,
+                itemName: sale.itemName,
+                itemNumber: sale.itemNumber,
+                qtySold: sale.qtySold,
+                timestamp: new Date().toLocaleString()
+            }));
+            
+            const payload = {
+                action: 'saveSalesData',
+                data: salesData
+            };
+            
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                showAlert(`✅ Saved ${matchedOnly.length} items to Weekly Sales sheet!`, 'success');
+                setTimeout(() => {
+                    clearForm();
+                    document.getElementById('resultsSection').classList.remove('show');
+                }, 2000);
+            })
+            .catch(error => {
+                showAlert('Error saving to Sheets: ' + error.message, 'error');
+            });
+        }
+        
+        function clearForm() {
+            document.getElementById('posData').value = '';
+            document.getElementById('salesDate').valueAsDate = new Date();
+            matchedSales = [];
+            document.getElementById('resultsSection').classList.remove('show');
+        }
+        
+        function goBack() {
+            document.getElementById('resultsSection').classList.remove('show');
+        }
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById(`alert${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            alertBox.textContent = message;
+            alertBox.classList.add('show');
+            
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Load items on startup
+        loadItems();
+    </script>
+</body>
+</html>
