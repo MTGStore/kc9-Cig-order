@@ -596,7 +596,7 @@
             Object.entries(allOrderDataCopy).forEach(([upc, item]) => {
                 if (item.name.toLowerCase().includes(query) || 
                     item.number.toLowerCase().includes(query)) {
-                    filtered[upc] = item;
+                    filtered[upc] = JSON.parse(JSON.stringify(item));
                 }
             });
             
@@ -642,7 +642,6 @@
                     const card = document.createElement('div');
                     card.className = 'item-card';
                     
-                    // Determine status
                     let status = 'smart-count';
                     if (item.currentStock !== null && item.currentStock !== '') {
                         status = 'verified';
