@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
@@ -121,6 +121,7 @@
             padding: 15px;
             margin-top: 20px;
             display: none;
+            overflow-x: auto;
         }
         
         .preview-section.active {
@@ -130,19 +131,21 @@
         .preview-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
         }
         
         .preview-table th {
             background: #667eea;
             color: white;
-            padding: 10px;
+            padding: 8px;
             text-align: left;
             font-weight: 600;
+            position: sticky;
+            top: 0;
         }
         
         .preview-table td {
-            padding: 8px;
+            padding: 6px;
             border-bottom: 1px solid #ddd;
         }
         
@@ -150,12 +153,33 @@
             background: #f0f0f0;
         }
         
-        .match-status {
-            padding: 4px 8px;
+        .preview-table tr.ignored {
+            opacity: 0.5;
+            background: #f5f5f5;
+        }
+        
+        .row-input {
+            padding: 4px;
+            border: 1px solid #ccc;
             border-radius: 3px;
             font-size: 11px;
+            font-family: monospace;
+            width: 95%;
+        }
+        
+        .row-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f8ff;
+        }
+        
+        .match-status {
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 10px;
             font-weight: 600;
             text-align: center;
+            white-space: nowrap;
         }
         
         .match-status.matched {
@@ -171,6 +195,56 @@
         .match-status.no-match {
             background: #f8d7da;
             color: #721c24;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-ignore {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .btn-ignore:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-ignore.ignored {
+            background: #ffeb3b;
+            color: #333;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-box .number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-box .label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
         }
         
         .btn-group {
@@ -238,44 +312,18 @@
             color: #0c5460;
         }
         
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .stat-box {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-        }
-        
-        .stat-box .number {
-            font-size: 24px;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .stat-box .label {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
             
             .preview-table {
-                font-size: 11px;
+                font-size: 10px;
             }
             
             .preview-table th,
             .preview-table td {
-                padding: 6px;
+                padding: 4px;
             }
             
             .btn-group {
@@ -288,7 +336,7 @@
     <div class="container">
         <div class="header">
             <h1>📤 Sales History Uploader</h1>
-            <p>Upload weekly sales CSV • Preview matches • Store in cloud</p>
+            <p>Upload weekly sales CSV • Edit matches • Ignore rows • Store in cloud</p>
         </div>
         
         <div class="alert alert-success" id="alertSuccess"></div>
@@ -322,20 +370,21 @@
         </div>
         
         <div class="card">
-            <h2>Step 3: Preview & Match Results</h2>
+            <h2>Step 3: Preview, Edit & Match Results</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                Showing first 20 items. Green = Matched to Master List. Yellow = Partial match. Red = No match.
+                ✏️ Click any field to edit • 🚫 Click "Ignore" to skip row • Green = Matched • Yellow = Partial • Red = No match
             </p>
             <div class="preview-section" id="previewSection">
                 <table class="preview-table">
                     <thead>
                         <tr>
                             <th>CSV UPC</th>
-                            <th>Item Name (CSV)</th>
-                            <th>Qty Sold</th>
+                            <th>Item Name</th>
+                            <th>Qty</th>
                             <th>Units</th>
-                            <th>Item # (Master)</th>
-                            <th>Match Status</th>
+                            <th>Item #</th>
+                            <th>Match</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="previewBody">
@@ -348,16 +397,12 @@
                         <div class="label">Total Items</div>
                     </div>
                     <div class="stat-box">
-                        <div class="number" id="matchedItems">0</div>
-                        <div class="label">Matched</div>
+                        <div class="number" id="activeItems">0</div>
+                        <div class="label">Active (to save)</div>
                     </div>
                     <div class="stat-box">
-                        <div class="number" id="partialItems">0</div>
-                        <div class="label">Partial</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="number" id="noMatchItems">0</div>
-                        <div class="label">No Match</div>
+                        <div class="number" id="ignoredItems">0</div>
+                        <div class="label">Ignored</div>
                     </div>
                 </div>
             </div>
@@ -366,7 +411,7 @@
         <div class="card">
             <h2>Step 4: Save to Sheets</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                Click below to save this sales data to your Sales History tab in Google Sheets.
+                Click below to save active (non-ignored) rows to your Sales History tab.
             </p>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="saveToSheets()">💾 Save to Sheets</button>
@@ -432,12 +477,10 @@
                 const description = parts[1].trim();
                 const qtySold = parseInt(parts[2].trim()) || 0;
                 
-                // Skip totals row
                 if (description.toLowerCase() === 'totals' || scanCode === 'Totals') continue;
                 
                 const unitsSold = qtySold / 10;
                 
-                // Match against Master List
                 let matchedItem = null;
                 let matchStatus = 'no-match';
                 
@@ -445,7 +488,6 @@
                     matchedItem = allItems[scanCode];
                     matchStatus = 'matched';
                 } else {
-                    // Try fuzzy match by description
                     const descLower = description.toLowerCase();
                     for (const upc in allItems) {
                         const item = allItems[upc];
@@ -466,7 +508,8 @@
                     itemName: matchedItem ? matchedItem.name : 'UNKNOWN',
                     itemNumber: matchedItem ? matchedItem.number : 'N/A',
                     upc: matchedItem ? scanCode : 'N/A',
-                    matchStatus: matchStatus
+                    matchStatus: matchStatus,
+                    ignored: false
                 });
             }
             
@@ -477,39 +520,50 @@
             const previewBody = document.getElementById('previewBody');
             previewBody.innerHTML = '';
             
-            let matched = 0, partial = 0, noMatch = 0;
-            
-            parsedData.slice(0, 20).forEach(item => {
+            parsedData.forEach((item, index) => {
                 const row = document.createElement('tr');
-                
-                let statusClass = 'no-match';
-                if (item.matchStatus === 'matched') {
-                    statusClass = 'matched';
-                    matched++;
-                } else if (item.matchStatus === 'partial') {
-                    statusClass = 'partial';
-                    partial++;
-                } else {
-                    noMatch++;
-                }
+                if (item.ignored) row.classList.add('ignored');
                 
                 row.innerHTML = `
-                    <td>${item.csvUpc}</td>
-                    <td>${item.csvName}</td>
-                    <td>${item.qtySold}</td>
-                    <td>${item.unitsSold}</td>
-                    <td>${item.itemNumber}</td>
-                    <td><span class="match-status ${statusClass}">${item.matchStatus.toUpperCase()}</span></td>
+                    <td><input type="text" class="row-input" value="${item.csvUpc}" onchange="updateField(${index}, 'csvUpc', this.value)"></td>
+                    <td><input type="text" class="row-input" value="${item.csvName}" onchange="updateField(${index}, 'csvName', this.value)"></td>
+                    <td><input type="number" class="row-input" value="${item.qtySold}" onchange="updateQty(${index}, this.value)"></td>
+                    <td><input type="text" class="row-input" value="${item.unitsSold}" readonly style="background: #f5f5f5;"></td>
+                    <td><input type="text" class="row-input" value="${item.itemNumber}" onchange="updateField(${index}, 'itemNumber', this.value)"></td>
+                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus.toUpperCase()}</span></td>
+                    <td><button class="action-btn btn-ignore ${item.ignored ? 'ignored' : ''}" onclick="toggleIgnore(${index})">${item.ignored ? '✓ Ignored' : '🚫 Ignore'}</button></td>
                 `;
                 previewBody.appendChild(row);
             });
             
-            document.getElementById('totalItems').textContent = parsedData.length;
-            document.getElementById('matchedItems').textContent = matched;
-            document.getElementById('partialItems').textContent = partial;
-            document.getElementById('noMatchItems').textContent = noMatch;
-            
+            updateStats();
             document.getElementById('previewSection').classList.add('active');
+        }
+        
+        function updateField(index, field, value) {
+            parsedData[index][field] = value;
+        }
+        
+        function updateQty(index, value) {
+            const qty = parseInt(value) || 0;
+            parsedData[index].qtySold = qty;
+            parsedData[index].unitsSold = (qty / 10).toFixed(2);
+            displayPreview();
+        }
+        
+        function toggleIgnore(index) {
+            parsedData[index].ignored = !parsedData[index].ignored;
+            displayPreview();
+        }
+        
+        function updateStats() {
+            const total = parsedData.length;
+            const ignored = parsedData.filter(item => item.ignored).length;
+            const active = total - ignored;
+            
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('activeItems').textContent = active;
+            document.getElementById('ignoredItems').textContent = ignored;
         }
         
         function saveToSheets() {
@@ -521,14 +575,16 @@
                 return;
             }
             
-            if (parsedData.length === 0) {
-                showAlert('No data to save', 'error');
+            const activeData = parsedData.filter(item => !item.ignored);
+            
+            if (activeData.length === 0) {
+                showAlert('No active items to save (all ignored)', 'error');
                 return;
             }
             
             const payload = {
                 action: 'uploadSalesHistory',
-                data: parsedData,
+                data: activeData,
                 startDate: startDate,
                 endDate: endDate
             };
