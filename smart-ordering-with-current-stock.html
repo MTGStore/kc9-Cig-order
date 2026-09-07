@@ -79,6 +79,40 @@
             color: #666;
         }
         
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            display: none;
+        }
+        
+        .search-section.active {
+            display: block;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
         .items-section {
             background: white;
             padding: 25px;
@@ -284,6 +318,13 @@
             color: #0c5460;
         }
         
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 16px;
+        }
+        
         @media (max-width: 768px) {
             .items-grid {
                 grid-template-columns: 1fr;
@@ -307,7 +348,7 @@
     <div class="container">
         <div class="header">
             <h1>🚀 Smart Ordering with Current Stock</h1>
-            <p>Upload CSV • Enter Current Stock (optional) • Auto-calculate • Send to WhatsApp • Save</p>
+            <p>Upload CSV • Search • Enter Current Stock (optional) • Auto-calculate • Send to WhatsApp • Save</p>
         </div>
         
         <div class="alert alert-success" id="alertSuccess"></div>
@@ -318,6 +359,11 @@
             <button class="upload-btn" onclick="document.getElementById('csvInput').click()">📄 Choose CSV File</button>
             <input type="file" id="csvInput" class="csv-input" accept=".csv" onchange="handleCSVUpload(event)">
             <div class="upload-status" id="uploadStatus"></div>
+        </div>
+        
+        <div class="search-section" id="searchSection">
+            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search items (e.g., Marlboro, Newport, Gold, item #)" onkeyup="filterItems()">
+            <div class="search-info" id="searchInfo"></div>
         </div>
         
         <div class="items-section" id="itemsSection">
@@ -343,6 +389,7 @@
         let orderData = {};
         let historicalAvg = {};
         let currentDateKey = getDateKey();
+        let allOrderDataCopy = {}; // Store full data for search
         
         // Load all items and historical data on page load
         window.addEventListener('load', () => {
@@ -453,15 +500,55 @@
                 }
             }
             
+            // Keep full copy for searching
+            allOrderDataCopy = JSON.parse(JSON.stringify(orderData));
+            
             console.log('Order data created with', Object.keys(orderData).length, 'items');
             
             renderOrderItems();
             document.getElementById('itemsSection').classList.add('active');
+            document.getElementById('searchSection').classList.add('active');
+            document.getElementById('searchBox').value = '';
+        }
+        
+        function filterItems() {
+            const query = document.getElementById('searchBox').value.toLowerCase().trim();
+            const searchInfo = document.getElementById('searchInfo');
+            
+            if (!query) {
+                searchInfo.innerHTML = '';
+                orderData = JSON.parse(JSON.stringify(allOrderDataCopy));
+                renderOrderItems();
+                return;
+            }
+            
+            // Filter orderData
+            const filtered = {};
+            Object.entries(allOrderDataCopy).forEach(([upc, item]) => {
+                if (item.name.toLowerCase().includes(query) || 
+                    item.number.toLowerCase().includes(query)) {
+                    filtered[upc] = item;
+                }
+            });
+            
+            if (Object.keys(filtered).length === 0) {
+                searchInfo.innerHTML = `<span style="color: #f44336; font-weight: 600;">❌ No items match "${query}"</span>`;
+                document.getElementById('itemsContainer').innerHTML = '<div class="no-results">No items found. Try a different search.</div>';
+            } else {
+                searchInfo.innerHTML = `<span style="color: #4caf50; font-weight: 600;">✅ Found ${Object.keys(filtered).length} item(s)</span>`;
+                orderData = filtered;
+                renderOrderItems();
+            }
         }
         
         function renderOrderItems() {
             const container = document.getElementById('itemsContainer');
             container.innerHTML = '';
+            
+            if (Object.keys(orderData).length === 0) {
+                container.innerHTML = '<div class="no-results">No items to display. Upload a CSV first.</div>';
+                return;
+            }
             
             // Group by brand
             const grouped = {};
@@ -570,6 +657,11 @@
                     orderData[upc].calculationType = 'automatic';
                 }
                 
+                // Update copy too
+                if (allOrderDataCopy[upc]) {
+                    allOrderDataCopy[upc] = JSON.parse(JSON.stringify(orderData[upc]));
+                }
+                
                 // Re-render to update display
                 renderOrderItems();
             }
@@ -579,6 +671,9 @@
             const qty = parseFloat(value) || 0;
             if (orderData[upc]) {
                 orderData[upc].orderQty = qty;
+                if (allOrderDataCopy[upc]) {
+                    allOrderDataCopy[upc].orderQty = qty;
+                }
             }
         }
         
@@ -660,9 +755,12 @@
         
         function resetForm() {
             orderData = {};
+            allOrderDataCopy = {};
             document.getElementById('itemsContainer').innerHTML = '';
             document.getElementById('itemsSection').classList.remove('active');
+            document.getElementById('searchSection').classList.remove('active');
             document.getElementById('csvInput').value = '';
+            document.getElementById('searchBox').value = '';
             showAlert('Form reset', 'info');
         }
         
