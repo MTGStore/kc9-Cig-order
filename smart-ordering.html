@@ -13,768 +13,533 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 16px;
+            padding: 20px;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 24px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             text-align: center;
         }
         
         .header h1 {
-            font-size: 26px;
+            color: #667eea;
+            font-size: 28px;
             margin-bottom: 8px;
-            font-weight: 600;
         }
         
         .header p {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 24px;
+            color: #666;
+            font-size: 14px;
         }
         
         .upload-section {
-            background: #f8f9fa;
-            border: 2px dashed #d1d5db;
-            border-radius: 8px;
-            padding: 24px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             text-align: center;
-            margin-bottom: 24px;
         }
         
-        .upload-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-        
-        .upload-text {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        
-        input[type="file"] {
+        .pdf-input {
             display: none;
         }
         
-        .btn-upload {
-            background: #667eea;
+        .upload-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 24px;
             border: none;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
+            font-size: 16px;
+            transition: all 0.3s;
         }
         
-        .btn-upload:hover {
-            background: #5568d3;
+        .upload-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
         
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        
-        .loading.show {
-            display: block;
-        }
-        
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            margin-top: 12px;
-            color: #6b7280;
+        .upload-status {
+            margin-top: 15px;
             font-size: 14px;
+            color: #666;
         }
         
-        .results-section {
+        .items-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             display: none;
         }
         
-        .results-section.show {
+        .items-section.active {
             display: block;
-        }
-        
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        
-        .results-header h2 {
-            font-size: 20px;
-            color: #1f2937;
-        }
-        
-        .summary-stats {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        
-        .stat {
-            background: #f3f4f6;
-            padding: 12px 16px;
-            border-radius: 6px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #667eea;
-        }
-        
-        .stat-label {
-            font-size: 11px;
-            color: #6b7280;
-            text-transform: uppercase;
-            margin-top: 4px;
         }
         
         .brand-group {
-            margin-bottom: 24px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
         
-        .brand-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-transform: uppercase;
         }
         
-        .brand-items {
+        .items-grid {
             display: grid;
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 15px;
         }
         
         .item-card {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: 16px;
+            padding: 15px;
+            transition: all 0.3s;
         }
         
-        .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
+        .item-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
         }
         
         .item-name {
             font-weight: 600;
-            color: #1f2937;
+            color: #333;
             font-size: 14px;
+            margin-bottom: 8px;
         }
         
-        .item-number {
-            color: #6b7280;
-            font-family: monospace;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-        
-        .historical {
-            background: #f0f9ff;
-            border-left: 3px solid #0ea5e9;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #0c4a6e;
-            margin-bottom: 12px;
-        }
-        
-        .item-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        
-        @media (max-width: 768px) {
-            .item-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .item-value {
+        .item-details {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
         }
         
-        .item-value-label {
-            font-size: 11px;
-            color: #6b7280;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .item-value-text {
-            font-size: 13px;
-            color: #1f2937;
-            font-weight: 500;
-        }
-        
-        .item-value-input {
-            font-size: 13px;
-            color: #1f2937;
-            font-weight: 500;
-        }
-        
-        input[type="number"] {
+        .item-input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #d1d5db;
+            padding: 10px;
+            border: 2px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
             font-weight: 600;
-            color: #166534;
-            background: #dcfce7;
+            margin-bottom: 8px;
         }
         
-        input[type="number"]:focus {
+        .item-input:focus {
             outline: none;
-            border-color: #22c55e;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            border-color: #667eea;
+            background: #f0f8ff;
         }
         
-        .export-section {
+        .item-info {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .btn-group {
             display: flex;
-            gap: 12px;
-            margin-top: 24px;
+            gap: 10px;
             flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
         }
         
-        .btn-export {
-            padding: 12px 20px;
+        .btn {
+            padding: 12px 30px;
             border: none;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.2s;
-            flex: 1;
-            min-width: 150px;
+            transition: all 0.3s;
         }
         
-        .btn-whatsapp {
-            background: #25d366;
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
         
-        .btn-whatsapp:hover {
-            background: #20ba5a;
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
         
-        .btn-save {
-            background: #3b82f6;
+        .btn-success {
+            background: #4caf50;
             color: white;
         }
         
-        .btn-save:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        .btn-success:hover {
+            background: #45a049;
         }
         
-        .error-message {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            padding: 16px;
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .alert {
+            padding: 15px;
             border-radius: 6px;
             margin-bottom: 20px;
             display: none;
         }
         
-        .error-message.show {
+        .alert.show {
             display: block;
         }
         
-        .success-message {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-            padding: 16px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: none;
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
         }
         
-        .success-message.show {
-            display: block;
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📦 Smart Ordering</h1>
-            <p>Upload sales report • Manage orders with historical data</p>
+            <h1>🚀 Smart Ordering</h1>
+            <p>Upload PDF • Auto-calculate • Edit • Send to WhatsApp • Save</p>
         </div>
         
-        <div class="content">
-            <div class="error-message" id="errorMsg"></div>
-            <div class="success-message" id="successMsg"></div>
+        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alert alert-error" id="alertError"></div>
+        <div class="alert alert-info" id="alertInfo"></div>
+        
+        <div class="upload-section">
+            <button class="upload-btn" onclick="document.getElementById('pdfInput').click()">📄 Choose PDF File</button>
+            <input type="file" id="pdfInput" class="pdf-input" accept=".pdf" onchange="handlePDFUpload(event)">
+            <div class="upload-status" id="uploadStatus"></div>
+        </div>
+        
+        <div class="items-section" id="itemsSection">
+            <h2 style="margin-bottom: 20px; color: #333;">📦 Order Items</h2>
+            <p style="margin-bottom: 20px; color: #666; font-size: 13px;">Edit quantities as needed. Decimals accepted (e.g., 0.5, 1.25). Last 4 weeks average shown below item name.</p>
+            <div id="itemsContainer"></div>
             
-            <div class="upload-section" id="uploadSection">
-                <div class="upload-icon">📄</div>
-                <div class="upload-text">Drop PDF sales report or click to select</div>
-                <input type="file" id="pdfInput" accept=".pdf" />
-                <button class="btn-upload" onclick="document.getElementById('pdfInput').click()">
-                    Choose PDF File
-                </button>
-            </div>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <div class="loading-text">Processing PDF and loading historical data...</div>
-            </div>
-            
-            <div class="results-section" id="resultsSection">
-                <div class="results-header">
-                    <h2>📊 Order Management</h2>
-                    <div class="summary-stats">
-                        <div class="stat">
-                            <div class="stat-value" id="totalItems">0</div>
-                            <div class="stat-label">Items</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value" id="totalOrder">0</div>
-                            <div class="stat-label">Total Order</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="ordersContainer"></div>
-                
-                <div class="export-section">
-                    <button class="btn-export btn-whatsapp" onclick="exportWhatsApp()">
-                        📱 Send to WhatsApp
-                    </button>
-                    <button class="btn-export btn-save" onclick="saveToSheet()">
-                        💾 Save to Sheet
-                    </button>
-                </div>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="sendWhatsApp()">📱 Send to WhatsApp</button>
+                <button class="btn btn-primary" onclick="saveToSheets()">💾 Save to Sheets</button>
+                <button class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
             </div>
         </div>
     </div>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        
-        const mainCigListMap = {
-            "02820000384": {"name":"Marlboro Gold Short","number":"4336442","mustHave":10},
-            "02610000575": {"name":"Newport Short","number":"4340618","mustHave":8},
-            "02610000578": {"name":"Newport King Soft","number":"4340634","mustHave":6},
-            "02720020589": {"name":"Pall Mall Select Blue Short","number":"4342023","mustHave":5},
-            "02820000954": {"name":"Marlboro Black/GREEN short","number":"4357141","mustHave":4},
-            "68514191015": {"name":"24x7 Green 100s","number":"4973467","mustHave":3},
-            "02820000477": {"name":"Marlboro silver short mellow","number":"4336452","mustHave":7},
-            "02820031772": {"name":"Marlboro nxt","number":"4359212","mustHave":5},
-            "01230000003": {"name":"Camel filter shorts","number":"4165932","mustHave":4},
-            "02820000952": {"name":"Marlboro black/ Red short","number":"4357131","mustHave":5},
-            "02820000422": {"name":"Marlboro Special Select Gold","number":"4337541","mustHave":6},
-            "02610000573": {"name":"Newport 100s","number":"4340601","mustHave":5},
-            "02610000577": {"name":"Newport 100s soft","number":"4340642","mustHave":4},
-            "02820000357": {"name":"Marlboro Red Short","number":"4336419","mustHave":7},
-            "02820000471": {"name":"Marlboro Menthol Gold 100","number":"4336484","mustHave":5},
-            "02820000962": {"name":"Marlboro 72 Green Menthol","number":"4357162","mustHave":4},
-            "01230000093": {"name":"Camel Crush Menthol","number":"4163975","mustHave":3},
-            "01230019741": {"name":"Camel Crush Blue","number":"4165878","mustHave":3},
-            "01230000094": {"name":"Camel Crush Menthol Silver","number":"4164005","mustHave":3},
-            "02820000401": {"name":"Marlboro Menthol Gold short","number":"4336475","mustHave":5},
-            "02820000323": {"name":"Marlboro Menthol Smooth","number":"4336408","mustHave":4},
-            "02820000363": {"name":"Marlboro red 100","number":"4336425","mustHave":5},
-            "02720020592": {"name":"SC PALL MALL SELECT RED","number":"4342009","mustHave":3},
-            "01100000000": {"name":"Montego Red Short","number":"4964425","mustHave":4},
-            "01100000002": {"name":"Montego Red 100s","number":"4964375","mustHave":3},
-            "02610000657": {"name":"Newport red 100","number":"4956801","mustHave":5},
-            "02610000660": {"name":"Newport NON Menthol short","number":"4360814","mustHave":5},
-            "02720000185": {"name":"PallMall Orange 100","number":"4342028","mustHave":4},
-            "02610000670": {"name":"Newport black short","number":"4359766","mustHave":4},
-            "02720020953": {"name":"Pall Mall Select Blue 100s","number":"4365417","mustHave":4},
-            "02720020595": {"name":"Pall Mall Select Menthol Green Short","number":"4365383","mustHave":4},
-            "02820000386": {"name":"Marlboro 72 Silver","number":"4342291","mustHave":5},
-            "02820000465": {"name":"Marlboro gold pack 100","number":"4336483","mustHave":6},
-            "04330010917": {"name":"Lucky Strike Red Short","number":"4164638","mustHave":3},
-            "04330018714": {"name":"Lucky Strike Menthol short","number":"4964557","mustHave":3},
-            "04799585505": {"name":"AS - LIGHT GREEN","number":"4341178","mustHave":3},
-            "04799585525": {"name":"AS - GOLD DARK YELLOW","number":"4341210","mustHave":3},
-            "09050000038": {"name":"Maverick Red 100","number":"4361713","mustHave":3},
-            "09050000057": {"name":"Winston Red short","number":"4361861","mustHave":3},
-            "09050000086": {"name":"Kool Blue Short","number":"4361689","mustHave":3},
-            "09050000094": {"name":"Salem Gold 100","number":"4361820","mustHave":3}
-        };
-        
-        let currentOrders = {};
-        let historicalAvg = {};
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        let allItems = {};
+        let orderData = {};
+        let historicalAvg = {};
+        let currentDateKey = getDateKey();
+        
+        // Load all items and historical data on page load
+        window.addEventListener('load', () => {
+            loadAllItems();
+            loadHistoricalData();
+        });
+        
+        function getDateKey() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return year + month + day;
+        }
+        
+        function loadAllItems() {
+            const url = APPS_SCRIPT_URL + '?action=getAllItems&callback=handleAllItems';
+            const script = document.createElement('script');
+            script.src = url;
+            document.head.appendChild(script);
+        }
+        
+        function handleAllItems(data) {
+            allItems = data;
+        }
         
         function loadHistoricalData() {
-            return new Promise((resolve) => {
-                const callbackName = 'jsonpCallback_' + Date.now();
-                window[callbackName] = function(data) {
-                    if (data.success && data.averages) {
-                        historicalAvg = data.averages;
-                        console.log('✅ Loaded historical averages:', Object.keys(historicalAvg).length);
-                    }
-                    delete window[callbackName];
-                    document.head.removeChild(script);
-                    resolve();
-                };
-                
-                const script = document.createElement('script');
-                script.src = APPS_SCRIPT_URL + '?action=getOrderHistory&callback=' + callbackName;
-                script.onerror = function() {
-                    console.warn('Historical data not available yet');
-                    delete window[callbackName];
-                    document.head.removeChild(script);
-                    resolve();
-                };
-                document.head.appendChild(script);
-            });
+            const url = APPS_SCRIPT_URL + '?action=getOrderHistory&callback=handleHistoricalData';
+            const script = document.createElement('script');
+            script.src = url;
+            document.head.appendChild(script);
         }
         
-        function extractTextFromPDF(pdfFile) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const pdfData = new Uint8Array(e.target.result);
-                        const pdf = await pdfjsLib.getDocument({data: pdfData}).promise;
-                        let fullText = '';
-                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                            const page = await pdf.getPage(pageNum);
-                            const textContent = await page.getTextContent();
-                            const pageText = textContent.items.map(item => item.str).join(' ');
-                            fullText += pageText + '\n';
-                        }
-                        resolve(fullText);
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-                reader.readAsArrayBuffer(pdfFile);
-            });
-        }
-        
-        function parseSalesData(text) {
-            const salesMap = {};
-            const scanCodeMatches = text.match(/\b([0-9]{11,12})\b/g) || [];
-            
-            scanCodeMatches.forEach(scanCode => {
-                const idx = text.indexOf(scanCode);
-                if (idx === -1) return;
-                
-                const afterScanCode = text.substring(idx + scanCode.length, idx + scanCode.length + 2000);
-                const numbers = afterScanCode.match(/\b(\d{1,3})\b/g) || [];
-                
-                for (let num of numbers) {
-                    const n = parseInt(num);
-                    if (n > 0 && n < 300) {
-                        if (!salesMap[scanCode]) {
-                            salesMap[scanCode] = {
-                                upc: scanCode,
-                                sold: n / 10
-                            };
-                        }
-                        break;
-                    }
-                }
-            });
-            
-            return Object.values(salesMap);
-        }
-        
-        function matchSalesToInventory(sales) {
-            const results = {};
-            let matchCount = 0;
-            
-            sales.forEach(item => {
-                const cigItem = mainCigListMap[item.upc];
-                
-                if (cigItem) {
-                    matchCount++;
-                    const orderQty = item.sold;
-                    const brand = extractBrand(cigItem.name);
-                    
-                    if (!results[brand]) results[brand] = [];
-                    
-                    results[brand].push({
-                        itemName: cigItem.name,
-                        itemNumber: cigItem.number,
-                        upc: item.upc,
-                        mustHave: cigItem.mustHave,
-                        sold: item.sold,
-                        stockLeft: Math.max(0, cigItem.mustHave - item.sold),
-                        orderQty: orderQty
-                    });
-                }
-            });
-            
-            return { results, matchCount };
-        }
-        
-        function extractBrand(name) {
-            if (name.includes('Marlboro')) return '🚬 Marlboro';
-            if (name.includes('Newport')) return '🚬 Newport';
-            if (name.includes('Pall Mall')) return '🚬 Pall Mall';
-            if (name.includes('Camel')) return '🚬 Camel';
-            if (name.includes('Lucky Strike')) return '🚬 Lucky Strike';
-            if (name.includes('Winston')) return '🚬 Winston';
-            if (name.includes('Salem')) return '🚬 Salem';
-            if (name.includes('Kool')) return '🚬 Kool';
-            if (name.includes('Maverick')) return '🚬 Maverick';
-            if (name.includes('Montego')) return '🚬 Montego';
-            if (name.includes('24x7')) return '🚬 24x7';
-            if (name.includes('American Spirit') || name.includes('AS -')) return '🚬 American Spirit';
-            return '🚬 Other';
-        }
-        
-        function renderResults(groupedOrders) {
-            const container = document.getElementById('ordersContainer');
-            container.innerHTML = '';
-            
-            let totalItems = 0;
-            let totalOrder = 0;
-            
-            Object.entries(groupedOrders).sort().forEach(([brand, items]) => {
-                totalItems += items.length;
-                items.forEach(item => {
-                    totalOrder += item.orderQty;
-                });
-                
-                const brandHtml = `
-                    <div class="brand-group">
-                        <div class="brand-header">
-                            <span>${brand}</span>
-                            <span>${items.length} items</span>
-                        </div>
-                        <div class="brand-items">
-                            ${items.map((item, idx) => {
-                                const histAvg = historicalAvg[item.itemName] || 'N/A';
-                                return `
-                                    <div class="item-card">
-                                        <div class="item-header">
-                                            <div>
-                                                <div class="item-name">${item.itemName}</div>
-                                                <div class="item-number">#${item.itemNumber}</div>
-                                            </div>
-                                        </div>
-                                        <div class="historical">
-                                            📊 Last 4 weeks avg: <strong>${histAvg}</strong> units
-                                        </div>
-                                        <div class="item-grid">
-                                            <div class="item-value">
-                                                <div class="item-value-label">Must Have</div>
-                                                <div class="item-value-text">${item.mustHave}</div>
-                                            </div>
-                                            <div class="item-value">
-                                                <div class="item-value-label">Currently Sold</div>
-                                                <div class="item-value-text">${Math.round(item.sold * 10) / 10}</div>
-                                            </div>
-                                            <div class="item-value">
-                                                <div class="item-value-label">Currently Have</div>
-                                                <div class="item-value-text">${Math.round(item.stockLeft * 10) / 10}</div>
-                                            </div>
-                                            <div class="item-value">
-                                                <div class="item-value-label">Order Qty (Edit)</div>
-                                                <input type="number" step="0.1" value="${Math.round(item.orderQty * 10) / 10}" data-upc="${item.upc}" class="order-qty-input" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-                
-                container.innerHTML += brandHtml;
-            });
-            
-            document.getElementById('totalItems').textContent = totalItems;
-            document.getElementById('totalOrder').textContent = totalOrder.toFixed(1);
-            
-            currentOrders = groupedOrders;
+        function handleHistoricalData(data) {
+            historicalAvg = data || {};
         }
         
         async function handlePDFUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            document.getElementById('loading').classList.add('show');
-            document.getElementById('errorMsg').classList.remove('show');
+            showAlert('Parsing PDF...', 'info');
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const pdf = await pdfjsLib.getDocument(e.target.result).promise;
+                    let allText = '';
+                    
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const text = await page.getTextContent();
+                        allText += text.items.map(item => item.str).join(' ') + '\n';
+                    }
+                    
+                    parsePDFAndCalculateOrder(allText);
+                    showAlert('✅ PDF parsed! ' + Object.keys(orderData).length + ' items found.', 'success');
+                } catch (error) {
+                    showAlert('Error parsing PDF: ' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function parsePDFAndCalculateOrder(text) {
+            // Extract all UPCs (11-12 digit numbers)
+            const upcRegex = /\b([0-9]{11,12})\b/g;
+            const upcsInPDF = [];
+            let match;
             
-            try {
-                const text = await extractTextFromPDF(file);
-                const sales = parseSalesData(text);
-                
-                if (sales.length === 0) {
-                    throw new Error('No sales data found in PDF. Check format.');
-                }
-                
-                const { results } = matchSalesToInventory(sales);
-                
-                if (Object.keys(results).length === 0) {
-                    throw new Error('No items could be matched.');
-                }
-                
-                document.getElementById('loading').classList.remove('show');
-                document.getElementById('resultsSection').classList.add('show');
-                renderResults(results);
-            } catch (error) {
-                document.getElementById('loading').classList.remove('show');
-                showError('Error: ' + error.message);
+            while ((match = upcRegex.exec(text)) !== null) {
+                upcsInPDF.push(match[1]);
             }
-        }
-        
-        function showError(message) {
-            const errorEl = document.getElementById('errorMsg');
-            errorEl.textContent = message;
-            errorEl.classList.add('show');
-        }
-        
-        function showSuccess(message) {
-            const successEl = document.getElementById('successMsg');
-            successEl.textContent = message;
-            successEl.classList.add('show');
-            setTimeout(() => successEl.classList.remove('show'), 3000);
-        }
-        
-        function getEditedOrders() {
-            const edited = {};
-            document.querySelectorAll('.order-qty-input').forEach(input => {
-                const upc = input.dataset.upc;
-                const newQty = parseFloat(input.value) || 0;
-                
-                for (const brand in currentOrders) {
-                    const item = currentOrders[brand].find(i => i.upc === upc);
-                    if (item) {
-                        edited[upc] = {
-                            ...item,
-                            orderQty: newQty
+            
+            orderData = {};
+            
+            // For each UPC, find qty (first 1-299 number after UPC)
+            upcsInPDF.forEach(upc => {
+                if (allItems[upc]) {
+                    const upcIndex = text.indexOf(upc);
+                    const nextSection = text.substring(upcIndex + upc.length, upcIndex + upc.length + 2000);
+                    
+                    const qtyMatch = nextSection.match(/\b([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-9])\b/);
+                    
+                    if (qtyMatch) {
+                        const rawQty = parseInt(qtyMatch[0]);
+                        const actualUnits = rawQty / 10;
+                        
+                        const item = allItems[upc];
+                        orderData[upc] = {
+                            name: item.name,
+                            number: item.number,
+                            mustHave: item.mustHave,
+                            sold: actualUnits,
+                            orderQty: actualUnits
                         };
-                        break;
                     }
                 }
             });
-            return edited;
+            
+            renderOrderItems();
+            document.getElementById('itemsSection').classList.add('active');
         }
         
-        function exportWhatsApp() {
-            const edited = getEditedOrders();
-            let text = '📦 *KC9 Smart Order - ' + new Date().toLocaleDateString() + '*\n\n';
+        function renderOrderItems() {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
             
-            Object.entries(currentOrders).sort().forEach(([brand, items]) => {
-                text += `*${brand.replace('🚬 ', '')}*\n`;
+            // Group by brand
+            const grouped = {};
+            
+            Object.entries(orderData).forEach(([upc, item]) => {
+                const brand = item.name.split(' ')[0];
+                if (!grouped[brand]) grouped[brand] = [];
+                grouped[brand].push({ upc, ...item });
+            });
+            
+            // Render each brand group
+            Object.entries(grouped).forEach(([brand, items]) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'brand-group';
+                
+                const title = document.createElement('div');
+                title.className = 'brand-title';
+                title.textContent = brand;
+                groupDiv.appendChild(title);
+                
+                const grid = document.createElement('div');
+                grid.className = 'items-grid';
+                
                 items.forEach(item => {
-                    const orderQty = edited[item.upc]?.orderQty || item.orderQty;
-                    const roundedQty = Math.round(orderQty * 100) / 100;
-                    text += `Item Name: ${item.itemName}\n`;
-                    text += `Item #: ${item.itemNumber}\n`;
-                    text += `Order Qty: *${roundedQty.toFixed(2)}*\n`;
-                    text += `Must Have: ${item.mustHave}\n`;
-                    text += `Currently Sold: ${(Math.round(item.sold * 10) / 10).toFixed(1)}\n`;
-                    text += `Currently Have: ${(Math.round(item.stockLeft * 10) / 10).toFixed(1)}\n\n`;
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    
+                    const histAvg = historicalAvg[item.number];
+                    const histAvgText = histAvg ? `Last 4 avg: ${histAvg.average} units` : 'N/A';
+                    
+                    card.innerHTML = `
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-details">
+                            <span>#${item.number}</span>
+                            <span>Must Have: ${item.mustHave}</span>
+                        </div>
+                        <div class="item-info">📊 ${histAvgText}</div>
+                        <div class="item-info">Sold this week: ${item.sold.toFixed(2)} units</div>
+                        <input type="text" class="item-input" value="${item.orderQty.toFixed(2)}" 
+                            onchange="updateOrderQty('${item.upc}', this.value)" 
+                            placeholder="Order Qty">
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+                
+                groupDiv.appendChild(grid);
+                container.appendChild(groupDiv);
+            });
+        }
+        
+        function updateOrderQty(upc, value) {
+            const qty = parseFloat(value) || 0;
+            if (orderData[upc]) {
+                orderData[upc].orderQty = qty;
+            }
+        }
+        
+        function sendWhatsApp() {
+            if (Object.keys(orderData).length === 0) {
+                showAlert('No items to send', 'error');
+                return;
+            }
+            
+            let message = '*KC9 ORDER REPORT*\n';
+            message += `Date: ${currentDateKey}\n\n`;
+            
+            let totalQty = 0;
+            const grouped = {};
+            
+            Object.values(orderData).forEach(item => {
+                const brand = item.name.split(' ')[0];
+                if (!grouped[brand]) grouped[brand] = [];
+                grouped[brand].push(item);
+                totalQty += item.orderQty;
+            });
+            
+            Object.entries(grouped).forEach(([brand, items]) => {
+                message += `*${brand}*\n`;
+                items.forEach(item => {
+                    message += `Item Name: ${item.name}\n`;
+                    message += `Item #: ${item.number}\n`;
+                    message += `Order Qty: *${item.orderQty.toFixed(2)}*\n`;
+                    message += `Must Have: ${item.mustHave}\n`;
+                    message += `Currently Sold: ${item.sold.toFixed(2)}\n\n`;
                 });
             });
             
-            const whatsappUrl = `https://wa.me/14046689091?text=${encodeURIComponent(text)}`;
-            window.open(whatsappUrl, '_blank');
+            message += `════════════════════════\n`;
+            message += `*TOTAL UNITS: ${totalQty.toFixed(2)}*\n`;
+            
+            const phone = '14046689091';
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            showAlert('✅ WhatsApp opened!', 'success');
         }
         
-        function saveToSheet() {
-            const edited = getEditedOrders();
-            const itemsToSave = [];
+        function saveToSheets() {
+            if (Object.keys(orderData).length === 0) {
+                showAlert('No items to save', 'error');
+                return;
+            }
             
-            Object.entries(currentOrders).forEach(([brand, items]) => {
-                items.forEach(item => {
-                    const orderQty = edited[item.upc]?.orderQty || item.orderQty;
-                    itemsToSave.push({
-                        itemName: item.itemName,
-                        itemNumber: item.itemNumber,
-                        upc: item.upc,
-                        mustHave: item.mustHave,
-                        sold: Math.round(item.sold * 10) / 10,
-                        stockLeft: Math.round(item.stockLeft * 10) / 10,
-                        orderQty: Math.round(orderQty * 100) / 100
-                    });
-                });
-            });
+            const data = Object.entries(orderData).map(([upc, item]) => ({
+                date: currentDateKey,  // YYYYMMDD format
+                itemName: item.name,
+                itemNumber: item.number,
+                mustHave: item.mustHave,
+                orderQty: item.orderQty
+            }));
+            
+            const payload = {
+                action: 'saveSmartOrder',
+                data: data
+            };
             
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({
-                    action: 'saveSmartOrder',
-                    items: itemsToSave
-                })
+                body: JSON.stringify(payload)
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccess('✅ ' + data.message);
-                } else {
-                    showError('Error: ' + data.error);
-                }
+            .then(response => {
+                showAlert(`✅ Saved ${data.length} items to Sheets!`, 'success');
             })
-            .catch(err => showError('Save failed: ' + err.message));
+            .catch(error => {
+                showAlert('Error saving: ' + error.message, 'error');
+            });
         }
         
-        document.getElementById('pdfInput').addEventListener('change', handlePDFUpload);
+        function resetForm() {
+            orderData = {};
+            document.getElementById('itemsContainer').innerHTML = '';
+            document.getElementById('itemsSection').classList.remove('active');
+            document.getElementById('pdfInput').value = '';
+            showAlert('Form reset', 'info');
+        }
         
-        window.addEventListener('DOMContentLoaded', async () => {
-            await loadHistoricalData();
-        });
+        function showAlert(message, type) {
+            const alertBox = document.getElementById(`alert${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            alertBox.textContent = message;
+            alertBox.classList.add('show');
+            
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
     </script>
 </body>
 </html>
