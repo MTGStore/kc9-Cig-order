@@ -171,6 +171,10 @@
             background: #f5f5f5;
         }
         
+        .preview-table tr.confirmed {
+            background: #f0f0f0;
+        }
+        
         .row-input {
             padding: 4px;
             border: 1px solid #ccc;
@@ -184,6 +188,13 @@
             outline: none;
             border-color: #667eea;
             background: #f0f8ff;
+        }
+        
+        .row-input:disabled {
+            background: #e8e8e8;
+            color: #666;
+            cursor: not-allowed;
+            border-color: #ddd;
         }
         
         .match-status {
@@ -215,9 +226,28 @@
             border: none;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             transition: all 0.2s;
+            margin-right: 3px;
+        }
+        
+        .btn-confirm {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-confirm:hover {
+            background: #45a049;
+        }
+        
+        .btn-confirm.unconfirm {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-confirm.unconfirm:hover {
+            background: #e68900;
         }
         
         .btn-ignore {
@@ -232,6 +262,17 @@
         .btn-ignore.ignored {
             background: #ffeb3b;
             color: #333;
+        }
+        
+        .confirm-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-left: 5px;
         }
         
         .stats {
@@ -346,6 +387,12 @@
             .last-modified {
                 font-size: 11px;
             }
+            
+            .action-btn {
+                padding: 3px 6px;
+                font-size: 9px;
+                margin-right: 2px;
+            }
         }
     </style>
 </head>
@@ -353,7 +400,7 @@
     <div class="container">
         <div class="header">
             <h1>📤 Sales History Uploader</h1>
-            <p>Upload weekly sales CSV • Edit matches • Ignore rows • Store in cloud</p>
+            <p>Upload weekly sales CSV • Edit matches • Confirm/Ignore rows • Store in cloud</p>
             <div class="last-modified">
                 <strong>Last Modified:</strong> <span id="lastModified">Loading...</span>
             </div>
@@ -390,9 +437,9 @@
         </div>
         
         <div class="card">
-            <h2>Step 3: Preview, Edit & Match Results</h2>
+            <h2>Step 3: Preview, Edit, Confirm & Match Results</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                ✏️ Click any field to edit • 🚫 Click "Ignore" to skip row • Green = Matched • Yellow = Partial • Red = No match
+                ✏️ Edit fields (editable until confirmed) • ✅ Confirm to lock/gray out • ↩️ Unconfirm to edit again • 🚫 Ignore to skip • Green = Matched • Yellow = Partial • Red = No match
             </p>
             <div class="preview-section" id="previewSection">
                 <table class="preview-table">
@@ -404,7 +451,7 @@
                             <th>Units</th>
                             <th>Item #</th>
                             <th>Match</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="previewBody">
@@ -417,8 +464,12 @@
                         <div class="label">Total Items</div>
                     </div>
                     <div class="stat-box">
-                        <div class="number" id="activeItems">0</div>
-                        <div class="label">Active (to save)</div>
+                        <div class="number" id="confirmedItems">0</div>
+                        <div class="label">Confirmed</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="unconfirmedItems">0</div>
+                        <div class="label">Unconfirmed</div>
                     </div>
                     <div class="stat-box">
                         <div class="number" id="ignoredItems">0</div>
@@ -550,6 +601,7 @@
                     itemNumber: matchedItem ? matchedItem.number : 'N/A',
                     upc: matchedItem ? scanCode : 'N/A',
                     matchStatus: matchStatus,
+                    confirmed: false,
                     ignored: false
                 });
             }
@@ -564,15 +616,23 @@
             parsedData.forEach((item, index) => {
                 const row = document.createElement('tr');
                 if (item.ignored) row.classList.add('ignored');
+                if (item.confirmed) row.classList.add('confirmed');
+                
+                const confirmBtnClass = item.confirmed ? 'unconfirm' : '';
+                const confirmBtnText = item.confirmed ? '↩️ Unconfirm' : '✅ Confirm';
+                const confirmBadge = item.confirmed ? '<span class="confirm-badge">Confirmed</span>' : '';
                 
                 row.innerHTML = `
-                    <td><input type="text" class="row-input" value="${item.csvUpc}" onchange="updateField(${index}, 'csvUpc', this.value)"></td>
-                    <td><input type="text" class="row-input" value="${item.csvName}" onchange="updateField(${index}, 'csvName', this.value)"></td>
-                    <td><input type="number" class="row-input" value="${item.qtySold}" onchange="updateQty(${index}, this.value)"></td>
+                    <td><input type="text" class="row-input" value="${item.csvUpc}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'csvUpc', this.value)"></td>
+                    <td><input type="text" class="row-input" value="${item.csvName}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'csvName', this.value)"></td>
+                    <td><input type="number" class="row-input" value="${item.qtySold}" ${item.confirmed ? 'disabled' : ''} onchange="updateQty(${index}, this.value)"></td>
                     <td><input type="text" class="row-input" value="${item.unitsSold}" readonly style="background: #f5f5f5;"></td>
-                    <td><input type="text" class="row-input" value="${item.itemNumber}" onchange="updateField(${index}, 'itemNumber', this.value)"></td>
-                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus.toUpperCase()}</span></td>
-                    <td><button class="action-btn btn-ignore ${item.ignored ? 'ignored' : ''}" onclick="toggleIgnore(${index})">${item.ignored ? '✓ Ignored' : '🚫 Ignore'}</button></td>
+                    <td><input type="text" class="row-input" value="${item.itemNumber}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'itemNumber', this.value)"></td>
+                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus.toUpperCase()}</span>${confirmBadge}</td>
+                    <td>
+                        <button class="action-btn btn-confirm ${confirmBtnClass}" onclick="toggleConfirm(${index})">${confirmBtnText}</button>
+                        <button class="action-btn btn-ignore ${item.ignored ? 'ignored' : ''}" onclick="toggleIgnore(${index})">${item.ignored ? '✓ Ignored' : '🚫 Ignore'}</button>
+                    </td>
                 `;
                 previewBody.appendChild(row);
             });
@@ -592,6 +652,11 @@
             displayPreview();
         }
         
+        function toggleConfirm(index) {
+            parsedData[index].confirmed = !parsedData[index].confirmed;
+            displayPreview();
+        }
+        
         function toggleIgnore(index) {
             parsedData[index].ignored = !parsedData[index].ignored;
             displayPreview();
@@ -599,11 +664,13 @@
         
         function updateStats() {
             const total = parsedData.length;
+            const confirmed = parsedData.filter(item => item.confirmed).length;
+            const unconfirmed = parsedData.filter(item => !item.confirmed && !item.ignored).length;
             const ignored = parsedData.filter(item => item.ignored).length;
-            const active = total - ignored;
             
             document.getElementById('totalItems').textContent = total;
-            document.getElementById('activeItems').textContent = active;
+            document.getElementById('confirmedItems').textContent = confirmed;
+            document.getElementById('unconfirmedItems').textContent = unconfirmed;
             document.getElementById('ignoredItems').textContent = ignored;
         }
         
