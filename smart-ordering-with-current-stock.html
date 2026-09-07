@@ -15,7 +15,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
         
         .container {
@@ -25,29 +25,29 @@
         
         .header {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             text-align: center;
         }
         
         .header h1 {
             color: #667eea;
-            font-size: 28px;
+            font-size: 24px;
             margin-bottom: 8px;
         }
         
         .header p {
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .upload-section {
             background: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             text-align: center;
         }
@@ -57,14 +57,14 @@
         }
         
         .upload-btn {
-            padding: 12px 30px;
+            padding: 10px 25px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.3s;
         }
         
@@ -74,18 +74,21 @@
         }
         
         .upload-status {
-            margin-top: 15px;
-            font-size: 14px;
+            margin-top: 10px;
+            font-size: 12px;
             color: #666;
         }
         
         .search-section {
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             display: none;
+            position: sticky;
+            top: 15px;
+            z-index: 10;
         }
         
         .search-section.active {
@@ -108,16 +111,16 @@
         }
         
         .search-info {
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         
         .items-section {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             display: none;
         }
@@ -126,138 +129,165 @@
             display: block;
         }
         
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            font-size: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
         .brand-group {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
             border-bottom: 2px solid #f0f0f0;
         }
         
         .brand-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #667eea;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-transform: uppercase;
         }
         
         .items-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
         }
         
         .item-card {
-            background: #f9f9f9;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             transition: all 0.3s;
         }
         
+        .item-card.unverified {
+            background: #f5f5f5;
+        }
+        
+        .item-card.verified {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+        
+        .item-card.smart-count {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
         .item-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-        
-        .item-card.high-velocity {
-            border-left: 4px solid #ff9800;
-        }
-        
-        .item-card.manual-entry {
-            border-left: 4px solid #2196f3;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .item-name {
             font-weight: 600;
             color: #333;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 13px;
+            margin-bottom: 6px;
         }
         
         .item-details {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         
-        .input-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
+        .input-label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         
-        .input-group input {
-            flex: 1;
+        .item-info {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        
+        .input-field {
+            width: 100%;
             padding: 8px;
             border: 2px solid #ddd;
             border-radius: 4px;
             font-size: 13px;
             font-weight: 600;
+            margin-bottom: 8px;
+            font-family: inherit;
         }
         
-        .input-group input:focus {
+        .input-field:focus {
             outline: none;
             border-color: #667eea;
             background: #f0f8ff;
         }
         
-        .input-label {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-        
-        .item-info {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        
         .calculation-display {
-            background: #e3f2fd;
+            background: rgba(33, 150, 243, 0.1);
             border: 1px solid #90caf9;
             border-radius: 4px;
-            padding: 10px;
-            font-size: 12px;
+            padding: 8px;
+            font-size: 11px;
             color: #1565c0;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            line-height: 1.3;
         }
         
         .badge {
             display: inline-block;
             background: #ff9800;
             color: white;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            margin-right: 5px;
-            margin-top: 5px;
+            margin-top: 4px;
         }
         
-        .badge.manual {
+        .badge.verified {
+            background: #4caf50;
+        }
+        
+        .badge.smart {
             background: #2196f3;
         }
         
         .btn-group {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 30px;
+            margin-top: 20px;
         }
         
         .btn {
-            padding: 12px 30px;
+            padding: 10px 15px;
             border: none;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.3s;
         }
         
@@ -290,10 +320,11 @@
         }
         
         .alert {
-            padding: 15px;
+            padding: 12px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: none;
+            font-size: 12px;
         }
         
         .alert.show {
@@ -320,26 +351,69 @@
         
         .no-results {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 15px;
             color: #999;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                max-width: 100%;
+            }
+            
+            .header {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header p {
+                font-size: 12px;
+            }
+            
             .items-grid {
                 grid-template-columns: 1fr;
             }
             
+            .items-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .item-card {
+                padding: 12px;
+            }
+            
+            .search-section {
+                top: 10px;
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+            
+            .search-box {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
             .btn-group {
-                flex-direction: column;
+                grid-template-columns: 1fr;
             }
             
             .btn {
-                width: 100%;
+                padding: 12px;
+                font-size: 13px;
             }
             
-            .input-group {
-                flex-direction: column;
+            .legend {
+                grid-template-columns: 1fr;
+                font-size: 11px;
             }
         }
     </style>
@@ -347,8 +421,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Smart Ordering with Current Stock</h1>
-            <p>Upload CSV • Search • Enter Current Stock (optional) • Auto-calculate • Send to WhatsApp • Save</p>
+            <h1>🚀 Smart Ordering v2</h1>
+            <p>Upload CSV • Search • Enter Current Stock • Auto-calculate • Send to WhatsApp • Save</p>
         </div>
         
         <div class="alert alert-success" id="alertSuccess"></div>
@@ -362,22 +436,33 @@
         </div>
         
         <div class="search-section" id="searchSection">
-            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search items (e.g., Marlboro, Newport, Gold, item #)" onkeyup="filterItems()">
+            <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search (e.g., Marlboro, Gold, #4336442)" onkeyup="filterItems()">
             <div class="search-info" id="searchInfo"></div>
         </div>
         
         <div class="items-section" id="itemsSection">
-            <h2 style="margin-bottom: 20px; color: #333;">📦 Order Items with Current Stock</h2>
-            <p style="margin-bottom: 20px; color: #666; font-size: 13px;">
-                <strong>Orange badge:</strong> 10% buffer applied (sold > 1.0, no current stock entered)<br>
-                <strong>Blue badge:</strong> Manual calculation (current stock entered)<br>
-                Leave "Current Stock" empty to use automatic formula.
-            </p>
+            <h2 style="margin-bottom: 15px; color: #333; font-size: 18px;">📦 Order Items</h2>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f5f5f5;"></div>
+                    <span>Unverified (Not checked)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e8f5e9;"></div>
+                    <span>Verified (Current Stock entered)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e3f2fd;"></div>
+                    <span>Smart Count (Auto formula)</span>
+                </div>
+            </div>
+            
             <div id="itemsContainer"></div>
             
             <div class="btn-group">
-                <button class="btn btn-success" onclick="sendWhatsApp()">📱 Send to WhatsApp</button>
-                <button class="btn btn-primary" onclick="saveToSheets()">💾 Save to Sheets</button>
+                <button class="btn btn-success" onclick="sendWhatsApp()">📱 WhatsApp</button>
+                <button class="btn btn-primary" onclick="saveToSheets()">💾 Save</button>
                 <button class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
             </div>
         </div>
@@ -389,9 +474,8 @@
         let orderData = {};
         let historicalAvg = {};
         let currentDateKey = getDateKey();
-        let allOrderDataCopy = {}; // Store full data for search
+        let allOrderDataCopy = {};
         
-        // Load all items and historical data on page load
         window.addEventListener('load', () => {
             loadAllItems();
             loadHistoricalData();
@@ -409,15 +493,11 @@
             const url = APPS_SCRIPT_URL + '?action=getAllItems&callback=handleAllItems';
             const script = document.createElement('script');
             script.src = url;
-            script.onerror = () => {
-                console.error('Failed to load items');
-                showAlert('Failed to load items from sheet', 'error');
-            };
+            script.onerror = () => showAlert('Failed to load items', 'error');
             document.head.appendChild(script);
         }
         
         function handleAllItems(data) {
-            console.log('handleAllItems called with', Object.keys(data).length, 'items');
             allItems = data;
         }
         
@@ -425,14 +505,10 @@
             const url = APPS_SCRIPT_URL + '?action=getOrderHistory&callback=handleHistoricalData';
             const script = document.createElement('script');
             script.src = url;
-            script.onerror = () => {
-                console.error('Failed to load historical data');
-            };
             document.head.appendChild(script);
         }
         
         function handleHistoricalData(data) {
-            console.log('handleHistoricalData called with', Object.keys(data).length, 'items');
             historicalAvg = data || {};
         }
         
@@ -441,7 +517,7 @@
             if (!file) return;
             
             if (Object.keys(allItems).length === 0) {
-                showAlert('Loading items from sheet... please wait', 'info');
+                showAlert('Loading items... please wait', 'info');
                 setTimeout(() => handleCSVUpload(event), 2000);
                 return;
             }
@@ -450,12 +526,10 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const csv = e.target.result;
-                    parseCSVAndCalculateOrder(csv);
+                    parseCSVAndCalculateOrder(e.target.result);
                     showAlert('✅ CSV parsed! ' + Object.keys(orderData).length + ' items found.', 'success');
                 } catch (error) {
-                    showAlert('Error parsing CSV: ' + error.message, 'error');
-                    console.error('CSV error:', error);
+                    showAlert('Error: ' + error.message, 'error');
                 }
             };
             reader.readAsText(file);
@@ -465,7 +539,6 @@
             const lines = csv.trim().split('\n');
             orderData = {};
             
-            // Skip header row (row 0), start from row 1
             for (let i = 1; i < lines.length; i++) {
                 const parts = lines[i].split(',');
                 if (parts.length < 3) continue;
@@ -478,7 +551,6 @@
                     const actualUnits = soldRaw / 10;
                     const item = allItems[upc];
                     
-                    // Calculate default order qty with 10% buffer if sold > 1.0
                     let orderQty = actualUnits;
                     let hasBuffer = false;
                     
@@ -495,15 +567,13 @@
                         currentStock: null,
                         orderQty: orderQty,
                         hasBuffer: hasBuffer,
-                        calculationType: 'automatic'
+                        calculationType: 'automatic',
+                        status: 'smart-count'
                     };
                 }
             }
             
-            // Keep full copy for searching
             allOrderDataCopy = JSON.parse(JSON.stringify(orderData));
-            
-            console.log('Order data created with', Object.keys(orderData).length, 'items');
             
             renderOrderItems();
             document.getElementById('itemsSection').classList.add('active');
@@ -522,7 +592,6 @@
                 return;
             }
             
-            // Filter orderData
             const filtered = {};
             Object.entries(allOrderDataCopy).forEach(([upc, item]) => {
                 if (item.name.toLowerCase().includes(query) || 
@@ -532,10 +601,10 @@
             });
             
             if (Object.keys(filtered).length === 0) {
-                searchInfo.innerHTML = `<span style="color: #f44336; font-weight: 600;">❌ No items match "${query}"</span>`;
-                document.getElementById('itemsContainer').innerHTML = '<div class="no-results">No items found. Try a different search.</div>';
+                searchInfo.innerHTML = `<span style="color: #f44336;">❌ No items match "${query}"</span>`;
+                document.getElementById('itemsContainer').innerHTML = '<div class="no-results">No items found.</div>';
             } else {
-                searchInfo.innerHTML = `<span style="color: #4caf50; font-weight: 600;">✅ Found ${Object.keys(filtered).length} item(s)</span>`;
+                searchInfo.innerHTML = `<span style="color: #4caf50;">✅ Found ${Object.keys(filtered).length}</span>`;
                 orderData = filtered;
                 renderOrderItems();
             }
@@ -546,20 +615,17 @@
             container.innerHTML = '';
             
             if (Object.keys(orderData).length === 0) {
-                container.innerHTML = '<div class="no-results">No items to display. Upload a CSV first.</div>';
+                container.innerHTML = '<div class="no-results">Upload CSV to start</div>';
                 return;
             }
             
-            // Group by brand
             const grouped = {};
-            
             Object.entries(orderData).forEach(([upc, item]) => {
                 const brand = item.name.split(' ')[0];
                 if (!grouped[brand]) grouped[brand] = [];
                 grouped[brand].push({ upc, ...item });
             });
             
-            // Render each brand group
             Object.entries(grouped).forEach(([brand, items]) => {
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'brand-group';
@@ -575,52 +641,51 @@
                 items.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'item-card';
-                    if (item.hasBuffer && !item.currentStock) {
-                        card.classList.add('high-velocity');
-                    }
+                    
+                    // Determine status
+                    let status = 'smart-count';
                     if (item.currentStock !== null && item.currentStock !== '') {
-                        card.classList.add('manual-entry');
+                        status = 'verified';
+                    } else {
+                        status = 'unverified';
                     }
+                    
+                    card.classList.add(status);
                     
                     const histAvg = historicalAvg[item.number];
-                    const histAvgText = histAvg ? `Last 4 avg: ${histAvg.average} units` : 'N/A';
+                    const histAvgText = histAvg ? `${histAvg.average}u` : 'N/A';
                     
                     let badge = '';
-                    let calculationDisplay = '';
+                    let calculation = '';
                     
-                    if (item.currentStock !== null && item.currentStock !== '') {
+                    if (status === 'verified') {
                         const currentStockVal = parseFloat(item.currentStock) || 0;
                         const autoOrder = item.mustHave - currentStockVal;
-                        badge = `<div class="badge manual">Manual Entry</div>`;
-                        calculationDisplay = `<div class="calculation-display">
-                            Order = Must Have (${item.mustHave}) - Current Stock (${currentStockVal.toFixed(2)}) = <strong>${autoOrder.toFixed(2)}</strong>
-                        </div>`;
-                    } else if (item.hasBuffer) {
-                        badge = `<div class="badge">+10% Buffer</div>`;
-                        calculationDisplay = `<div class="calculation-display">
-                            Order = Sold (${item.sold.toFixed(2)}) × 1.10 = <strong>${item.orderQty.toFixed(2)}</strong>
-                        </div>`;
+                        badge = `<div class="badge verified">✓ VERIFIED</div>`;
+                        calculation = `<div class="calculation-display">Order = ${item.mustHave} - ${currentStockVal.toFixed(1)} = ${autoOrder.toFixed(2)}</div>`;
+                    } else if (status === 'smart-count') {
+                        badge = `<div class="badge smart">SMART COUNT</div>`;
+                        calculation = `<div class="calculation-display">Order = ${item.sold.toFixed(2)} × 1.10 = ${item.orderQty.toFixed(2)}</div>`;
                     }
                     
                     card.innerHTML = `
                         <div class="item-name">${item.name}</div>
                         <div class="item-details">
                             <span>#${item.number}</span>
-                            <span>Must Have: ${item.mustHave}</span>
+                            <span>Must: ${item.mustHave}</span>
                         </div>
-                        <div class="item-info">📊 ${histAvgText}<br>📉 Sold this week: ${item.sold.toFixed(2)} units</div>
+                        <div class="item-info">Avg: ${histAvgText} | Sold: ${item.sold.toFixed(2)}u</div>
                         ${badge}
-                        <div style="margin-top: 10px;">
-                            <div class="input-label">Current Stock (optional)</div>
-                            <input type="text" class="current-stock-input" value="${item.currentStock || ''}" 
+                        <div style="margin-top: 8px;">
+                            <div class="input-label">Current Stock</div>
+                            <input type="text" class="input-field" value="${item.currentStock || ''}" 
                                 onchange="updateCurrentStock('${item.upc}', this.value)" 
-                                placeholder="Leave empty for auto">
+                                placeholder="Tap to verify">
                         </div>
-                        ${calculationDisplay}
-                        <div class="input-label">Order Qty (editable)</div>
-                        <input type="text" class="order-qty-input" value="${item.orderQty.toFixed(2)}" 
-                            onchange="updateOrderQty('${item.upc}', this.value)" 
-                            placeholder="Order Qty">
+                        ${calculation}
+                        <div class="input-label">Order Qty</div>
+                        <input type="text" class="input-field" value="${item.orderQty.toFixed(2)}" 
+                            onchange="updateOrderQty('${item.upc}', this.value)">
                     `;
                     
                     grid.appendChild(card);
@@ -635,34 +700,25 @@
             if (orderData[upc]) {
                 orderData[upc].currentStock = value;
                 
-                // Recalculate order qty
                 if (value && value.trim() !== '') {
                     const currentStockVal = parseFloat(value) || 0;
                     const autoOrder = orderData[upc].mustHave - currentStockVal;
                     orderData[upc].orderQty = Math.max(0, autoOrder);
                     orderData[upc].calculationType = 'manual';
+                    orderData[upc].status = 'verified';
                 } else {
-                    // Revert to automatic formula
                     const actualUnits = orderData[upc].sold;
                     let orderQty = actualUnits;
-                    let hasBuffer = false;
-                    
-                    if (actualUnits > 1.0) {
-                        orderQty = actualUnits * 1.10;
-                        hasBuffer = true;
-                    }
-                    
+                    if (actualUnits > 1.0) orderQty = actualUnits * 1.10;
                     orderData[upc].orderQty = orderQty;
-                    orderData[upc].hasBuffer = hasBuffer;
                     orderData[upc].calculationType = 'automatic';
+                    orderData[upc].status = 'smart-count';
                 }
                 
-                // Update copy too
                 if (allOrderDataCopy[upc]) {
                     allOrderDataCopy[upc] = JSON.parse(JSON.stringify(orderData[upc]));
                 }
                 
-                // Re-render to update display
                 renderOrderItems();
             }
         }
@@ -671,15 +727,13 @@
             const qty = parseFloat(value) || 0;
             if (orderData[upc]) {
                 orderData[upc].orderQty = qty;
-                if (allOrderDataCopy[upc]) {
-                    allOrderDataCopy[upc].orderQty = qty;
-                }
+                if (allOrderDataCopy[upc]) allOrderDataCopy[upc].orderQty = qty;
             }
         }
         
         function sendWhatsApp() {
             if (Object.keys(orderData).length === 0) {
-                showAlert('No items to send', 'error');
+                showAlert('No items', 'error');
                 return;
             }
             
@@ -699,41 +753,35 @@
             Object.entries(grouped).forEach(([brand, items]) => {
                 message += `*${brand}*\n`;
                 items.forEach(item => {
-                    message += `Item Name: ${item.name}\n`;
-                    message += `Item #: ${item.number}\n`;
-                    message += `Order Qty: *${item.orderQty.toFixed(2)}*\n`;
-                    message += `Must Have: ${item.mustHave}\n`;
-                    message += `Sold this week: ${item.sold.toFixed(2)}\n`;
-                    if (item.currentStock !== null && item.currentStock !== '') {
-                        message += `Current Stock: ${item.currentStock}\n`;
-                    }
+                    message += `${item.name}\n`;
+                    message += `#${item.number} | Order: *${item.orderQty.toFixed(2)}*\n`;
+                    if (item.currentStock) message += `Stock: ${item.currentStock}\n`;
                     message += `\n`;
                 });
             });
             
-            message += `════════════════════════\n`;
-            message += `*TOTAL UNITS: ${totalQty.toFixed(2)}*\n`;
+            message += `*TOTAL: ${totalQty.toFixed(2)} units*\n`;
             
             const phone = '14046689091';
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
-            showAlert('✅ WhatsApp opened!', 'success');
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+            showAlert('✅ WhatsApp ready', 'success');
         }
         
         function saveToSheets() {
             if (Object.keys(orderData).length === 0) {
-                showAlert('No items to save', 'error');
+                showAlert('No items', 'error');
                 return;
             }
             
             const data = Object.entries(orderData).map(([upc, item]) => ({
-                date: currentDateKey,  // YYYYMMDD format
+                date: currentDateKey,
                 itemName: item.name,
                 itemNumber: item.number,
                 mustHave: item.mustHave,
                 currentStock: item.currentStock || '',
                 orderQty: item.orderQty,
-                calculationType: item.calculationType
+                calculationType: item.calculationType,
+                status: item.status
             }));
             
             const payload = {
@@ -745,12 +793,8 @@
                 method: 'POST',
                 body: JSON.stringify(payload)
             })
-            .then(response => {
-                showAlert(`✅ Saved ${data.length} items to Sheets!`, 'success');
-            })
-            .catch(error => {
-                showAlert('Error saving: ' + error.message, 'error');
-            });
+            .then(() => showAlert(`✅ Saved ${data.length} items`, 'success'))
+            .catch(error => showAlert('Error: ' + error.message, 'error'));
         }
         
         function resetForm() {
@@ -761,17 +805,14 @@
             document.getElementById('searchSection').classList.remove('active');
             document.getElementById('csvInput').value = '';
             document.getElementById('searchBox').value = '';
-            showAlert('Form reset', 'info');
+            showAlert('Reset', 'info');
         }
         
         function showAlert(message, type) {
             const alertBox = document.getElementById(`alert${type.charAt(0).toUpperCase() + type.slice(1)}`);
             alertBox.textContent = message;
             alertBox.classList.add('show');
-            
-            setTimeout(() => {
-                alertBox.classList.remove('show');
-            }, 5000);
+            setTimeout(() => alertBox.classList.remove('show'), 4000);
         }
     </script>
 </body>
