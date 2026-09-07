@@ -125,6 +125,10 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
         }
         
+        .item-card.high-velocity {
+            border-left: 4px solid #ff9800;
+        }
+        
         .item-name {
             font-weight: 600;
             color: #333;
@@ -160,6 +164,17 @@
             font-size: 12px;
             color: #999;
             margin-bottom: 10px;
+        }
+        
+        .buffer-badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 5px;
         }
         
         .btn-group {
@@ -256,7 +271,7 @@
     <div class="container">
         <div class="header">
             <h1>🚀 Smart Ordering</h1>
-            <p>Upload CSV • Auto-calculate • Edit • Send to WhatsApp • Save</p>
+            <p>Upload CSV • Auto-calculate with 10% buffer • Edit • Send to WhatsApp • Save</p>
         </div>
         
         <div class="alert alert-success" id="alertSuccess"></div>
@@ -271,7 +286,7 @@
         
         <div class="items-section" id="itemsSection">
             <h2 style="margin-bottom: 20px; color: #333;">📦 Order Items</h2>
-            <p style="margin-bottom: 20px; color: #666; font-size: 13px;">Edit quantities as needed. Decimals accepted (e.g., 0.5, 1.25). Last 4 weeks average shown below item name.</p>
+            <p style="margin-bottom: 20px; color: #666; font-size: 13px;">Formula: Items sold > 1.0 unit get 10% buffer. Edit quantities as needed. Last 4 weeks average and Must Have shown for reference.</p>
             <div id="itemsContainer"></div>
             
             <div class="btn-group">
@@ -376,12 +391,22 @@
                     const actualUnits = soldRaw / 10;
                     const item = allItems[upc];
                     
+                    // Calculate order qty with 10% buffer if sold > 1.0
+                    let orderQty = actualUnits;
+                    let hasBuffer = false;
+                    
+                    if (actualUnits > 1.0) {
+                        orderQty = actualUnits * 1.10;
+                        hasBuffer = true;
+                    }
+                    
                     orderData[upc] = {
                         name: item.name,
                         number: item.number,
                         mustHave: item.mustHave,
                         sold: actualUnits,
-                        orderQty: actualUnits
+                        orderQty: orderQty,
+                        hasBuffer: hasBuffer
                     };
                 }
             }
@@ -421,9 +446,17 @@
                 items.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'item-card';
+                    if (item.hasBuffer) {
+                        card.classList.add('high-velocity');
+                    }
                     
                     const histAvg = historicalAvg[item.number];
                     const histAvgText = histAvg ? `Last 4 avg: ${histAvg.average} units` : 'N/A';
+                    
+                    let bufferBadge = '';
+                    if (item.hasBuffer) {
+                        bufferBadge = `<div class="buffer-badge">+10% buffer applied</div>`;
+                    }
                     
                     card.innerHTML = `
                         <div class="item-name">${item.name}</div>
@@ -433,6 +466,7 @@
                         </div>
                         <div class="item-info">📊 ${histAvgText}</div>
                         <div class="item-info">Sold this week: ${item.sold.toFixed(2)} units</div>
+                        ${bufferBadge}
                         <input type="text" class="item-input" value="${item.orderQty.toFixed(2)}" 
                             onchange="updateOrderQty('${item.upc}', this.value)" 
                             placeholder="Order Qty">
@@ -479,7 +513,7 @@
                     message += `Item #: ${item.number}\n`;
                     message += `Order Qty: *${item.orderQty.toFixed(2)}*\n`;
                     message += `Must Have: ${item.mustHave}\n`;
-                    message += `Currently Sold: ${item.sold.toFixed(2)}\n\n`;
+                    message += `Sold this week: ${item.sold.toFixed(2)}\n\n`;
                 });
             });
             
