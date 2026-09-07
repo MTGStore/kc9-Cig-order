@@ -221,6 +221,11 @@
             color: #721c24;
         }
         
+        .match-status.auto-mapped {
+            background: #b3e5fc;
+            color: #01579b;
+        }
+        
         .action-btn {
             padding: 4px 8px;
             border: none;
@@ -268,6 +273,17 @@
             display: inline-block;
             background: #4caf50;
             color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+        
+        .auto-mapped-badge {
+            display: inline-block;
+            background: #b3e5fc;
+            color: #01579b;
             padding: 2px 6px;
             border-radius: 3px;
             font-size: 9px;
@@ -400,7 +416,7 @@
     <div class="container">
         <div class="header">
             <h1>📤 Sales History Uploader</h1>
-            <p>Upload weekly sales CSV • Edit matches • Confirm/Ignore rows • Store in cloud</p>
+            <p>Upload weekly sales CSV • Auto-match UPC • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
                 <strong>Last Modified:</strong> <span id="lastModified">Loading...</span>
             </div>
@@ -439,7 +455,7 @@
         <div class="card">
             <h2>Step 3: Preview, Edit, Confirm & Match Results</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                ✏️ Edit fields (editable until confirmed) • ✅ Confirm to lock/gray out • ↩️ Unconfirm to edit again • 🚫 Ignore to skip • Green = Matched • Yellow = Partial • Red = No match
+                🔵 Blue = Auto-mapped from saved UPC Mapping • ✏️ Edit fields (until confirmed) • ✅ Confirm to lock • ↩️ Unconfirm to edit • 🚫 Ignore to skip • Green = Matched • Yellow = Partial • Red = No match
             </p>
             <div class="preview-section" id="previewSection">
                 <table class="preview-table">
@@ -468,8 +484,8 @@
                         <div class="label">Confirmed</div>
                     </div>
                     <div class="stat-box">
-                        <div class="number" id="unconfirmedItems">0</div>
-                        <div class="label">Unconfirmed</div>
+                        <div class="number" id="autoMappedItems">0</div>
+                        <div class="label">Auto-Mapped</div>
                     </div>
                     <div class="stat-box">
                         <div class="number" id="ignoredItems">0</div>
@@ -482,7 +498,7 @@
         <div class="card">
             <h2>Step 4: Save to Sheets</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                Click below to save active (non-ignored) rows to your Sales History tab.
+                Click below to save active (non-ignored) rows to your Sales History tab. Confirmed mappings will also be saved to UPC Mapping.
             </p>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="saveToSheets()">💾 Save to Sheets</button>
@@ -494,11 +510,13 @@
     <script>
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
         let allItems = {};
+        let upcMapping = {};
         let parsedData = [];
         
         window.addEventListener('load', () => {
             displayLastModified();
             loadAllItems();
+            loadUPCMapping();
         });
         
         function displayLastModified() {
@@ -532,6 +550,19 @@
         function handleAllItems(data) {
             allItems = data;
             console.log('Loaded ' + Object.keys(data).length + ' items from Master List');
+        }
+        
+        function loadUPCMapping() {
+            const url = APPS_SCRIPT_URL + '?action=getUPCMapping&callback=handleUPCMapping';
+            const script = document.createElement('script');
+            script.src = url;
+            script.onerror = () => console.log('UPC Mapping not ready yet');
+            document.head.appendChild(script);
+        }
+        
+        function handleUPCMapping(data) {
+            upcMapping = data;
+            console.log('Loaded UPC Mapping with ' + Object.keys(data).length + ' verified mappings');
         }
         
         function handleCSVUpload(event) {
@@ -575,8 +606,18 @@
                 
                 let matchedItem = null;
                 let matchStatus = 'no-match';
+                let isAutoMapped = false;
                 
-                if (allItems[scanCode]) {
+                // Check UPC Mapping first (saved from previous confirmations)
+                if (upcMapping[scanCode]) {
+                    matchedItem = {
+                        name: upcMapping[scanCode].itemName,
+                        number: upcMapping[scanCode].itemNumber,
+                        mustHave: 0
+                    };
+                    matchStatus = 'auto-mapped';
+                    isAutoMapped = true;
+                } else if (allItems[scanCode]) {
                     matchedItem = allItems[scanCode];
                     matchStatus = 'matched';
                 } else {
@@ -601,8 +642,9 @@
                     itemNumber: matchedItem ? matchedItem.number : 'N/A',
                     upc: matchedItem ? scanCode : 'N/A',
                     matchStatus: matchStatus,
-                    confirmed: false,
-                    ignored: false
+                    confirmed: isAutoMapped,
+                    ignored: false,
+                    isAutoMapped: isAutoMapped
                 });
             }
             
@@ -620,7 +662,8 @@
                 
                 const confirmBtnClass = item.confirmed ? 'unconfirm' : '';
                 const confirmBtnText = item.confirmed ? '↩️ Unconfirm' : '✅ Confirm';
-                const confirmBadge = item.confirmed ? '<span class="confirm-badge">Confirmed</span>' : '';
+                const confirmBadge = item.confirmed ? '<span class="confirm-badge">Locked</span>' : '';
+                const autoMapBadge = item.isAutoMapped ? '<span class="auto-mapped-badge">Auto-mapped</span>' : '';
                 
                 row.innerHTML = `
                     <td><input type="text" class="row-input" value="${item.csvUpc}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'csvUpc', this.value)"></td>
@@ -628,7 +671,7 @@
                     <td><input type="number" class="row-input" value="${item.qtySold}" ${item.confirmed ? 'disabled' : ''} onchange="updateQty(${index}, this.value)"></td>
                     <td><input type="text" class="row-input" value="${item.unitsSold}" readonly style="background: #f5f5f5;"></td>
                     <td><input type="text" class="row-input" value="${item.itemNumber}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'itemNumber', this.value)"></td>
-                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus.toUpperCase()}</span>${confirmBadge}</td>
+                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus.toUpperCase()}</span>${confirmBadge}${autoMapBadge}</td>
                     <td>
                         <button class="action-btn btn-confirm ${confirmBtnClass}" onclick="toggleConfirm(${index})">${confirmBtnText}</button>
                         <button class="action-btn btn-ignore ${item.ignored ? 'ignored' : ''}" onclick="toggleIgnore(${index})">${item.ignored ? '✓ Ignored' : '🚫 Ignore'}</button>
@@ -665,12 +708,12 @@
         function updateStats() {
             const total = parsedData.length;
             const confirmed = parsedData.filter(item => item.confirmed).length;
-            const unconfirmed = parsedData.filter(item => !item.confirmed && !item.ignored).length;
+            const autoMapped = parsedData.filter(item => item.isAutoMapped).length;
             const ignored = parsedData.filter(item => item.ignored).length;
             
             document.getElementById('totalItems').textContent = total;
             document.getElementById('confirmedItems').textContent = confirmed;
-            document.getElementById('unconfirmedItems').textContent = unconfirmed;
+            document.getElementById('autoMappedItems').textContent = autoMapped;
             document.getElementById('ignoredItems').textContent = ignored;
         }
         
@@ -690,6 +733,7 @@
                 return;
             }
             
+            // Save sales history
             const payload = {
                 action: 'uploadSalesHistory',
                 data: activeData,
@@ -706,6 +750,8 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
+                    // Save confirmed UPC mappings
+                    saveConfirmedMappings();
                     showAlert(`✅ Saved ${result.rowsAdded} items to Sales History!`, 'success');
                     setTimeout(() => resetForm(), 2000);
                 } else {
@@ -714,6 +760,30 @@
             })
             .catch(error => {
                 showAlert('Error: ' + error.message, 'error');
+            });
+        }
+        
+        function saveConfirmedMappings() {
+            // Save any newly confirmed mappings to UPC Mapping tab
+            const confirmedItems = parsedData.filter(item => item.confirmed && !item.isAutoMapped);
+            
+            confirmedItems.forEach(item => {
+                const mappingData = {
+                    action: 'saveUPCMapping',
+                    data: {
+                        csvUpc: item.csvUpc,
+                        itemNumber: item.itemNumber,
+                        itemName: item.itemName,
+                        status: 'Verified'
+                    }
+                };
+                
+                fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(mappingData)
+                })
+                .then(response => response.json())
+                .catch(error => console.log('Mapping save error:', error));
             });
         }
         
