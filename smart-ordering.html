@@ -308,10 +308,15 @@
             const url = APPS_SCRIPT_URL + '?action=getAllItems&callback=handleAllItems';
             const script = document.createElement('script');
             script.src = url;
+            script.onerror = () => {
+                console.error('Failed to load items');
+                showAlert('Failed to load items from sheet', 'error');
+            };
             document.head.appendChild(script);
         }
         
         function handleAllItems(data) {
+            console.log('handleAllItems called with', Object.keys(data).length, 'items');
             allItems = data;
         }
         
@@ -319,16 +324,32 @@
             const url = APPS_SCRIPT_URL + '?action=getOrderHistory&callback=handleHistoricalData';
             const script = document.createElement('script');
             script.src = url;
+            script.onerror = () => {
+                console.error('Failed to load historical data');
+            };
             document.head.appendChild(script);
         }
         
         function handleHistoricalData(data) {
+            console.log('handleHistoricalData called with', Object.keys(data).length, 'items');
             historicalAvg = data || {};
         }
         
         async function handlePDFUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+            
+            // Wait for allItems to load
+            if (Object.keys(allItems).length === 0) {
+                showAlert('Loading items from sheet... please wait', 'info');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            
+            if (Object.keys(allItems).length === 0) {
+                showAlert('Items failed to load. Reload the page and try again.', 'error');
+                console.error('allItems is still empty after waiting');
+                return;
+            }
             
             showAlert('Parsing PDF...', 'info');
             const reader = new FileReader();
@@ -343,10 +364,15 @@
                         allText += text.items.map(item => item.str).join(' ') + '\n';
                     }
                     
+                    console.log('PDF text extracted, length:', allText.length);
+                    console.log('Available items in allItems:', Object.keys(allItems).length);
+                    console.log('Sample UPCs from allItems:', Object.keys(allItems).slice(0, 5));
+                    
                     parsePDFAndCalculateOrder(allText);
                     showAlert('✅ PDF parsed! ' + Object.keys(orderData).length + ' items found.', 'success');
                 } catch (error) {
                     showAlert('Error parsing PDF: ' + error.message, 'error');
+                    console.error('PDF error:', error);
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -361,6 +387,9 @@
             while ((match = upcRegex.exec(text)) !== null) {
                 upcsInPDF.push(match[1]);
             }
+            
+            console.log('Found UPCs in PDF:', upcsInPDF.length);
+            console.log('Sample UPCs from PDF:', upcsInPDF.slice(0, 10));
             
             orderData = {};
             
@@ -385,8 +414,12 @@
                             orderQty: actualUnits
                         };
                     }
+                } else {
+                    console.log('UPC not found in allItems:', upc);
                 }
             });
+            
+            console.log('Order data created with', Object.keys(orderData).length, 'items');
             
             renderOrderItems();
             document.getElementById('itemsSection').classList.add('active');
