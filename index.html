@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             padding: 40px 30px;
-            max-width: 500px;
+            max-width: 700px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -81,6 +81,14 @@
             box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
         }
         
+        .card.v2 {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        }
+        
+        .card.v2:hover {
+            box-shadow: 0 12px 24px rgba(33, 150, 243, 0.4);
+        }
+        
         .card-icon {
             font-size: 32px;
             margin-bottom: 12px;
@@ -96,6 +104,17 @@
             font-size: 12px;
             opacity: 0.9;
             line-height: 1.4;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #ffeb3b;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 6px;
         }
         
         .footer {
@@ -118,6 +137,7 @@
             
             .cards-grid {
                 gap: 12px;
+                grid-template-columns: 1fr;
             }
             
             .card {
@@ -143,7 +163,14 @@
             <a href="smart-ordering.html" class="card">
                 <div class="card-icon">📦</div>
                 <div class="card-title">Smart Ordering</div>
-                <div class="card-description">Upload PDF & auto-calculate orders</div>
+                <div class="card-description">Upload CSV & auto-calculate orders</div>
+            </a>
+            
+            <a href="smart-ordering-with-current-stock.html" class="card v2">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Smart Ordering v2</div>
+                <div class="card-description">With Current Stock Input</div>
+                <div class="badge">NEW</div>
             </a>
             
             <a href="analytics-dashboard.html" class="card">
