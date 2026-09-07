@@ -394,20 +394,30 @@
         
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
         
-        async function loadMainCigList() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems');
-                const data = await response.json();
+        function loadMainCigList() {
+            const callbackName = 'jsonpCallback_' + Date.now();
+            window[callbackName] = function(data) {
                 if (data.success && data.items) {
                     mainCigListMap = data.items;
                     console.log('✅ Loaded', Object.keys(mainCigListMap).length, 'items from Google Sheets');
                 } else {
-                    throw new Error('Failed to load items');
+                    console.error('Failed to load items:', data.error);
+                    showError('Could not load item data. Error: ' + (data.error || 'Unknown'));
                 }
-            } catch (error) {
-                console.error('Error loading Main CIG LIST:', error);
-                showError('Could not load item data from Google Sheets. Check console for details.');
-            }
+                // Clean up
+                delete window[callbackName];
+                document.head.removeChild(script);
+            };
+            
+            const script = document.createElement('script');
+            script.src = APPS_SCRIPT_URL + '?action=getAllItems&callback=' + callbackName;
+            script.onerror = function() {
+                console.error('Script load failed');
+                showError('Network error loading data from Google Sheets');
+                delete window[callbackName];
+                document.head.removeChild(script);
+            };
+            document.head.appendChild(script);
         }
         
         function extractTextFromPDF(pdfFile) {
