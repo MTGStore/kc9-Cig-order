@@ -390,56 +390,21 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
         let mainCigList = [];
-        let inventoryCount = [];
-        let orderHistory = [];
         let currentOrders = {};
         
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2F0AirAwq5MJ5WKj1dL9TTUtm-OByP6XjCLtUNjTvziy7ih-22VwKuZId_Vx6TpOHEBIPek9e0y2XKv4HZk/pub?gid=0&single=true&output=csv';
-        
-        async function loadMainCigList() {
-            try {
-                const response = await fetch(CSV_URL);
-                const text = await response.text();
-                const lines = text.trim().split('\n');
-                const headers = lines[0].split(',');
-                
-                const nameIdx = headers.findIndex(h => h.includes('Item Name'));
-                const numberIdx = headers.findIndex(h => h.includes('Item Number'));
-                const upcIdx = headers.findIndex(h => h.includes('UPC'));
-                const mustHaveIdx = headers.findIndex(h => h.includes('Must Have'));
-                
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    const cells = lines[i].split(',');
-                    mainCigList.push({
-                        name: cells[nameIdx] || '',
-                        number: cells[numberIdx] || '',
-                        upc: cells[upcIdx] || '',
-                        mustHave: parseFloat(cells[mustHaveIdx]) || 0
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading Main CIG LIST:', error);
-            }
-        }
-        
-        async function loadInventoryAndOrders() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getItems');
-                const data = await response.json();
-                if (data.success) {
-                    mainCigList = data.items.map(item => ({
-                        name: item.name,
-                        number: item.number,
-                        upc: item.upc,
-                        mustHave: item.mustHave
-                    }));
-                }
-            } catch (error) {
-                console.error('Error loading inventory:', error);
-            }
-        }
+        // Hardcoded Main CIG LIST data as fallback (will be replaced when data loads)
+        const HARDCODED_DATA = {
+            '02820000384': { name: 'Marlboro Gold Short', number: '4336442', mustHave: 10 },
+            '02610000575': { name: 'Newport Short', number: '4340618', mustHave: 8 },
+            '02610000578': { name: 'Newport King Soft', number: '4340634', mustHave: 6 },
+            '02720020589': { name: 'Pall Mall Select Blue Short', number: '4342023', mustHave: 5 },
+            '02820000954': { name: 'Marlboro Black/GREEN short', number: '4357141', mustHave: 4 },
+            '68514191015': { name: '24x7 Green 100s', number: '4973467', mustHave: 3 },
+            '02820000477': { name: 'Marlboro silver short mellow', number: '4336452', mustHave: 7 },
+            '02820031772': { name: 'Marlboro nxt', number: '4359212', mustHave: 5 },
+            '01230000003': { name: 'Camel filter shorts', number: '4165932', mustHave: 4 },
+            '02820000952': { name: 'Marlboro black/ Red short', number: '4357131', mustHave: 5 }
+        };
         
         function extractTextFromPDF(pdfFile) {
             return new Promise((resolve, reject) => {
@@ -473,28 +438,27 @@
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 
-                // Match scan codes (11-12 digits)
+                // Match 11-12 digit scan codes
                 if (/^\d{11,12}/.test(line)) {
-                    const match = line.match(/^(\d{11,12})\s+(.+?)(?:\s+\d+)?$/);
-                    if (match) {
-                        const scanCode = match[1];
-                        const description = match[2];
+                    const scanCode = line.match(/^(\d{11,12})/)[1];
+                    
+                    // Look for # Sold (should be after $Sold)
+                    for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
+                        const potentialLine = lines[j].trim();
                         
-                        // Look for # Sold in next few lines
-                        for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
-                            const potentialNumber = lines[j].trim();
-                            if (/^\d+$/.test(potentialNumber) && !potentialNumber.includes('0000')) {
-                                const sold = parseInt(potentialNumber);
-                                if (sold > 0 && sold < 1000) {
-                                    salesMap[scanCode] = {
-                                        upc: scanCode,
-                                        description: description,
-                                        soldRaw: sold,
-                                        sold: sold / 10
-                                    };
-                                    i = j;
-                                    break;
-                                }
+                        // Skip lines with $ or %
+                        if (potentialLine.includes('$') || potentialLine.includes('%') || potentialLine.includes('null')) continue;
+                        
+                        // Match single number
+                        if (/^\d+$/.test(potentialLine)) {
+                            const sold = parseInt(potentialLine);
+                            if (sold > 0 && sold < 1000) {
+                                salesMap[scanCode] = {
+                                    upc: scanCode,
+                                    sold: sold / 10
+                                };
+                                i = j;
+                                break;
                             }
                         }
                     }
@@ -509,10 +473,10 @@
             let anomalies = 0;
             
             sales.forEach(item => {
-                const cigItem = mainCigList.find(c => c.upc === item.upc);
+                const cigItem = HARDCODED_DATA[item.upc];
                 
                 if (cigItem) {
-                    // Simplified calculation: Must Have - Sales = Order
+                    // Calculate: Must Have - Sales = Order Qty
                     const orderQty = Math.max(0, cigItem.mustHave - item.sold);
                     
                     // Get brand from name
@@ -595,7 +559,7 @@
             });
             
             document.getElementById('totalItems').textContent = totalItems;
-            document.getElementById('totalOrder').textContent = totalOrder;
+            document.getElementById('totalOrder').textContent = totalOrder.toFixed(0);
             document.getElementById('anomalies').textContent = anomalyCount;
             
             currentOrders = groupedOrders;
@@ -611,6 +575,11 @@
             try {
                 const text = await extractTextFromPDF(file);
                 const sales = parseSalesData(text);
+                
+                if (sales.length === 0) {
+                    throw new Error('No sales data found in PDF. Check format.');
+                }
+                
                 const { results } = matchSalesToInventory(sales);
                 
                 document.getElementById('loading').classList.remove('show');
@@ -618,7 +587,7 @@
                 renderResults(results);
             } catch (error) {
                 document.getElementById('loading').classList.remove('show');
-                showError('Error processing PDF: ' + error.message);
+                showError('Error: ' + error.message);
             }
         }
         
@@ -648,7 +617,7 @@
             
             Object.entries(currentOrders).forEach(([brand, items]) => {
                 items.forEach(item => {
-                    csv += `${item.itemName},${item.itemNumber},${item.upc},${item.mustHave},${item.sold.toFixed(1)},${item.orderQty}\n`;
+                    csv += `"${item.itemName}",${item.itemNumber},${item.upc},${item.mustHave},${item.sold.toFixed(1)},${item.orderQty}\n`;
                 });
             });
             
@@ -661,12 +630,6 @@
         }
         
         document.getElementById('pdfInput').addEventListener('change', handlePDFUpload);
-        
-        // Load data on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            loadInventoryAndOrders();
-            loadMainCigList();
-        });
     </script>
 </body>
 </html>
