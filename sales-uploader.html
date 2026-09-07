@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales History Uploader - KC9</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .card h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f8ff;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .csv-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .preview-section {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .preview-section.active {
+            display: block;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .preview-table th {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .preview-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .preview-table tr:hover {
+            background: #f0f0f0;
+        }
+        
+        .match-status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .match-status.matched {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .match-status.partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .match-status.no-match {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 13px;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-box .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-box .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-table {
+                font-size: 11px;
+            }
+            
+            .preview-table th,
+            .preview-table td {
+                padding: 6px;
+            }
+            
+            .btn-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📤 Sales History Uploader</h1>
+            <p>Upload weekly sales CSV • Preview matches • Store in cloud</p>
+        </div>
+        
+        <div class="alert alert-success" id="alertSuccess"></div>
+        <div class="alert alert-error" id="alertError"></div>
+        <div class="alert alert-info" id="alertInfo"></div>
+        
+        <div class="card">
+            <h2>Step 1: Upload CSV File</h2>
+            <div class="form-group">
+                <label>Sales CSV File (Scan code | Description | # Sold)</label>
+                <button class="upload-btn" onclick="document.getElementById('csvInput').click()">📄 Choose CSV File</button>
+                <input type="file" id="csvInput" class="csv-input" accept=".csv" onchange="handleCSVUpload(event)">
+            </div>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                Expected format: 3 columns (Scan code, Description, # Sold)
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2>Step 2: Date Range for This Sales Data</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Start Date (e.g., 9/1/2026)</label>
+                    <input type="text" id="startDate" placeholder="9/1/2026">
+                </div>
+                <div class="form-group">
+                    <label>End Date (e.g., 9/7/2026)</label>
+                    <input type="text" id="endDate" placeholder="9/7/2026">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Step 3: Preview & Match Results</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                Showing first 20 items. Green = Matched to Master List. Yellow = Partial match. Red = No match.
+            </p>
+            <div class="preview-section" id="previewSection">
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>CSV UPC</th>
+                            <th>Item Name (CSV)</th>
+                            <th>Qty Sold</th>
+                            <th>Units</th>
+                            <th>Item # (Master)</th>
+                            <th>Match Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody">
+                    </tbody>
+                </table>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="number" id="totalItems">0</div>
+                        <div class="label">Total Items</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="matchedItems">0</div>
+                        <div class="label">Matched</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="partialItems">0</div>
+                        <div class="label">Partial</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="noMatchItems">0</div>
+                        <div class="label">No Match</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Step 4: Save to Sheets</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                Click below to save this sales data to your Sales History tab in Google Sheets.
+            </p>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="saveToSheets()">💾 Save to Sheets</button>
+                <button class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        let allItems = {};
+        let parsedData = [];
+        
+        window.addEventListener('load', () => {
+            loadAllItems();
+        });
+        
+        function loadAllItems() {
+            const url = APPS_SCRIPT_URL + '?action=getAllItems&callback=handleAllItems';
+            const script = document.createElement('script');
+            script.src = url;
+            script.onerror = () => showAlert('Failed to load items from Master List', 'error');
+            document.head.appendChild(script);
+        }
+        
+        function handleAllItems(data) {
+            allItems = data;
+            console.log('Loaded ' + Object.keys(data).length + ' items from Master List');
+        }
+        
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (Object.keys(allItems).length === 0) {
+                showAlert('Loading Master List... please wait', 'info');
+                setTimeout(() => handleCSVUpload(event), 2000);
+                return;
+            }
+            
+            showAlert('Parsing CSV...', 'info');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    parseAndMatchCSV(e.target.result);
+                    showAlert('✅ CSV parsed! ' + parsedData.length + ' items found.', 'success');
+                } catch (error) {
+                    showAlert('Error: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function parseAndMatchCSV(csv) {
+            const lines = csv.trim().split('\n');
+            parsedData = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length < 3) continue;
+                
+                const scanCode = parts[0].trim();
+                const description = parts[1].trim();
+                const qtySold = parseInt(parts[2].trim()) || 0;
+                
+                // Skip totals row
+                if (description.toLowerCase() === 'totals' || scanCode === 'Totals') continue;
+                
+                const unitsSold = qtySold / 10;
+                
+                // Match against Master List
+                let matchedItem = null;
+                let matchStatus = 'no-match';
+                
+                if (allItems[scanCode]) {
+                    matchedItem = allItems[scanCode];
+                    matchStatus = 'matched';
+                } else {
+                    // Try fuzzy match by description
+                    const descLower = description.toLowerCase();
+                    for (const upc in allItems) {
+                        const item = allItems[upc];
+                        if (item.name.toLowerCase().includes(descLower) || 
+                            descLower.includes(item.name.toLowerCase())) {
+                            matchedItem = allItems[upc];
+                            matchStatus = 'partial';
+                            break;
+                        }
+                    }
+                }
+                
+                parsedData.push({
+                    csvUpc: scanCode,
+                    csvName: description,
+                    qtySold: qtySold,
+                    unitsSold: unitsSold.toFixed(2),
+                    itemName: matchedItem ? matchedItem.name : 'UNKNOWN',
+                    itemNumber: matchedItem ? matchedItem.number : 'N/A',
+                    upc: matchedItem ? scanCode : 'N/A',
+                    matchStatus: matchStatus
+                });
+            }
+            
+            displayPreview();
+        }
+        
+        function displayPreview() {
+            const previewBody = document.getElementById('previewBody');
+            previewBody.innerHTML = '';
+            
+            let matched = 0, partial = 0, noMatch = 0;
+            
+            parsedData.slice(0, 20).forEach(item => {
+                const row = document.createElement('tr');
+                
+                let statusClass = 'no-match';
+                if (item.matchStatus === 'matched') {
+                    statusClass = 'matched';
+                    matched++;
+                } else if (item.matchStatus === 'partial') {
+                    statusClass = 'partial';
+                    partial++;
+                } else {
+                    noMatch++;
+                }
+                
+                row.innerHTML = `
+                    <td>${item.csvUpc}</td>
+                    <td>${item.csvName}</td>
+                    <td>${item.qtySold}</td>
+                    <td>${item.unitsSold}</td>
+                    <td>${item.itemNumber}</td>
+                    <td><span class="match-status ${statusClass}">${item.matchStatus.toUpperCase()}</span></td>
+                `;
+                previewBody.appendChild(row);
+            });
+            
+            document.getElementById('totalItems').textContent = parsedData.length;
+            document.getElementById('matchedItems').textContent = matched;
+            document.getElementById('partialItems').textContent = partial;
+            document.getElementById('noMatchItems').textContent = noMatch;
+            
+            document.getElementById('previewSection').classList.add('active');
+        }
+        
+        function saveToSheets() {
+            const startDate = document.getElementById('startDate').value.trim();
+            const endDate = document.getElementById('endDate').value.trim();
+            
+            if (!startDate || !endDate) {
+                showAlert('Please enter both start and end dates', 'error');
+                return;
+            }
+            
+            if (parsedData.length === 0) {
+                showAlert('No data to save', 'error');
+                return;
+            }
+            
+            const payload = {
+                action: 'uploadSalesHistory',
+                data: parsedData,
+                startDate: startDate,
+                endDate: endDate
+            };
+            
+            showAlert('Saving to Sheets...', 'info');
+            
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showAlert(`✅ Saved ${result.rowsAdded} items to Sales History!`, 'success');
+                    setTimeout(() => resetForm(), 2000);
+                } else {
+                    showAlert('Error saving: ' + result.error, 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error: ' + error.message, 'error');
+            });
+        }
+        
+        function resetForm() {
+            parsedData = [];
+            document.getElementById('csvInput').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('previewSection').classList.remove('active');
+            document.getElementById('previewBody').innerHTML = '';
+        }
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById(`alert${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            alertBox.textContent = message;
+            alertBox.classList.add('show');
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+    </script>
+</body>
+</html>
