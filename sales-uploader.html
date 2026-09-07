@@ -600,7 +600,13 @@
                 const description = parts[1].trim();
                 const qtySold = parseInt(parts[2].trim()) || 0;
                 
-                if (description.toLowerCase() === 'totals' || scanCode === 'Totals') continue;
+                // SKIP rows: Total, empty description, qty is 0 with empty description
+                if (scanCode.toLowerCase() === 'total' || 
+                    description.toLowerCase() === 'total' || 
+                    description === '' || 
+                    (qtySold === 0 && description === '')) {
+                    continue;
+                }
                 
                 const unitsSold = qtySold / 10;
                 
