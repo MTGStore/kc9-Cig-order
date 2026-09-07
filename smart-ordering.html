@@ -511,8 +511,8 @@
                 
                 if (cigItem) {
                     matchCount++;
-                    // Calculate: Must Have - Sales = Order Qty
-                    const orderQty = Math.max(0, cigItem.mustHave - item.sold);
+                    // Order Qty = Sales (what was sold this week)
+                    const orderQty = item.sold;
                     
                     // Get brand from name
                     const brand = extractBrand(cigItem.name);
@@ -574,6 +574,14 @@
                             <span>${brand}</span>
                             <span>${items.length} items</span>
                         </div>
+                        <div class="row-header">
+                            <div>Item Name</div>
+                            <div>Must Have</div>
+                            <div>Sold</div>
+                            <div>Stock Left</div>
+                            <div>Order Qty</div>
+                            <div></div>
+                        </div>
                         <div class="brand-items">
                             ${items.map(item => `
                                 <div class="item-row">
@@ -582,9 +590,9 @@
                                         <div class="item-number">#${item.itemNumber}</div>
                                     </div>
                                     <div class="value" data-label="Must Have">${item.mustHave}</div>
-                                    <div class="value" data-label="Sold">${item.sold.toFixed(1)}</div>
-                                    <div class="value" data-label="Stock Left">${Math.max(0, item.mustHave - item.sold).toFixed(1)}</div>
-                                    <div class="value order-qty" data-label="Order Qty">${item.orderQty}</div>
+                                    <div class="value" data-label="Sold">${Math.round(item.sold * 10) / 10}</div>
+                                    <div class="value" data-label="Stock Left">${Math.round((item.mustHave - item.sold) * 10) / 10}</div>
+                                    <div class="value order-qty" data-label="Order Qty">${Math.round(item.orderQty * 10) / 10}</div>
                                     <div class="flag-icon">✓</div>
                                 </div>
                             `).join('')}
