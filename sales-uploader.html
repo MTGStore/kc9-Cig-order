@@ -43,6 +43,19 @@
             font-size: 14px;
         }
         
+        .last-modified {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        
+        .last-modified strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
         .card {
             background: white;
             padding: 25px;
@@ -329,6 +342,10 @@
             .btn-group {
                 grid-template-columns: 1fr;
             }
+            
+            .last-modified {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
@@ -337,6 +354,9 @@
         <div class="header">
             <h1>📤 Sales History Uploader</h1>
             <p>Upload weekly sales CSV • Edit matches • Ignore rows • Store in cloud</p>
+            <div class="last-modified">
+                <strong>Last Modified:</strong> <span id="lastModified">Loading...</span>
+            </div>
         </div>
         
         <div class="alert alert-success" id="alertSuccess"></div>
@@ -426,8 +446,29 @@
         let parsedData = [];
         
         window.addEventListener('load', () => {
+            displayLastModified();
             loadAllItems();
         });
+        
+        function displayLastModified() {
+            const lastMod = new Date(document.lastModified);
+            const formatted = lastMod.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            const currentTime = new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            document.getElementById('lastModified').textContent = formatted + ' (Page loaded at ' + currentTime + ')';
+        }
         
         function loadAllItems() {
             const url = APPS_SCRIPT_URL + '?action=getAllItems&callback=handleAllItems';
