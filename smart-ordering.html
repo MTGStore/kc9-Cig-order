@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Ordering - KC9</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -53,7 +52,7 @@
             text-align: center;
         }
         
-        .pdf-input {
+        .csv-input {
             display: none;
         }
         
@@ -257,7 +256,7 @@
     <div class="container">
         <div class="header">
             <h1>🚀 Smart Ordering</h1>
-            <p>Upload PDF • Auto-calculate • Edit • Send to WhatsApp • Save</p>
+            <p>Upload CSV • Auto-calculate • Edit • Send to WhatsApp • Save</p>
         </div>
         
         <div class="alert alert-success" id="alertSuccess"></div>
@@ -265,8 +264,8 @@
         <div class="alert alert-info" id="alertInfo"></div>
         
         <div class="upload-section">
-            <button class="upload-btn" onclick="document.getElementById('pdfInput').click()">📄 Choose PDF File</button>
-            <input type="file" id="pdfInput" class="pdf-input" accept=".pdf" onchange="handlePDFUpload(event)">
+            <button class="upload-btn" onclick="document.getElementById('csvInput').click()">📄 Choose CSV File</button>
+            <input type="file" id="csvInput" class="csv-input" accept=".csv" onchange="handleCSVUpload(event)">
             <div class="upload-status" id="uploadStatus"></div>
         </div>
         
@@ -335,89 +334,57 @@
             historicalAvg = data || {};
         }
         
-        async function handlePDFUpload(event) {
+        function handleCSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            // Wait for allItems to load
             if (Object.keys(allItems).length === 0) {
                 showAlert('Loading items from sheet... please wait', 'info');
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-            
-            if (Object.keys(allItems).length === 0) {
-                showAlert('Items failed to load. Reload the page and try again.', 'error');
-                console.error('allItems is still empty after waiting');
+                setTimeout(() => handleCSVUpload(event), 2000);
                 return;
             }
             
-            showAlert('Parsing PDF...', 'info');
+            showAlert('Parsing CSV...', 'info');
             const reader = new FileReader();
-            reader.onload = async (e) => {
+            reader.onload = (e) => {
                 try {
-                    const pdf = await pdfjsLib.getDocument(e.target.result).promise;
-                    let allText = '';
-                    
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const text = await page.getTextContent();
-                        allText += text.items.map(item => item.str).join(' ') + '\n';
-                    }
-                    
-                    console.log('PDF text extracted, length:', allText.length);
-                    console.log('Available items in allItems:', Object.keys(allItems).length);
-                    console.log('Sample UPCs from allItems:', Object.keys(allItems).slice(0, 5));
-                    
-                    parsePDFAndCalculateOrder(allText);
-                    showAlert('✅ PDF parsed! ' + Object.keys(orderData).length + ' items found.', 'success');
+                    const csv = e.target.result;
+                    parseCSVAndCalculateOrder(csv);
+                    showAlert('✅ CSV parsed! ' + Object.keys(orderData).length + ' items found.', 'success');
                 } catch (error) {
-                    showAlert('Error parsing PDF: ' + error.message, 'error');
-                    console.error('PDF error:', error);
+                    showAlert('Error parsing CSV: ' + error.message, 'error');
+                    console.error('CSV error:', error);
                 }
             };
-            reader.readAsArrayBuffer(file);
+            reader.readAsText(file);
         }
         
-        function parsePDFAndCalculateOrder(text) {
-            // Extract all UPCs (11-12 digit numbers)
-            const upcRegex = /\b([0-9]{11,12})\b/g;
-            const upcsInPDF = [];
-            let match;
-            
-            while ((match = upcRegex.exec(text)) !== null) {
-                upcsInPDF.push(match[1]);
-            }
-            
-            console.log('Found UPCs in PDF:', upcsInPDF.length);
-            console.log('Sample UPCs from PDF:', upcsInPDF.slice(0, 10));
-            
+        function parseCSVAndCalculateOrder(csv) {
+            const lines = csv.trim().split('\n');
             orderData = {};
             
-            // For each UPC, find qty (first 1-299 number after UPC)
-            upcsInPDF.forEach(upc => {
-                if (allItems[upc]) {
-                    const upcIndex = text.indexOf(upc);
-                    const nextSection = text.substring(upcIndex + upc.length, upcIndex + upc.length + 2000);
+            // Skip header row (row 0), start from row 1
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length < 3) continue;
+                
+                const upc = parts[0].trim();
+                const description = parts[1].trim();
+                const soldRaw = parseInt(parts[2].trim()) || 0;
+                
+                if (upc && allItems[upc]) {
+                    const actualUnits = soldRaw / 10;
+                    const item = allItems[upc];
                     
-                    const qtyMatch = nextSection.match(/\b([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-9])\b/);
-                    
-                    if (qtyMatch) {
-                        const rawQty = parseInt(qtyMatch[0]);
-                        const actualUnits = rawQty / 10;
-                        
-                        const item = allItems[upc];
-                        orderData[upc] = {
-                            name: item.name,
-                            number: item.number,
-                            mustHave: item.mustHave,
-                            sold: actualUnits,
-                            orderQty: actualUnits
-                        };
-                    }
-                } else {
-                    console.log('UPC not found in allItems:', upc);
+                    orderData[upc] = {
+                        name: item.name,
+                        number: item.number,
+                        mustHave: item.mustHave,
+                        sold: actualUnits,
+                        orderQty: actualUnits
+                    };
                 }
-            });
+            }
             
             console.log('Order data created with', Object.keys(orderData).length, 'items');
             
@@ -560,7 +527,7 @@
             orderData = {};
             document.getElementById('itemsContainer').innerHTML = '';
             document.getElementById('itemsSection').classList.remove('active');
-            document.getElementById('pdfInput').value = '';
+            document.getElementById('csvInput').value = '';
             showAlert('Form reset', 'info');
         }
         
