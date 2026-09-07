@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Ordering - KC9</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .upload-section.active {
+            background: #f0f9ff;
+            border-color: #0ea5e9;
+        }
+        
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .upload-text {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn-upload {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-upload:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 12px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.show {
+            display: block;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .results-header h2 {
+            font-size: 20px;
+            color: #1f2937;
+        }
+        
+        .summary-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            background: #f3f4f6;
+            padding: 12px 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        
+        .brand-group {
+            margin-bottom: 24px;
+        }
+        
+        .brand-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .brand-items {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .item-row {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 1.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.6fr;
+            gap: 12px;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        @media (max-width: 900px) {
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .item-row > div {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .item-row > div::before {
+                content: attr(data-label);
+                font-weight: 600;
+                font-size: 11px;
+                color: #6b7280;
+                text-transform: uppercase;
+            }
+        }
+        
+        .item-name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .item-number {
+            color: #6b7280;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .value {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .order-qty {
+            background: #dcfce7;
+            border-color: #86efac;
+            font-weight: 600;
+            color: #166534;
+        }
+        
+        .flag-icon {
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .export-section {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-export {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .btn-whatsapp {
+            background: #25d366;
+            color: white;
+        }
+        
+        .btn-whatsapp:hover {
+            background: #20ba5a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+        }
+        
+        .btn-csv {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-csv:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Smart Ordering</h1>
+            <p>Upload sales report • Auto-calculate order recommendations</p>
+        </div>
+        
+        <div class="content">
+            <div class="error-message" id="errorMsg"></div>
+            
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Drop PDF sales report or click to select</div>
+                <input type="file" id="pdfInput" accept=".pdf" />
+                <button class="btn-upload" onclick="document.getElementById('pdfInput').click()">
+                    Choose PDF File
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Processing PDF and calculating orders...</div>
+            </div>
+            
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h2>📊 Order Recommendations</h2>
+                    <div class="summary-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="totalItems">0</div>
+                            <div class="stat-label">Items</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="totalOrder">0</div>
+                            <div class="stat-label">Total Order</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="matchedUPCs">0</div>
+                            <div class="stat-label">Matched</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="ordersContainer"></div>
+                
+                <div class="export-section">
+                    <button class="btn-export btn-whatsapp" onclick="exportWhatsApp()">
+                        📱 WhatsApp Report
+                    </button>
+                    <button class="btn-export btn-csv" onclick="exportCSV()">
+                        📥 Download CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // Hardcoded Main CIG LIST from Google Sheets (Updated 9/6/2026)
+        const mainCigListMap = {
+            "02820000384": {"name":"Marlboro Gold Short","number":"4336442","mustHave":10},
+            "02610000575": {"name":"Newport Short","number":"4340618","mustHave":8},
+            "02610000578": {"name":"Newport King Soft","number":"4340634","mustHave":6},
+            "02720020589": {"name":"Pall Mall Select Blue Short","number":"4342023","mustHave":5},
+            "02820000954": {"name":"Marlboro Black/GREEN short","number":"4357141","mustHave":4},
+            "68514191015": {"name":"24x7 Green 100s","number":"4973467","mustHave":3},
+            "02820000477": {"name":"Marlboro silver short mellow","number":"4336452","mustHave":7},
+            "02820031772": {"name":"Marlboro nxt","number":"4359212","mustHave":5},
+            "01230000003": {"name":"Camel filter shorts","number":"4165932","mustHave":4},
+            "02820000952": {"name":"Marlboro black/ Red short","number":"4357131","mustHave":5},
+            "02820000422": {"name":"Marlboro Special Select Gold","number":"4337541","mustHave":6},
+            "02610000573": {"name":"Newport 100s","number":"4340601","mustHave":5},
+            "02610000577": {"name":"Newport 100s soft","number":"4340642","mustHave":4},
+            "02820000357": {"name":"Marlboro Red Short","number":"4336419","mustHave":7},
+            "02820000471": {"name":"Marlboro Menthol Gold 100","number":"4336484","mustHave":5},
+            "02820000962": {"name":"Marlboro 72 Green Menthol","number":"4357162","mustHave":4},
+            "01230000093": {"name":"Camel Crush Menthol","number":"4163975","mustHave":3},
+            "01230019741": {"name":"Camel Crush Blue","number":"4165878","mustHave":3},
+            "01230000094": {"name":"Camel Crush Menthol Silver","number":"4164005","mustHave":3},
+            "02820000401": {"name":"Marlboro Menthol Gold short","number":"4336475","mustHave":5},
+            "02820000323": {"name":"Marlboro Menthol Smooth","number":"4336408","mustHave":4},
+            "02820000363": {"name":"Marlboro red 100","number":"4336425","mustHave":5},
+            "02720020592": {"name":"SC PALL MALL SELECT RED","number":"4342009","mustHave":3},
+            "01100000000": {"name":"Montego Red Short","number":"4964425","mustHave":4},
+            "01100000002": {"name":"Montego Red 100s","number":"4964375","mustHave":3},
+            "02610000657": {"name":"Newport red 100","number":"4956801","mustHave":5},
+            "02610000660": {"name":"Newport NON Menthol short","number":"4360814","mustHave":5},
+            "02720000185": {"name":"PallMall Orange 100","number":"4342028","mustHave":4},
+            "02610000670": {"name":"Newport black short","number":"4359766","mustHave":4},
+            "02720020953": {"name":"Pall Mall Select Blue 100s","number":"4365417","mustHave":4},
+            "02720020595": {"name":"Pall Mall Select Menthol Green Short","number":"4365383","mustHave":4},
+            "02820000386": {"name":"Marlboro 72 Silver","number":"4342291","mustHave":5},
+            "02820000465": {"name":"Marlboro gold pack 100","number":"4336483","mustHave":6},
+            "04330010917": {"name":"Lucky Strike Red Short","number":"4164638","mustHave":3},
+            "04330018714": {"name":"Lucky Strike Menthol short","number":"4964557","mustHave":3},
+            "04799585505": {"name":"AS - LIGHT GREEN","number":"4341178","mustHave":3},
+            "04799585525": {"name":"AS - GOLD DARK YELLOW","number":"4341210","mustHave":3},
+            "09050000038": {"name":"Maverick Red 100","number":"4361713","mustHave":3},
+            "09050000057": {"name":"Winston Red short","number":"4361861","mustHave":3},
+            "09050000086": {"name":"Kool Blue Short","number":"4361689","mustHave":3},
+            "09050000094": {"name":"Salem Gold 100","number":"4361820","mustHave":3}
+        };
+        
+        let currentOrders = {};
+        
+        function extractTextFromPDF(pdfFile) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const pdfData = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument({data: pdfData}).promise;
+                        
+                        let fullText = '';
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            const page = await pdf.getPage(pageNum);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageText + '\n';
+                        }
+                        
+                        resolve(fullText);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.readAsArrayBuffer(pdfFile);
+            });
+        }
+        
+        function parseSalesData(text) {
+            const salesMap = {};
+            const lines = text.split('\n');
+            
+            // First pass: Find all scan codes and their line positions
+            const scanCodeLines = {};
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (/^\d{11,12}$/.test(line)) {  // Exact 11-12 digit match only
+                    scanCodeLines[line] = i;
+                }
+            }
+            
+            console.log('Found scan codes:', Object.keys(scanCodeLines).length);
+            
+            // Second pass: For each scan code, find the next number that looks like # sold
+            Object.entries(scanCodeLines).forEach(([scanCode, lineIdx]) => {
+                // Look in the next 100 lines
+                for (let j = lineIdx + 1; j < Math.min(lineIdx + 100, lines.length); j++) {
+                    const line = lines[j].trim();
+                    
+                    // Skip empty or noise
+                    if (!line || line.length > 50) continue;
+                    if (line.includes('$') || line.includes('%')) continue;
+                    if (line.includes('null') || line.includes('code') || line.includes('Scan')) continue;
+                    if (line.includes('Department') || line.includes('Vendor') || line.includes('Margin')) continue;
+                    
+                    // Match numbers only (1-3 digits)
+                    if (/^\d{1,3}$/.test(line)) {
+                        const num = parseInt(line);
+                        // Sales should be 1-300 (reasonable range)
+                        if (num > 0 && num < 300) {
+                            salesMap[scanCode] = {
+                                upc: scanCode,
+                                sold: num / 10
+                            };
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            console.log('Extracted sales:', Object.keys(salesMap).length);
+            return Object.values(salesMap);
+        }
+        
+        function matchSalesToInventory(sales) {
+            const results = {};
+            let matchCount = 0;
+            let unmatchedCount = 0;
+            
+            sales.forEach(item => {
+                const cigItem = mainCigListMap[item.upc];
+                
+                if (cigItem) {
+                    matchCount++;
+                    // Calculate: Must Have - Sales = Order Qty
+                    const orderQty = Math.max(0, cigItem.mustHave - item.sold);
+                    
+                    // Get brand from name
+                    const brand = extractBrand(cigItem.name);
+                    
+                    if (!results[brand]) results[brand] = [];
+                    
+                    results[brand].push({
+                        itemName: cigItem.name,
+                        itemNumber: cigItem.number,
+                        upc: item.upc,
+                        mustHave: cigItem.mustHave,
+                        sold: item.sold,
+                        orderQty: orderQty,
+                        flag: '✓'
+                    });
+                } else {
+                    unmatchedCount++;
+                }
+            });
+            
+            console.log(`Matched: ${matchCount}, Unmatched: ${unmatchedCount}`);
+            
+            return { results, matchCount, unmatchedCount };
+        }
+        
+        function extractBrand(name) {
+            if (name.includes('Marlboro')) return '🚬 Marlboro';
+            if (name.includes('Newport')) return '🚬 Newport';
+            if (name.includes('Pall Mall')) return '🚬 Pall Mall';
+            if (name.includes('Camel')) return '🚬 Camel';
+            if (name.includes('Lucky Strike')) return '🚬 Lucky Strike';
+            if (name.includes('Winston')) return '🚬 Winston';
+            if (name.includes('Salem') || name.includes('SALEM')) return '🚬 Salem';
+            if (name.includes('Kool')) return '🚬 Kool';
+            if (name.includes('Maverick')) return '🚬 Maverick';
+            if (name.includes('Montego')) return '🚬 Montego';
+            if (name.includes('24x7')) return '🚬 24x7';
+            if (name.includes('American Spirit') || name.includes('AS -')) return '🚬 American Spirit';
+            if (name.includes('L&M')) return '🚬 L&M';
+            return '🚬 Other';
+        }
+        
+        function renderResults(groupedOrders, matchCount) {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = '';
+            
+            let totalItems = 0;
+            let totalOrder = 0;
+            
+            Object.entries(groupedOrders).sort().forEach(([brand, items]) => {
+                totalItems += items.length;
+                items.forEach(item => {
+                    totalOrder += item.orderQty;
+                });
+                
+                const brandHtml = `
+                    <div class="brand-group">
+                        <div class="brand-header">
+                            <span>${brand}</span>
+                            <span>${items.length} items</span>
+                        </div>
+                        <div class="brand-items">
+                            ${items.map(item => `
+                                <div class="item-row">
+                                    <div data-label="Item">
+                                        <div class="item-name">${item.itemName}</div>
+                                        <div class="item-number">#${item.itemNumber}</div>
+                                    </div>
+                                    <div class="value" data-label="Must Have">${item.mustHave}</div>
+                                    <div class="value" data-label="Sold">${item.sold.toFixed(1)}</div>
+                                    <div class="value" data-label="Stock Left">${Math.max(0, item.mustHave - item.sold).toFixed(1)}</div>
+                                    <div class="value order-qty" data-label="Order Qty">${item.orderQty}</div>
+                                    <div class="flag-icon">✓</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += brandHtml;
+            });
+            
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('totalOrder').textContent = totalOrder.toFixed(0);
+            document.getElementById('matchedUPCs').textContent = matchCount;
+            
+            currentOrders = groupedOrders;
+        }
+        
+        async function handlePDFUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('errorMsg').classList.remove('show');
+            
+            try {
+                const text = await extractTextFromPDF(file);
+                const sales = parseSalesData(text);
+                
+                if (sales.length === 0) {
+                    throw new Error('No sales data found in PDF. Check format.');
+                }
+                
+                const { results, matchCount } = matchSalesToInventory(sales);
+                
+                if (Object.keys(results).length === 0) {
+                    throw new Error('No items could be matched. Check Main CIG LIST UPCs.');
+                }
+                
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('resultsSection').classList.add('show');
+                renderResults(results, matchCount);
+            } catch (error) {
+                document.getElementById('loading').classList.remove('show');
+                showError('Error: ' + error.message);
+            }
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('errorMsg');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+        
+        function exportWhatsApp() {
+            let text = '📦 *KC9 Smart Order - ' + new Date().toLocaleDateString() + '*\n\n';
+            
+            Object.entries(currentOrders).sort().forEach(([brand, items]) => {
+                text += `*${brand.replace('🚬 ', '')}*\n`;
+                items.forEach(item => {
+                    text += `• ${item.itemName} (${item.itemNumber}): *${item.orderQty}* units\n`;
+                });
+                text += '\n';
+            });
+            
+            const whatsappUrl = `https://wa.me/14046689091?text=${encodeURIComponent(text)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        function exportCSV() {
+            let csv = 'Item Name,Item Number,UPC,Must Have,Sold,Order Qty\n';
+            
+            Object.entries(currentOrders).forEach(([brand, items]) => {
+                items.forEach(item => {
+                    csv += `"${item.itemName}",${item.itemNumber},${item.upc},${item.mustHave},${item.sold.toFixed(1)},${item.orderQty}\n`;
+                });
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'smart-order-' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+        }
+        
+        document.getElementById('pdfInput').addEventListener('change', handlePDFUpload);
+    </script>
+</body>
+</html>
