@@ -22,6 +22,12 @@
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.1); }
         .form-group textarea { resize: vertical; min-height: 80px; }
         
+        .manual-entry-toggle { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; cursor: pointer; }
+        .manual-entry-toggle input { cursor: pointer; }
+        .manual-entry-toggle label { cursor: pointer; margin: 0; font-weight: 500; color: #666; }
+        
+        .hidden { display: none; }
+        
         .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { padding: 12px 20px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
         .btn-primary { background: #dc3545; color: white; }
@@ -60,11 +66,21 @@
                 <select id="itemSelect" required>
                     <option value="">-- Select an item --</option>
                 </select>
+                
+                <div class="manual-entry-toggle">
+                    <input type="checkbox" id="useManualEntry" onchange="toggleManualEntry()">
+                    <label for="useManualEntry">Can't find item? Enter manually</label>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="manualItemGroup">
+                <label for="manualItemName">Item Name (Manual Entry) *</label>
+                <input type="text" id="manualItemName" placeholder="Enter product name">
             </div>
 
             <div class="form-group">
-                <label for="itemNumber">Item Number (Auto-filled)</label>
-                <input type="text" id="itemNumber" readonly style="background: #f8f9fa; cursor: not-allowed;">
+                <label for="itemNumber">Item Number (Auto-filled / Optional)</label>
+                <input type="text" id="itemNumber" placeholder="Leave blank if unknown" style="background: #f8f9fa;">
             </div>
 
             <div class="form-group">
@@ -124,11 +140,13 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems&callback=cb_' + Date.now());
                 const text = await response.text();
+                console.log('Raw response:', text.substring(0, 100));
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[0]);
                     allItems = Object.values(data).sort((a, b) => a.name.localeCompare(b.name));
                     populateItemSelect();
+                    console.log('Loaded ' + allItems.length + ' items');
                 } else {
                     throw new Error('No JSON found');
                 }
@@ -158,6 +176,23 @@
             }
             const item = allItems.find(i => i.number == itemNumber);
             document.getElementById('itemNumber').value = item ? item.number : '';
+        }
+
+        function toggleManualEntry() {
+            const useManual = document.getElementById('useManualEntry').checked;
+            const manualGroup = document.getElementById('manualItemGroup');
+            const selectGroup = document.getElementById('itemSelect').parentElement;
+            
+            if (useManual) {
+                manualGroup.classList.remove('hidden');
+                selectGroup.style.display = 'none';
+                document.getElementById('itemSelect').value = '';
+                document.getElementById('itemNumber').value = '';
+            } else {
+                manualGroup.classList.add('hidden');
+                selectGroup.style.display = 'block';
+                document.getElementById('manualItemName').value = '';
+            }
         }
 
         async function loadStockoutLog() {
@@ -203,7 +238,7 @@
                 html += `
                     <tr>
                         <td>${stock.itemName}</td>
-                        <td>${stock.itemNumber}</td>
+                        <td>${stock.itemNumber || '-'}</td>
                         <td>${stock.dateRanOut}</td>
                         <td style="font-size: 12px; color: #666;">${stock.notes || '-'}</td>
                         <td>
@@ -224,18 +259,35 @@
         }
 
         async function logStockout() {
-            const itemNumber = document.getElementById('itemSelect').value;
+            const useManual = document.getElementById('useManualEntry').checked;
+            let itemNumber = '';
+            let itemName = '';
+
+            if (useManual) {
+                itemName = document.getElementById('manualItemName').value;
+                itemNumber = document.getElementById('itemNumber').value || 'MANUAL';
+                
+                if (!itemName) {
+                    showMessage('Please enter a product name', 'error');
+                    return;
+                }
+            } else {
+                itemNumber = document.getElementById('itemSelect').value;
+                if (!itemNumber) {
+                    showMessage('Please select an item or use manual entry', 'error');
+                    return;
+                }
+                const item = allItems.find(i => i.number == itemNumber);
+                itemName = item ? item.name : 'Unknown';
+            }
+
             const dateRanOut = document.getElementById('dateRanOut').value;
             const notes = document.getElementById('notes').value;
 
-            if (!itemNumber || !dateRanOut) {
-                showMessage('Please fill in all required fields', 'error');
+            if (!dateRanOut) {
+                showMessage('Please select a date', 'error');
                 return;
             }
-
-            const item = allItems.find(i => i.number == itemNumber);
-            const itemName = item ? item.name : 'Unknown';
-            const upc = item ? item.upc : '';
 
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -246,7 +298,7 @@
                             dateRanOut: dateRanOut,
                             itemName: itemName,
                             itemNumber: itemNumber,
-                            upc: upc,
+                            upc: '',
                             notes: notes
                         }
                     })
@@ -295,8 +347,11 @@
 
         function clearForm() {
             document.getElementById('itemSelect').value = '';
+            document.getElementById('manualItemName').value = '';
             document.getElementById('itemNumber').value = '';
             document.getElementById('notes').value = '';
+            document.getElementById('useManualEntry').checked = false;
+            toggleManualEntry();
             setDefaultDate();
         }
 
