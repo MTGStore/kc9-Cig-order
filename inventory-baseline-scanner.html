@@ -471,12 +471,12 @@
         });
 
         document.getElementById('upcInput').addEventListener('input', debounce(function(e) {
-            const value = e.target.value.trim();
-            if (value.length >= 8 && /^\d+$/.test(value) && !lastScanMethod) {
-                lastScanMethod = 'scanner';
-                performSearch(value);
-            }
-        }, 150));
+    const value = e.target.value.trim();
+    if (value.length >= 11 && /^\d+$/.test(value) && !lastScanMethod) {
+        lastScanMethod = 'scanner';
+        performSearch(value);
+    }
+}, 150));
 
         function debounce(func, delay) {
             let timeout;
