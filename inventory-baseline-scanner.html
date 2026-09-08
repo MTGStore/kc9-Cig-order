@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Baseline Scanner - KC9</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 15px; }
@@ -22,7 +21,6 @@
         .error-msg { color: #dc3545; font-size: 12px; margin-bottom: 10px; }
         
         .app-container { display: none; }
-        
         .container { max-width: 900px; margin: 0 auto; }
         
         .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -52,8 +50,8 @@
         .btn-success:hover { background: #218838; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #5a6268; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-danger:hover { background: #c82333; }
+        .btn-search { background: #17a2b8; color: white; }
+        .btn-search:hover { background: #138496; }
         
         .item-preview { background: #f9f9f9; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #007bff; }
         .preview-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
@@ -62,6 +60,7 @@
         
         .success-msg { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         .error-msg-alert { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
+        .loading-msg { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         
         .scanned-items { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .scanned-items h2 { font-size: 18px; color: #333; margin-bottom: 15px; }
@@ -75,12 +74,6 @@
         .item-qty { background: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-weight: 600; text-align: center; }
         .item-remove { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .item-remove:hover { background: #c82333; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .modal-header { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 20px; }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
         
         .loading { text-align: center; padding: 20px; }
         .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
@@ -96,8 +89,20 @@
         </div>
         <div class="login-form">
             <div class="error-msg" id="errorMsg" style="display: none;"></div>
-            <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter') authenticate()">
-            <button onclick="authenticate()">Access Scanner</button>
+            <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter') checkPassword()">
+            <button onclick="checkPassword()">Next</button>
+        </div>
+    </div>
+
+    <!-- NAME SCREEN -->
+    <div id="nameScreen" class="login-container" style="display: none;">
+        <div class="login-header">
+            <h1><i class="fas fa-user"></i> Your Name</h1>
+            <p>This will be saved with your counts</p>
+        </div>
+        <div class="login-form">
+            <input type="text" id="nameInput" placeholder="Enter your name" onkeypress="if(event.key==='Enter') saveName()">
+            <button onclick="saveName()">Start Scanning</button>
         </div>
     </div>
 
@@ -106,7 +111,7 @@
         <div class="container">
             <div class="header">
                 <h1><i class="fas fa-barcode"></i> Inventory Baseline Scanner</h1>
-                <p>Scan products and enter current on-hand quantities</p>
+                <p>Scan products and enter current on-hand quantities in cartons</p>
                 <div class="last-modified" id="lastModified">Last modified: Loading...</div>
             </div>
 
@@ -118,60 +123,53 @@
             <div id="messageBox"></div>
 
             <div class="scanner-section">
-                <h2><i class="fas fa-user-circle"></i> Counted By (First Time Only)</h2>
-                <div class="form-group">
-                    <label for="countedBy">Your Name</label>
-                    <input type="text" id="countedBy" placeholder="e.g., Harry Desai" readonly>
-                </div>
-                <button class="btn btn-secondary" onclick="editCountedBy()">Change Name</button>
-            </div>
-
-            <div class="scanner-section">
-                <h2><i class="fas fa-barcode"></i> Scan Product</h2>
+                <h2><i class="fas fa-barcode"></i> Scan or Search Product</h2>
                 <div class="info-box">
-                    💡 Use a barcode scanner or tap camera icon below to scan. After scanning, select the product and enter quantity in packs.
+                    💡 Scan barcode directly or use search button to find manually
                 </div>
                 
                 <div class="form-group">
-                    <label for="barcodeInput">Scan or Paste UPC</label>
-                    <input type="text" id="barcodeInput" placeholder="Point scanner here or paste UPC" autocomplete="off">
+                    <label for="barcodeInput">Scan UPC Code</label>
+                    <input type="text" id="barcodeInput" placeholder="Scan barcode here" autocomplete="off">
                 </div>
 
-                <button class="btn btn-primary" onclick="activateCamera()">
-                    <i class="fas fa-camera"></i> Or Use Camera
+                <button class="btn btn-search" onclick="toggleSearchMode()">
+                    <i class="fas fa-search"></i> Search Product
                 </button>
-                <video id="cameraPreview" style="display: none; width: 100%; max-width: 300px; margin-top: 15px; border-radius: 6px;"></video>
-                <canvas id="cameraCanvas" style="display: none;"></canvas>
+            </div>
+
+            <div class="scanner-section" id="searchSection" style="display: none;">
+                <h2><i class="fas fa-search"></i> Search Product</h2>
+                
+                <div class="form-group">
+                    <label for="productSearch">Search by Name or Item #</label>
+                    <input type="text" id="productSearch" placeholder="e.g., Marlboro Gold or 101" oninput="searchProducts()">
+                </div>
+
+                <div id="searchResults" style="max-height: 300px; overflow-y: auto;"></div>
             </div>
 
             <div class="scanner-section" id="selectionSection" style="display: none;">
-                <h2><i class="fas fa-check"></i> Select Product & Enter Qty</h2>
+                <h2><i class="fas fa-check"></i> Enter Quantity</h2>
                 
-                <div class="form-group">
-                    <label for="itemSelect">Which product is this UPC for? *</label>
-                    <select id="itemSelect" required onchange="updateItemPreview()">
-                        <option value="">-- Select a product --</option>
-                    </select>
-                </div>
-
-                <div class="item-preview" id="itemPreview" style="display: none;">
+                <div class="item-preview" id="itemPreview">
                     <div class="preview-row">
-                        <span class="preview-label">UPC Scanned:</span>
-                        <span class="preview-value" id="previewUPC">-</span>
+                        <span class="preview-label">Product:</span>
+                        <span class="preview-value" id="previewName">-</span>
                     </div>
                     <div class="preview-row">
                         <span class="preview-label">Item #:</span>
                         <span class="preview-value" id="previewNumber">-</span>
                     </div>
                     <div class="preview-row">
-                        <span class="preview-label">Product:</span>
-                        <span class="preview-value" id="previewName">-</span>
+                        <span class="preview-label">UPC Scanned:</span>
+                        <span class="preview-value" id="previewUPC">-</span>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="qtyInput">Current Qty in Packs *</label>
-                    <input type="number" id="qtyInput" placeholder="Enter quantity (in packs, not cartons)" min="0" step="1" required>
+                    <label for="qtyInput">Current Qty in Cartons *</label>
+                    <input type="number" id="qtyInput" placeholder="e.g., 1.5 (means 1 carton + 5 packs)" min="0" step="0.1" required>
                 </div>
 
                 <div class="button-group">
@@ -192,7 +190,7 @@
                         <i class="fas fa-check-double"></i> Submit All to Sheets
                     </button>
                     <button class="btn btn-secondary" onclick="exportSession()">
-                        <i class="fas fa-download"></i> Save Session (Download)
+                        <i class="fas fa-download"></i> Save Session
                     </button>
                 </div>
             </div>
@@ -200,29 +198,6 @@
     </div>
 
     <script>
-        // PASSWORD PROTECTION
-        function authenticate() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === 'Arjun917$') {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                localStorage.setItem('authenticated', 'true');
-                initPage();
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').textContent = 'Incorrect password';
-                document.getElementById('passwordInput').value = '';
-            }
-        }
-
-        window.addEventListener('load', () => {
-            if (localStorage.getItem('authenticated') === 'true') {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                initPage();
-            }
-        });
-
         const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
         
@@ -230,7 +205,37 @@
         let upcMapping = {};
         let scannedItems = [];
         let currentUPC = '';
-        let cameraStream = null;
+        let currentItemNum = '';
+        let searchMode = false;
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'Arjun917$') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('nameScreen').style.display = 'block';
+                const savedName = localStorage.getItem('countedBy');
+                if (savedName) {
+                    document.getElementById('nameInput').value = savedName;
+                }
+                document.getElementById('nameInput').focus();
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').textContent = 'Incorrect password';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function saveName() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+            localStorage.setItem('countedBy', name);
+            document.getElementById('nameScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            initPage();
+        }
 
         function updateTimestamp() {
             const now = new Date();
@@ -245,29 +250,13 @@
 
         async function initPage() {
             updateTimestamp();
-            loadCountedByFromStorage();
+            showMessage('Loading products from Google Sheets...', 'loading');
             await loadAllItems();
             await loadUPCMapping();
-            populateItemSelect();
+            document.getElementById('messageBox').innerHTML = '';
             loadScannedItemsFromStorage();
             displayScannedItems();
             document.getElementById('barcodeInput').focus();
-        }
-
-        function loadCountedByFromStorage() {
-            const name = localStorage.getItem('countedBy');
-            if (name) {
-                document.getElementById('countedBy').value = name;
-            }
-        }
-
-        function editCountedBy() {
-            const name = prompt('Enter your name:', localStorage.getItem('countedBy') || '');
-            if (name && name.trim()) {
-                localStorage.setItem('countedBy', name.trim());
-                document.getElementById('countedBy').value = name.trim();
-                showMessage('Name updated', 'success');
-            }
         }
 
         async function loadAllItems() {
@@ -279,10 +268,13 @@
                     const data = JSON.parse(jsonMatch[0]);
                     allItems = Object.values(data).sort((a, b) => a.name.localeCompare(b.name));
                     document.getElementById('totalCount').textContent = allItems.length;
+                    console.log('Loaded ' + allItems.length + ' items');
+                } else {
+                    throw new Error('No items found in response');
                 }
             } catch (error) {
                 console.error('Error loading items:', error);
-                showMessage('Error loading items', 'error');
+                showMessage('Error loading products. Check console.', 'error');
             }
         }
 
@@ -296,6 +288,7 @@
                     Object.entries(data).forEach(([upc, itemNum]) => {
                         upcMapping[normalizeUPC(upc)] = itemNum;
                     });
+                    console.log('Loaded UPC mapping: ' + Object.keys(upcMapping).length + ' mappings');
                 }
             } catch (error) {
                 console.error('Error loading UPC mapping:', error);
@@ -304,9 +297,7 @@
 
         function normalizeUPC(upc) {
             if (!upc) return '';
-            // Remove non-digit characters
             let cleaned = upc.toString().replace(/[^0-9]/g, '');
-            // Convert UPC-E to UPC-A if needed (8 digits to 12)
             if (cleaned.length === 8) {
                 cleaned = expandUPCE(cleaned);
             }
@@ -318,7 +309,6 @@
             const digits = upcE.split('');
             const lastDigit = digits[7];
             const first5 = digits.slice(0, 5).join('');
-            
             let upcA;
             if (lastDigit === '0') upcA = first5 + '00000' + digits[5];
             else if (lastDigit === '1') upcA = first5 + '10000' + digits[5];
@@ -330,19 +320,7 @@
             else if (lastDigit === '7') upcA = '00' + first5.slice(0, 1) + '10000' + digits[5];
             else if (lastDigit === '8') upcA = '001' + first5 + '00000' + digits[5];
             else if (lastDigit === '9') upcA = '00' + first5 + '10000' + digits[5];
-            
             return upcA || upcE;
-        }
-
-        function populateItemSelect() {
-            const select = document.getElementById('itemSelect');
-            select.innerHTML = '<option value="">-- Select a product --</option>';
-            allItems.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.number;
-                option.textContent = `${item.name} (#${item.number})`;
-                select.appendChild(option);
-            });
         }
 
         document.getElementById('barcodeInput').addEventListener('keypress', (e) => {
@@ -355,92 +333,105 @@
         function processScan(upc) {
             if (!upc || !upc.trim()) return;
             
+            searchMode = false;
+            document.getElementById('searchSection').style.display = 'none';
             currentUPC = normalizeUPC(upc);
             
-            // Check if UPC already in mapping
             if (upcMapping[currentUPC]) {
                 const itemNum = upcMapping[currentUPC];
                 const item = allItems.find(i => i.number == itemNum);
                 if (item) {
-                    document.getElementById('itemSelect').value = itemNum;
-                    updateItemPreview();
-                    document.getElementById('selectionSection').style.display = 'block';
-                    document.getElementById('qtyInput').focus();
+                    selectItem(item);
                     return;
                 }
             }
             
-            // UPC not in mapping, show selection
-            document.getElementById('selectionSection').style.display = 'block';
-            document.getElementById('itemSelect').focus();
+            showMessage('UPC not found. Use Search to find product.', 'error');
         }
 
-        function updateItemPreview() {
-            const itemNum = document.getElementById('itemSelect').value;
-            const item = allItems.find(i => i.number == itemNum);
-            
-            if (item) {
-                document.getElementById('previewUPC').textContent = currentUPC;
-                document.getElementById('previewNumber').textContent = item.number;
-                document.getElementById('previewName').textContent = item.name;
-                document.getElementById('itemPreview').style.display = 'block';
+        function toggleSearchMode() {
+            searchMode = !searchMode;
+            if (searchMode) {
+                document.getElementById('searchSection').style.display = 'block';
+                document.getElementById('productSearch').focus();
+            } else {
+                document.getElementById('searchSection').style.display = 'none';
+                document.getElementById('barcodeInput').focus();
             }
+        }
+
+        function searchProducts() {
+            const query = document.getElementById('productSearch').value.toLowerCase();
+            const results = allItems.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                item.number.toString().includes(query)
+            ).slice(0, 20);
+
+            const resultsDiv = document.getElementById('searchResults');
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p style="padding: 10px; color: #666;">No results found</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = results.map(item => `
+                <div style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; hover: background: #f5f5f5;" onclick="selectItem({number: '${item.number}', name: '${item.name}', upc: '${item.upc || ''}'})">
+                    <strong>${item.name}</strong><br>
+                    <small style="color: #999;">Item #${item.number}</small>
+                </div>
+            `).join('');
+        }
+
+        function selectItem(item) {
+            currentItemNum = item.number;
+            document.getElementById('previewName').textContent = item.name;
+            document.getElementById('previewNumber').textContent = item.number;
+            document.getElementById('previewUPC').textContent = currentUPC || item.upc || '-';
+            document.getElementById('selectionSection').style.display = 'block';
+            document.getElementById('qtyInput').value = '';
+            document.getElementById('qtyInput').focus();
+            searchMode = false;
+            document.getElementById('searchSection').style.display = 'none';
         }
 
         async function saveItem() {
-            const itemNum = document.getElementById('itemSelect').value;
             const qty = document.getElementById('qtyInput').value;
             
-            if (!itemNum) {
-                showMessage('Please select a product', 'error');
-                return;
-            }
-            
             if (!qty || qty < 0) {
-                showMessage('Please enter a valid quantity', 'error');
+                showMessage('Please enter valid quantity', 'error');
                 return;
             }
             
-            const item = allItems.find(i => i.number == itemNum);
+            const item = allItems.find(i => i.number == currentItemNum);
             if (!item) return;
             
-            // Add to scanned items
             scannedItems.push({
                 upc: currentUPC,
                 itemNumber: item.number,
                 itemName: item.name,
-                qty: parseInt(qty),
+                qty: parseFloat(qty),
                 timestamp: new Date().toISOString()
             });
             
-            // Save to storage
+            if (currentUPC) {
+                upcMapping[currentUPC] = item.number;
+            }
+            
             saveScannedItemsToStorage();
-            
-            // Update UPC mapping
-            upcMapping[currentUPC] = item.number;
-            
-            // Clear form
-            cancelScan();
-            
-            // Update progress
+            displayScannedItems();
             updateProgress();
             
-            // Display updated list
-            displayScannedItems();
-            
-            // Focus back on barcode input
+            document.getElementById('selectionSection').style.display = 'none';
+            document.getElementById('barcodeInput').value = '';
             document.getElementById('barcodeInput').focus();
             
-            showMessage(`✓ ${item.name} saved (${qty} packs)`, 'success');
+            showMessage(`✓ ${item.name} saved (${qty} cartons)`, 'success');
         }
 
         function cancelScan() {
             currentUPC = '';
-            document.getElementById('barcodeInput').value = '';
+            currentItemNum = '';
             document.getElementById('selectionSection').style.display = 'none';
-            document.getElementById('itemSelect').value = '';
-            document.getElementById('qtyInput').value = '';
-            document.getElementById('itemPreview').style.display = 'none';
+            document.getElementById('barcodeInput').value = '';
             document.getElementById('barcodeInput').focus();
         }
 
@@ -448,7 +439,6 @@
             const progress = scannedItems.length;
             const total = allItems.length;
             const percent = (progress / total) * 100;
-            
             document.getElementById('progressCount').textContent = progress;
             document.getElementById('progressFill').style.width = percent + '%';
         }
@@ -469,7 +459,7 @@
                 li.innerHTML = `
                     <div class="item-number">#${item.itemNumber}</div>
                     <div class="item-name">${item.itemName}</div>
-                    <div class="item-qty">${item.qty} packs</div>
+                    <div class="item-qty">${item.qty} cartons</div>
                     <div style="font-size: 12px; color: #999;">${new Date(item.timestamp).toLocaleTimeString()}</div>
                     <button class="item-remove" onclick="removeItem(${idx})"><i class="fas fa-trash"></i></button>
                 `;
@@ -515,7 +505,7 @@
                             itemNumber: item.itemNumber,
                             itemName: item.itemName,
                             upcScanned: item.upc,
-                            qtyInPacks: item.qty,
+                            qtyInCartons: item.qty,
                             timestamp: item.timestamp,
                             countedBy: countedBy
                         })),
@@ -525,7 +515,7 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    showMessage(`✓ ${scannedItems.length} items submitted to Sheets!`, 'success');
+                    showMessage(`✓ ${scannedItems.length} items submitted!`, 'success');
                     scannedItems = [];
                     saveScannedItemsToStorage();
                     displayScannedItems();
@@ -556,19 +546,18 @@
             URL.revokeObjectURL(url);
         }
 
-        function activateCamera() {
-            alert('Camera barcode scanning coming soon. For now, use physical scanner or manual entry.');
-        }
-
         function showMessage(msg, type) {
             const box = document.getElementById('messageBox');
-            const className = type === 'success' ? 'success-msg' : 'error-msg-alert';
+            const className = type === 'success' ? 'success-msg' : type === 'loading' ? 'loading-msg' : 'error-msg-alert';
             const div = document.createElement('div');
             div.className = className;
             div.style.display = 'block';
-            div.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+            const icon = type === 'success' ? 'check-circle' : type === 'loading' ? 'spinner' : 'exclamation-circle';
+            div.innerHTML = `<i class="fas fa-${icon}"></i> ${msg}`;
             box.appendChild(div);
-            setTimeout(() => div.remove(), 4000);
+            if (type !== 'loading') {
+                setTimeout(() => div.remove(), 4000);
+            }
         }
     </script>
 </body>
