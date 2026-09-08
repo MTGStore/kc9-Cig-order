@@ -160,7 +160,7 @@
             <h1><i class="fas fa-warehouse"></i> KC9 Cigarette Order System</h1>
             <p>MTG Store - Inventory Management & Smart Ordering</p>
             <div class="update-info">
-                📊 Last updated: <strong id="lastUpdate">Loading...</strong>
+                📊 Last deployed: <strong>09/08/2026 at 5:45 PM</strong>
             </div>
         </div>
 
@@ -306,32 +306,10 @@
         <!-- SYSTEM INFO -->
         <div style="background: rgba(255,255,255,0.1); color: white; padding: 20px; border-radius: 8px; margin-top: 40px; font-size: 13px;">
             <p><strong>System Status:</strong> All tools operational ✓</p>
-            <p><strong>Last Sync:</strong> <span id="syncTime">Loading...</span></p>
             <p><strong>Items in System:</strong> 160 cigarette SKUs</p>
+            <p><strong>Deployment Version:</strong> 09/08/2026 5:45 PM</p>
             <p style="margin-top: 10px; opacity: 0.8;">💡 Pro tip: Use Inventory Baseline Scanner first to establish baseline, then use Smart Ordering v3 for daily orders.</p>
         </div>
     </div>
-
-    <script>
-        // Update timestamps
-        async function updateTimestamps() {
-            try {
-                const response = await fetch('https://api.github.com/repos/MTGStore/kc9-Cig-order/commits?per_page=1');
-                const data = await response.json();
-                if (data.length > 0) {
-                    const lastUpdate = new Date(data[0].commit.committer.date);
-                    document.getElementById('lastUpdate').textContent = lastUpdate.toLocaleDateString() + ' ' + lastUpdate.toLocaleTimeString();
-                }
-            } catch (error) {
-                document.getElementById('lastUpdate').textContent = 'Unable to fetch';
-            }
-
-            // Current sync time
-            const now = new Date();
-            document.getElementById('syncTime').textContent = now.toLocaleTimeString();
-        }
-
-        window.addEventListener('load', updateTimestamps);
-    </script>
 </body>
 </html>
