@@ -3,210 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KC-9 Order System</title>
+    <title>KC9 Cigarette Order Management - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+        .header { background: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+        .header h1 { font-size: 32px; color: #333; margin-bottom: 10px; }
+        .header p { font-size: 16px; color: #666; }
+        .last-modified { font-size: 12px; color: #999; margin-top: 15px; }
         
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px 30px;
-            max-width: 700px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
         
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+        .card { background: white; padding: 25px; border-radius: 8px; border: 1px solid #ddd; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
         
-        .logo {
-            font-size: 48px;
-            margin-bottom: 12px;
-        }
+        .card-icon { font-size: 40px; margin-bottom: 15px; color: #007bff; }
+        .card-title { font-weight: 600; font-size: 16px; margin-bottom: 8px; color: #333; }
+        .card-desc { font-size: 13px; color: #666; line-height: 1.5; }
         
-        .title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        
-        .subtitle {
-            font-size: 14px;
-            color: #9ca3af;
-            font-weight: 500;
-        }
-        
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 140px;
-        }
-        
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
-        }
-        
-        .card.v2 {
-            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        }
-        
-        .card.v2:hover {
-            box-shadow: 0 12px 24px rgba(33, 150, 243, 0.4);
-        }
-        
-        .card-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-        
-        .card-title {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-        
-        .card-description {
-            font-size: 12px;
-            opacity: 0.9;
-            line-height: 1.4;
-        }
-        
-        .badge {
-            display: inline-block;
-            background: #ffeb3b;
-            color: #333;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 700;
-            margin-top: 6px;
-        }
-        
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #9ca3af;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-            }
-            
-            .title {
-                font-size: 24px;
-            }
-            
-            .cards-grid {
-                gap: 12px;
-                grid-template-columns: 1fr;
-            }
-            
-            .card {
-                min-height: 120px;
-                padding: 16px;
-            }
-            
-            .card-icon {
-                font-size: 28px;
-            }
-        }
+        .card.blue .card-icon { color: #007bff; }
+        .card.green .card-icon { color: #28a745; }
+        .card.orange .card-icon { color: #fd7e14; }
+        .card.purple .card-icon { color: #6f42c1; }
+        .card.red .card-icon { color: #dc3545; }
+        .card.teal .card-icon { color: #20c997; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">📦</div>
-            <h1 class="title">KC-9 Order System</h1>
-            <p class="subtitle">Cigarette Inventory & Order Management</p>
+            <h1>🚬 KC9 Cigarette Order Management</h1>
+            <p>Complete ordering, tracking, and analytics system</p>
+            <div class="last-modified" id="lastModified">Last modified: Loading...</div>
         </div>
-        
-        <div class="cards-grid">
-            <a href="smart-ordering.html" class="card">
-                <div class="card-icon">📦</div>
-                <div class="card-title">Smart Ordering</div>
-                <div class="card-description">Upload CSV & auto-calculate orders</div>
-            </a>
-            
-            <a href="smart-ordering-with-current-stock.html" class="card v2">
-                <div class="card-icon">📦</div>
+
+        <div class="grid">
+            <div class="card blue" onclick="window.location.href='smart-ordering-v3.html'">
+                <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="card-title">Smart Ordering v3</div>
+                <div class="card-desc">Sales & 4-week avg with manual count & editable order qty</div>
+            </div>
+
+            <div class="card green" onclick="window.location.href='sales-uploader.html'">
+                <div class="card-icon"><i class="fas fa-upload"></i></div>
+                <div class="card-title">Sales Uploader</div>
+                <div class="card-desc">Upload CSV sales data & auto-map UPC codes</div>
+            </div>
+
+            <div class="card orange" onclick="window.location.href='smart-ordering-with-current-stock.html'">
+                <div class="card-icon"><i class="fas fa-search"></i></div>
                 <div class="card-title">Smart Ordering v2</div>
-                <div class="card-description">With Current Stock Input</div>
-                <div class="badge">NEW</div>
-            </a>
-            
-            <a href="analytics-dashboard.html" class="card">
-                <div class="card-icon">📊</div>
-                <div class="card-title">Analytics</div>
-                <div class="card-description">View ordering trends & charts</div>
-            </a>
-            
-            <a href="smart-ordering-guide.html" class="card">
-                <div class="card-icon">📖</div>
-                <div class="card-title">Order Guide</div>
-                <div class="card-description">Items ordered last 4 weeks</div>
-            </a>
-            
-            <a href="kc9-inventory-counter.html" class="card">
-                <div class="card-icon">📦</div>
+                <div class="card-desc">Search & filter with current stock verification</div>
+            </div>
+
+            <div class="card purple" onclick="window.location.href='kc9-inventory-counter.html'">
+                <div class="card-icon"><i class="fas fa-boxes"></i></div>
                 <div class="card-title">Inventory Counter</div>
-                <div class="card-description">Weekly inventory count & reports</div>
-            </a>
-            
-            <a href="sales-import.html" class="card">
-                <div class="card-icon">💾</div>
-                <div class="card-title">Sales Import</div>
-                <div class="card-description">Import POS sales data</div>
-            </a>
-            
-            <a href="smart-order.html" class="card">
-                <div class="card-icon">✏️</div>
-                <div class="card-title">Manual Order</div>
-                <div class="card-description">Manual order entry form</div>
-            </a>
-        </div>
-        
-        <div class="footer">
-            Powered by GitHub Pages + Google Sheets
+                <div class="card-desc">Weekly inventory count & tracking</div>
+            </div>
+
+            <div class="card red" onclick="window.location.href='analytics-dashboard.html'">
+                <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="card-title">Analytics Dashboard</div>
+                <div class="card-desc">Sales trends & order history analysis</div>
+            </div>
+
+            <div class="card teal" onclick="window.location.href='smart-ordering-guide.html'">
+                <div class="card-icon"><i class="fas fa-book"></i></div>
+                <div class="card-title">Order History Guide</div>
+                <div class="card-desc">View historical order patterns</div>
+            </div>
         </div>
     </div>
+
+    <script>
+        function updateTimestamp() {
+            const now = new Date();
+            const formatted = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('lastModified').textContent = 'Last modified: ' + formatted;
+        }
+        updateTimestamp();
+    </script>
 </body>
 </html>
