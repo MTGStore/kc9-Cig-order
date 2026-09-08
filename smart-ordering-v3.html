@@ -17,8 +17,8 @@
         .last-modified { font-size: 11px; color: #999; margin-top: 10px; }
         
         .controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
-        .search-bar input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .search-bar input { flex: 1; min-width: 200px; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
         
         .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-btn { padding: 8px 14px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
@@ -27,20 +27,25 @@
         .filter-btn.active:hover { background: #0056b3; }
         
         .date-range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        @media (max-width: 768px) { .date-range { grid-template-columns: 1fr; } }
         .date-range > div { display: flex; flex-direction: column; }
         .date-range label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; font-weight: 500; }
         .date-range .label-desc { font-size: 11px; color: #999; margin-bottom: 8px; line-height: 1.4; }
         .date-range input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
         
         .cache-status { background: #e8f5e9; border: 1px solid #4caf50; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 12px; color: #2e7d32; }
-        .cache-status.loading { background: #e3f2fd; border-color: #2196f3; color: #1565c0; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
         
         .card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; position: relative; }
         .card.gray { border-left: 4px solid #999; }
         .card.blue { border-left: 4px solid #007bff; }
         .card.green { border-left: 4px solid #28a745; background: #f8fff9; }
+        .card.stockout { border: 2px solid #dc3545; background: #fff5f5; }
+        
+        .stockout-alert { background: #dc3545; color: white; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .stockout-alert i { font-size: 14px; }
         
         .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
         .card-title { font-weight: 600; font-size: 14px; color: #333; }
@@ -75,8 +80,6 @@
         .move-buttons { display: flex; gap: 6px; margin-top: 12px; }
         .move-btn { flex: 1; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
         .move-btn:hover { background: #e0e0e0; }
-        .move-btn.up:hover { background: #cce5ff; }
-        .move-btn.down:hover { background: #cce5ff; }
         
         .action-bar { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-wrap: wrap; }
         .action-bar button { padding: 12px 20px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
@@ -86,6 +89,8 @@
         .whatsapp-btn { background: #25d366; color: white; flex: 1; min-width: 150px; }
         .whatsapp-btn:hover { background: #20c651; }
         .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .logger-btn { background: #dc3545; color: white; flex: 1; min-width: 150px; }
+        .logger-btn:hover { background: #c82333; }
         
         .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
         .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
@@ -112,6 +117,7 @@
 
             <div class="filter-buttons">
                 <button class="filter-btn active" onclick="filterByStatus('all')">All Items</button>
+                <button class="filter-btn" onclick="filterByStatus('stockout')">⚠ Stockouts</button>
                 <button class="filter-btn" onclick="filterByStatus('gray')">Unverified</button>
                 <button class="filter-btn" onclick="filterByStatus('blue')">Auto-calc</button>
                 <button class="filter-btn" onclick="filterByStatus('green')">Manual Count</button>
@@ -138,6 +144,7 @@
         <div class="action-bar">
             <button class="save-btn" onclick="saveToSheets()"><i class="fas fa-save"></i> Save to Sheets</button>
             <button class="whatsapp-btn" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
+            <button class="logger-btn" onclick="openStockoutLogger()"><i class="fas fa-exclamation-circle"></i> Log Stockout</button>
         </div>
     </div>
 
@@ -150,7 +157,7 @@
         let filteredItems = [];
         let currentFilter = 'all';
         let orderData = {};
-        let cacheTimestamp = '';
+        let stockoutLog = [];
 
         function updateTimestamp() {
             const now = new Date();
@@ -168,6 +175,7 @@
             setDefaultDates();
             await loadAllItems();
             await loadOrderDataFromCache();
+            await loadStockoutLog();
             displayItems();
             updateCacheStatus();
         }
@@ -184,21 +192,15 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems&callback=cb_' + Date.now());
                 const text = await response.text();
-                console.log('Raw response:', text.substring(0, 100));
-                
-                // Parse JSONP response
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     allItemsData = JSON.parse(jsonMatch[0]);
                     allItems = Object.values(allItemsData);
                     filteredItems = allItems;
                     console.log('Loaded ' + allItems.length + ' items');
-                } else {
-                    throw new Error('No JSON found in response');
                 }
             } catch (error) {
                 console.error('Error loading items:', error);
-                document.getElementById('content').innerHTML = '<div class="loading">Error loading items. Check console.</div>';
             }
         }
 
@@ -206,25 +208,36 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache&callback=cb_' + Date.now());
                 const text = await response.text();
-                
-                // Parse JSONP response
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
-                    const data = JSON.parse(jsonMatch[0]);
-                    orderData = data;
-                    console.log('Loaded order data from cache: ' + Object.keys(orderData).length + ' items');
-                } else {
-                    throw new Error('No JSON found in cache response');
+                    orderData = JSON.parse(jsonMatch[0]);
+                    console.log('Loaded order data from cache');
                 }
             } catch (error) {
-                console.error('Error loading order data from cache:', error);
+                console.error('Error loading order data:', error);
                 orderData = {};
+            }
+        }
+
+        async function loadStockoutLog() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts&callback=cb_' + Date.now());
+                const text = await response.text();
+                const jsonMatch = text.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    const allStockouts = JSON.parse(jsonMatch[0]);
+                    stockoutLog = allStockouts.filter(s => s.status === 'Active');
+                }
+            } catch (error) {
+                console.error('Error loading stockout log:', error);
+                stockoutLog = [];
             }
         }
 
         function updateCacheStatus() {
             const statusDiv = document.getElementById('cacheStatus');
             const itemCount = Object.keys(orderData).length;
+            const stockoutCount = stockoutLog.length;
             if (itemCount > 0) {
                 const now = new Date();
                 const timeStr = now.getFullYear() + '-' + 
@@ -232,15 +245,8 @@
                     String(now.getDate()).padStart(2, '0') + ' ' +
                     String(now.getHours()).padStart(2, '0') + ':' +
                     String(now.getMinutes()).padStart(2, '0');
-                statusDiv.innerHTML = '✓ Cache active: ' + itemCount + ' items ready | Last checked: ' + timeStr + ' (Auto-refreshes daily at 5 AM)';
-                statusDiv.style.background = '#e8f5e9';
-                statusDiv.style.borderColor = '#4caf50';
-                statusDiv.style.color = '#2e7d32';
-            } else {
-                statusDiv.innerHTML = '⚠ Cache empty. Refresh page or contact admin.';
-                statusDiv.style.background = '#fff3cd';
-                statusDiv.style.borderColor = '#ffc107';
-                statusDiv.style.color = '#856404';
+                const stockoutMsg = stockoutCount > 0 ? ` | <span style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> ${stockoutCount} item(s) out of stock</span>` : '';
+                statusDiv.innerHTML = '✓ Cache active: ' + itemCount + ' items ready | Last checked: ' + timeStr + ' (Auto-refreshes daily at 5 AM)' + stockoutMsg;
             }
         }
 
@@ -268,13 +274,33 @@
             });
         }
 
+        function isItemInStockout(itemNumber) {
+            return stockoutLog.some(s => s.itemNumber == itemNumber);
+        }
+
+        function getStockoutInfo(itemNumber) {
+            return stockoutLog.find(s => s.itemNumber == itemNumber);
+        }
+
         function createCard(item, order, status, index) {
             const card = document.createElement('div');
-            card.className = `card ${status}`;
+            const isStockout = isItemInStockout(item.number);
+            card.className = `card ${isStockout ? 'stockout' : status}`;
             card.id = `card-${item.number}`;
 
             const statusBadge = status === 'gray' ? 'Unverified' : status === 'blue' ? 'Auto-calc' : 'Manual Count';
             const statusClass = `status-${status}`;
+
+            let stockoutAlert = '';
+            if (isStockout) {
+                const info = getStockoutInfo(item.number);
+                stockoutAlert = `
+                    <div class="stockout-alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        STOCKOUT on ${info.dateRanOut} - Please check inventory
+                    </div>
+                `;
+            }
 
             let manualCountHtml = `
                 <div class="manual-count-section">
@@ -311,6 +337,7 @@
             `;
 
             card.innerHTML = `
+                ${stockoutAlert}
                 <div class="card-header">
                     <div>
                         <div class="card-title">${item.name}</div>
@@ -411,6 +438,22 @@
         function applyStatusFilter() {
             if (currentFilter === 'all') {
                 displayItems();
+                return;
+            }
+
+            if (currentFilter === 'stockout') {
+                const filtered = filteredItems.filter(item => isItemInStockout(item.number));
+                const grid = document.getElementById('content');
+                grid.innerHTML = '';
+                if (filtered.length === 0) {
+                    grid.innerHTML = '<div class="loading">No items in stockout</div>';
+                    return;
+                }
+                filtered.forEach((item, index) => {
+                    const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
+                    const status = getItemStatus(item.number);
+                    grid.appendChild(createCard(item, order, status, index));
+                });
                 return;
             }
 
@@ -515,6 +558,10 @@
             const encodedMessage = encodeURIComponent(message);
             const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
             window.open(whatsappUrl, '_blank');
+        }
+
+        function openStockoutLogger() {
+            window.location.href = 'stockout-logger.html';
         }
 
         window.addEventListener('load', initPage);
