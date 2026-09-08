@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Baseline Scanner - KC9</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsquash/0.4.1/jsquash.umd.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 15px; }
@@ -52,6 +53,8 @@
         .btn-secondary:hover { background: #5a6268; }
         .btn-search { background: #17a2b8; color: white; }
         .btn-search:hover { background: #138496; }
+        .btn-camera { background: #ff6c00; color: white; }
+        .btn-camera:hover { background: #e55a00; }
         
         .item-preview { background: #f9f9f9; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #007bff; }
         .preview-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
@@ -61,6 +64,13 @@
         .success-msg { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         .error-msg-alert { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         .loading-msg { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
+        
+        .dropdown-list { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .dropdown-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .dropdown-item:hover { background: #e3f2fd; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item-name { font-weight: 600; color: #333; }
+        .dropdown-item-detail { font-size: 12px; color: #999; margin-top: 4px; }
         
         .scanned-items { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .scanned-items h2 { font-size: 18px; color: #333; margin-bottom: 15px; }
@@ -74,6 +84,8 @@
         .item-qty { background: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-weight: 600; text-align: center; }
         .item-remove { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .item-remove:hover { background: #c82333; }
+        
+        video { width: 100%; max-width: 400px; border-radius: 6px; margin: 15px 0; }
         
         .loading { text-align: center; padding: 20px; }
         .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
@@ -122,35 +134,66 @@
 
             <div id="messageBox"></div>
 
-            <div class="scanner-section">
-                <h2><i class="fas fa-barcode"></i> Scan or Search Product</h2>
+            <!-- STEP 1: INPUT METHOD -->
+            <div class="scanner-section" id="step1Section">
+                <h2><i class="fas fa-barcode"></i> Step 1: Find Product</h2>
                 <div class="info-box">
-                    💡 Scan barcode directly or use search button to find manually
+                    💡 Barcode scanner will work automatically. Type UPC and press Search. Or use camera to scan.
                 </div>
                 
                 <div class="form-group">
-                    <label for="barcodeInput">Scan UPC Code</label>
-                    <input type="text" id="barcodeInput" placeholder="Scan barcode here" autocomplete="off">
+                    <label for="barcodeInput">Scan or Type UPC Code</label>
+                    <input type="text" id="barcodeInput" placeholder="Scan barcode or type UPC (e.g., 02820000384)" autocomplete="off">
                 </div>
 
-                <button class="btn btn-search" onclick="toggleSearchMode()">
-                    <i class="fas fa-search"></i> Search Product
+                <div class="button-group">
+                    <button class="btn btn-search" onclick="searchByUPC()">
+                        <i class="fas fa-search"></i> Search UPC
+                    </button>
+                    <button class="btn btn-camera" onclick="startCamera()">
+                        <i class="fas fa-camera"></i> Use Camera
+                    </button>
+                </div>
+
+                <video id="cameraPreview" style="display: none;"></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+            </div>
+
+            <!-- STEP 2: SELECT OR ADD PRODUCT -->
+            <div class="scanner-section" id="step2Section" style="display: none;">
+                <h2><i class="fas fa-check"></i> Step 2: Select Product</h2>
+                
+                <div id="dropdownContainer">
+                    <div class="form-group">
+                        <label>Found Products - Click to Select:</label>
+                        <div class="dropdown-list" id="dropdownList"></div>
+                    </div>
+                </div>
+
+                <div id="manualEntryContainer" style="display: none;">
+                    <div class="form-group">
+                        <label for="manualItemName">Product Name (Manual Entry)</label>
+                        <input type="text" id="manualItemName" placeholder="e.g., Marlboro Gold Short">
+                    </div>
+                    <div class="form-group">
+                        <label for="manualItemNumber">Item Number (Manual Entry)</label>
+                        <input type="text" id="manualItemNumber" placeholder="e.g., 101">
+                    </div>
+                    <button class="btn btn-success" onclick="addManualItem()">Add Manual Item</button>
+                </div>
+
+                <button class="btn btn-secondary" onclick="toggleManualEntry()" style="margin-top: 10px;">
+                    <i class="fas fa-plus"></i> Can't Find? Add Manually
+                </button>
+
+                <button class="btn btn-secondary" onclick="cancelSearch()" style="margin-top: 10px;">
+                    <i class="fas fa-arrow-left"></i> Back
                 </button>
             </div>
 
-            <div class="scanner-section" id="searchSection" style="display: none;">
-                <h2><i class="fas fa-search"></i> Search Product</h2>
-                
-                <div class="form-group">
-                    <label for="productSearch">Search by Name or Item #</label>
-                    <input type="text" id="productSearch" placeholder="e.g., Marlboro Gold or 101" oninput="searchProducts()">
-                </div>
-
-                <div id="searchResults" style="max-height: 300px; overflow-y: auto;"></div>
-            </div>
-
-            <div class="scanner-section" id="selectionSection" style="display: none;">
-                <h2><i class="fas fa-check"></i> Enter Quantity</h2>
+            <!-- STEP 3: ENTER QUANTITY -->
+            <div class="scanner-section" id="step3Section" style="display: none;">
+                <h2><i class="fas fa-box"></i> Step 3: Enter Quantity</h2>
                 
                 <div class="item-preview" id="itemPreview">
                     <div class="preview-row">
@@ -161,27 +204,24 @@
                         <span class="preview-label">Item #:</span>
                         <span class="preview-value" id="previewNumber">-</span>
                     </div>
-                    <div class="preview-row">
-                        <span class="preview-label">UPC Scanned:</span>
-                        <span class="preview-value" id="previewUPC">-</span>
-                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="qtyInput">Current Qty in Cartons *</label>
-                    <input type="number" id="qtyInput" placeholder="e.g., 1.5 (means 1 carton + 5 packs)" min="0" step="0.1" required>
+                    <input type="number" id="qtyInput" placeholder="e.g., 1.5 (1 carton + 5 packs)" min="0" step="0.1" required>
                 </div>
 
                 <div class="button-group">
                     <button class="btn btn-success" onclick="saveItem()">
-                        <i class="fas fa-save"></i> Save & Next
+                        <i class="fas fa-save"></i> Save & Scan Next
                     </button>
-                    <button class="btn btn-secondary" onclick="cancelScan()">
+                    <button class="btn btn-secondary" onclick="cancelQty()">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
             </div>
 
+            <!-- SCANNED ITEMS LIST -->
             <div class="scanned-items" id="scannedItemsSection" style="display: none;">
                 <h2><i class="fas fa-list"></i> Scanned Items</h2>
                 <ul class="item-list" id="scannedItemsList"></ul>
@@ -197,6 +237,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
     <script>
         const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
@@ -206,7 +247,9 @@
         let scannedItems = [];
         let currentUPC = '';
         let currentItemNum = '';
-        let searchMode = false;
+        let currentItemName = '';
+        let cameraStream = null;
+        let manualEntryMode = false;
 
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
@@ -268,13 +311,12 @@
                     const data = JSON.parse(jsonMatch[0]);
                     allItems = Object.values(data).sort((a, b) => a.name.localeCompare(b.name));
                     document.getElementById('totalCount').textContent = allItems.length;
-                    console.log('Loaded ' + allItems.length + ' items');
                 } else {
-                    throw new Error('No items found in response');
+                    throw new Error('No items found');
                 }
             } catch (error) {
-                console.error('Error loading items:', error);
-                showMessage('Error loading products. Check console.', 'error');
+                console.error('Error:', error);
+                showMessage('Error loading products', 'error');
             }
         }
 
@@ -288,19 +330,16 @@
                     Object.entries(data).forEach(([upc, itemNum]) => {
                         upcMapping[normalizeUPC(upc)] = itemNum;
                     });
-                    console.log('Loaded UPC mapping: ' + Object.keys(upcMapping).length + ' mappings');
                 }
             } catch (error) {
-                console.error('Error loading UPC mapping:', error);
+                console.error('Error:', error);
             }
         }
 
         function normalizeUPC(upc) {
             if (!upc) return '';
             let cleaned = upc.toString().replace(/[^0-9]/g, '');
-            if (cleaned.length === 8) {
-                cleaned = expandUPCE(cleaned);
-            }
+            if (cleaned.length === 8) cleaned = expandUPCE(cleaned);
             return cleaned.padStart(12, '0');
         }
 
@@ -323,121 +362,191 @@
             return upcA || upcE;
         }
 
+        // Barcode scanner - auto on Enter key
         document.getElementById('barcodeInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                processScan(document.getElementById('barcodeInput').value);
-                document.getElementById('barcodeInput').value = '';
+                const upc = document.getElementById('barcodeInput').value.trim();
+                if (upc) {
+                    searchByUPC(upc);
+                }
             }
         });
 
-        function processScan(upc) {
-            if (!upc || !upc.trim()) return;
-            
-            searchMode = false;
-            document.getElementById('searchSection').style.display = 'none';
-            currentUPC = normalizeUPC(upc);
-            
-            if (upcMapping[currentUPC]) {
-                const itemNum = upcMapping[currentUPC];
-                const item = allItems.find(i => i.number == itemNum);
-                if (item) {
-                    selectItem(item);
-                    return;
-                }
-            }
-            
-            showMessage('UPC not found. Use Search to find product.', 'error');
-        }
-
-        function toggleSearchMode() {
-            searchMode = !searchMode;
-            if (searchMode) {
-                document.getElementById('searchSection').style.display = 'block';
-                document.getElementById('productSearch').focus();
-            } else {
-                document.getElementById('searchSection').style.display = 'none';
-                document.getElementById('barcodeInput').focus();
-            }
-        }
-
-        function searchProducts() {
-            const query = document.getElementById('productSearch').value.toLowerCase();
-            const results = allItems.filter(item => 
-                item.name.toLowerCase().includes(query) || 
-                item.number.toString().includes(query)
-            ).slice(0, 20);
-
-            const resultsDiv = document.getElementById('searchResults');
-            if (results.length === 0) {
-                resultsDiv.innerHTML = '<p style="padding: 10px; color: #666;">No results found</p>';
+        function searchByUPC(upcOverride) {
+            const upc = upcOverride || document.getElementById('barcodeInput').value.trim();
+            if (!upc) {
+                showMessage('Please enter or scan a UPC', 'error');
                 return;
             }
 
-            resultsDiv.innerHTML = results.map(item => `
-                <div style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; hover: background: #f5f5f5;" onclick="selectItem({number: '${item.number}', name: '${item.name}', upc: '${item.upc || ''}'})">
-                    <strong>${item.name}</strong><br>
-                    <small style="color: #999;">Item #${item.number}</small>
+            currentUPC = normalizeUPC(upc);
+            const results = [];
+
+            // Check UPC mapping first
+            if (upcMapping[currentUPC]) {
+                const itemNum = upcMapping[currentUPC];
+                const item = allItems.find(i => i.number == itemNum);
+                if (item) results.push(item);
+            }
+
+            // Search by name/number (if UPC not found or partial match)
+            const searchTerm = upc.toLowerCase();
+            allItems.forEach(item => {
+                if ((item.name.toLowerCase().includes(searchTerm) || item.number.toString().includes(searchTerm)) && 
+                    !results.find(r => r.number === item.number)) {
+                    results.push(item);
+                }
+            });
+
+            if (results.length === 0) {
+                showMessage('No products found. Try manual entry.', 'error');
+                return;
+            }
+
+            displayDropdown(results);
+            document.getElementById('step1Section').style.display = 'none';
+            document.getElementById('step2Section').style.display = 'block';
+        }
+
+        function displayDropdown(results) {
+            const list = document.getElementById('dropdownList');
+            list.innerHTML = results.map(item => `
+                <div class="dropdown-item" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
+                    <div class="dropdown-item-name">${item.name}</div>
+                    <div class="dropdown-item-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
                 </div>
             `).join('');
         }
 
-        function selectItem(item) {
-            currentItemNum = item.number;
-            document.getElementById('previewName').textContent = item.name;
-            document.getElementById('previewNumber').textContent = item.number;
-            document.getElementById('previewUPC').textContent = currentUPC || item.upc || '-';
-            document.getElementById('selectionSection').style.display = 'block';
+        function selectProduct(itemNum, itemName) {
+            currentItemNum = itemNum;
+            currentItemName = itemName;
+            document.getElementById('previewName').textContent = itemName;
+            document.getElementById('previewNumber').textContent = itemNum;
+            document.getElementById('step2Section').style.display = 'none';
+            document.getElementById('step3Section').style.display = 'block';
             document.getElementById('qtyInput').value = '';
             document.getElementById('qtyInput').focus();
-            searchMode = false;
-            document.getElementById('searchSection').style.display = 'none';
+        }
+
+        function toggleManualEntry() {
+            manualEntryMode = !manualEntryMode;
+            document.getElementById('dropdownContainer').style.display = manualEntryMode ? 'none' : 'block';
+            document.getElementById('manualEntryContainer').style.display = manualEntryMode ? 'block' : 'none';
+            if (manualEntryMode) {
+                document.getElementById('manualItemName').focus();
+            }
+        }
+
+        function addManualItem() {
+            const name = document.getElementById('manualItemName').value.trim();
+            const number = document.getElementById('manualItemNumber').value.trim();
+            
+            if (!name || !number) {
+                showMessage('Enter both product name and item number', 'error');
+                return;
+            }
+
+            selectProduct(number, name);
         }
 
         async function saveItem() {
             const qty = document.getElementById('qtyInput').value;
             
             if (!qty || qty < 0) {
-                showMessage('Please enter valid quantity', 'error');
+                showMessage('Enter valid quantity', 'error');
                 return;
             }
-            
-            const item = allItems.find(i => i.number == currentItemNum);
-            if (!item) return;
-            
+
             scannedItems.push({
-                upc: currentUPC,
-                itemNumber: item.number,
-                itemName: item.name,
+                upc: currentUPC || '',
+                itemNumber: currentItemNum,
+                itemName: currentItemName,
                 qty: parseFloat(qty),
                 timestamp: new Date().toISOString()
             });
-            
-            if (currentUPC) {
-                upcMapping[currentUPC] = item.number;
+
+            if (currentUPC && currentItemNum) {
+                upcMapping[currentUPC] = currentItemNum;
             }
-            
+
             saveScannedItemsToStorage();
             displayScannedItems();
             updateProgress();
-            
-            document.getElementById('selectionSection').style.display = 'none';
-            document.getElementById('barcodeInput').value = '';
-            document.getElementById('barcodeInput').focus();
-            
-            showMessage(`✓ ${item.name} saved (${qty} cartons)`, 'success');
+
+            resetScanner();
+            showMessage(`✓ ${currentItemName} saved (${qty} cartons)`, 'success');
         }
 
-        function cancelScan() {
+        function resetScanner() {
             currentUPC = '';
             currentItemNum = '';
-            document.getElementById('selectionSection').style.display = 'none';
+            currentItemName = '';
+            manualEntryMode = false;
+            document.getElementById('step1Section').style.display = 'block';
+            document.getElementById('step2Section').style.display = 'none';
+            document.getElementById('step3Section').style.display = 'none';
             document.getElementById('barcodeInput').value = '';
             document.getElementById('barcodeInput').focus();
+            document.getElementById('dropdownContainer').style.display = 'block';
+            document.getElementById('manualEntryContainer').style.display = 'none';
+        }
+
+        function cancelSearch() {
+            resetScanner();
+        }
+
+        function cancelQty() {
+            document.getElementById('step3Section').style.display = 'none';
+            document.getElementById('step2Section').style.display = 'block';
+        }
+
+        function startCamera() {
+            const video = document.getElementById('cameraPreview');
+            video.style.display = 'block';
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    cameraStream = stream;
+                    video.srcObject = stream;
+                    scanBarcodeFromCamera();
+                })
+                .catch(error => {
+                    showMessage('Camera access denied', 'error');
+                    console.error('Camera error:', error);
+                });
+        }
+
+        function scanBarcodeFromCamera() {
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('canvas');
+            const codeReader = new ZXing.BrowserMultiFormatReader();
+
+            const decodeFromVideoElement = () => {
+                codeReader.decodeFromVideoElement(video)
+                    .then(result => {
+                        const upc = result.text;
+                        stopCamera();
+                        searchByUPC(upc);
+                    })
+                    .catch(err => {
+                        setTimeout(decodeFromVideoElement, 100);
+                    });
+            };
+
+            decodeFromVideoElement();
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                document.getElementById('cameraPreview').style.display = 'none';
+            }
         }
 
         function updateProgress() {
             const progress = scannedItems.length;
-            const total = allItems.length;
+            const total = allItems.length || 160;
             const percent = (progress / total) * 100;
             document.getElementById('progressCount').textContent = progress;
             document.getElementById('progressFill').style.width = percent + '%';
@@ -465,8 +574,6 @@
                 `;
                 list.appendChild(li);
             });
-            
-            updateProgress();
         }
 
         function removeItem(idx) {
@@ -520,6 +627,7 @@
                     saveScannedItemsToStorage();
                     displayScannedItems();
                     updateProgress();
+                    resetScanner();
                 } else {
                     showMessage('Error: ' + result.error, 'error');
                 }
