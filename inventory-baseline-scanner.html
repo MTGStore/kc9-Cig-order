@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Baseline Scanner - KC9</title>
     <!-- DEPLOYMENT TIMESTAMP: Update when redeploying -->
-    <!-- Last deployed: 09/08/2026 at 2:00 PM EST -->
+    <!-- Last deployed: 09/08/2026 at 2:10 PM EST -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -159,9 +159,9 @@
 
             <!-- STEP 1: SCAN UPC -->
             <div class="scanner-section" id="scanSection">
-                <h2><i class="fas fa-barcode"></i> Scan or Type UPC</h2>
+                <h2><i class="fas fa-barcode"></i> Step 1: Scan or Type UPC</h2>
                 <div class="info-box">
-                    💡 Scan with barcode scanner or camera (auto-searches). Type manually + click Search.
+                    💡 Scan with barcode scanner or camera. Press Search to verify or change product.
                 </div>
                 
                 <div class="form-group">
@@ -179,11 +179,45 @@
                 </div>
 
                 <video id="cameraPreview" style="display: none;"></video>
+            </div>
 
-                <!-- SEARCHABLE SELECT DROPDOWN (Hidden until search fails) -->
-                <div id="dropdownSection" class="hidden" style="margin-top: 20px;">
+            <!-- STEP 2: CONFIRM MATCH OR CHANGE -->
+            <div class="scanner-section" id="confirmSection" class="hidden">
+                <h2><i class="fas fa-check"></i> Step 2: Confirm or Change Product</h2>
+                
+                <div class="item-preview" style="background: #d4edda; border-left-color: #28a745;">
+                    <div class="preview-row">
+                        <span class="preview-label">UPC Scanned:</span>
+                        <span class="preview-value" id="confirmUPC" style="font-size: 12px;">-</span>
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #c3e6cb;">
+                        <div class="preview-row">
+                            <span class="preview-label">Matched Product:</span>
+                            <span class="preview-value" id="confirmProductName">-</span>
+                        </div>
+                        <div class="preview-row">
+                            <span class="preview-label">Item #:</span>
+                            <span class="preview-value" id="confirmItemNumber">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="confirmSelection()">
+                        <i class="fas fa-check"></i> Confirm & Enter Qty
+                    </button>
+                    <button class="btn btn-secondary" onclick="showChangeDropdown()">
+                        <i class="fas fa-edit"></i> Change Product
+                    </button>
+                    <button class="btn btn-secondary" onclick="cancelConfirm()">
+                        <i class="fas fa-times"></i> Back
+                    </button>
+                </div>
+
+                <!-- SEARCHABLE SELECT (Hidden until Change clicked) -->
+                <div id="changeDropdownSection" class="hidden" style="margin-top: 20px;">
                     <div class="form-group">
-                        <label>Select Product from List:</label>
+                        <label>Select Different Product:</label>
                         <div class="select-container">
                             <div class="select-trigger" onclick="toggleSelectDropdown()">
                                 <span id="selectLabel">Choose a product...</span>
@@ -193,42 +227,65 @@
                             <div class="select-dropdown" id="selectDropdown"></div>
                         </div>
                     </div>
-                    <button class="btn btn-secondary" onclick="showManualForm()">
-                        <i class="fas fa-plus"></i> Can't Find? Add Manually
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearSearch()" style="margin-left: 10px;">
-                        <i class="fas fa-times"></i> Back
-                    </button>
-                </div>
-
-                <!-- MANUAL ENTRY FORM (Hidden until needed) -->
-                <div id="manualFormSection" class="hidden" style="margin-top: 20px;">
-                    <div class="item-preview" style="background: #fff9e6; border-left-color: #ff6c00;">
-                        <div class="preview-row">
-                            <span class="preview-label">Scanned UPC:</span>
-                            <span class="preview-value" id="manualUPC" style="font-size: 12px;">-</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="manualName">Product Name *</label>
-                        <input type="text" id="manualName" placeholder="e.g., Marlboro Gold Short">
-                    </div>
-                    <div class="form-group">
-                        <label for="manualNumber">Item Number *</label>
-                        <input type="text" id="manualNumber" placeholder="e.g., 101">
-                    </div>
-                    <button class="btn btn-success" onclick="confirmManualProduct()">
-                        <i class="fas fa-check"></i> Add & Count Qty
-                    </button>
-                    <button class="btn btn-secondary" onclick="cancelManualForm()" style="margin-left: 10px;">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
                 </div>
             </div>
 
-            <!-- STEP 2: PREVIEW & ENTER QTY -->
+            <!-- STEP 3: SELECT FROM DROPDOWN (when no match) -->
+            <div class="scanner-section" id="dropdownSection" class="hidden">
+                <h2><i class="fas fa-list"></i> Step 2: Select Product from List</h2>
+                <div class="info-box">
+                    No exact match found. Choose the correct product from the list.
+                </div>
+                
+                <div class="form-group">
+                    <label>Products:</label>
+                    <div class="select-container">
+                        <div class="select-trigger" onclick="toggleSelectDropdown()">
+                            <span id="selectLabel">Choose a product...</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <input type="text" id="selectSearch" class="select-search" placeholder="Type to filter..." onkeyup="filterSelectOptions()">
+                        <div class="select-dropdown" id="selectDropdown"></div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="showManualForm()">
+                    <i class="fas fa-plus"></i> Can't Find? Add Manually
+                </button>
+                <button class="btn btn-secondary" onclick="cancelSearch()" style="margin-left: 10px;">
+                    <i class="fas fa-times"></i> Back
+                </button>
+            </div>
+
+            <!-- MANUAL ENTRY FORM -->
+            <div class="scanner-section" id="manualFormSection" class="hidden">
+                <h2><i class="fas fa-plus"></i> Add New Product</h2>
+                
+                <div class="item-preview" style="background: #fff9e6; border-left-color: #ff6c00;">
+                    <div class="preview-row">
+                        <span class="preview-label">Scanned UPC:</span>
+                        <span class="preview-value" id="manualUPC" style="font-size: 12px;">-</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="manualName">Product Name *</label>
+                    <input type="text" id="manualName" placeholder="e.g., Marlboro Gold Short">
+                </div>
+                <div class="form-group">
+                    <label for="manualNumber">Item Number *</label>
+                    <input type="text" id="manualNumber" placeholder="e.g., 101">
+                </div>
+                <button class="btn btn-success" onclick="confirmManualProduct()">
+                    <i class="fas fa-check"></i> Add & Enter Qty
+                </button>
+                <button class="btn btn-secondary" onclick="cancelManualForm()" style="margin-left: 10px;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+
+            <!-- STEP 3/4: ENTER QUANTITY -->
             <div class="scanner-section" id="qtySection" class="hidden">
-                <h2><i class="fas fa-box"></i> Review & Enter Quantity</h2>
+                <h2><i class="fas fa-box"></i> Step 3: Enter Quantity</h2>
                 
                 <div class="item-preview">
                     <div class="preview-row">
@@ -253,6 +310,9 @@
                 <div class="button-group">
                     <button class="btn btn-success" onclick="saveAndNext()">
                         <i class="fas fa-save"></i> Save & Scan Next
+                    </button>
+                    <button class="btn btn-secondary" onclick="editProduct()">
+                        <i class="fas fa-edit"></i> Edit Product
                     </button>
                     <button class="btn btn-secondary" onclick="cancelQty()">
                         <i class="fas fa-times"></i> Cancel
@@ -300,6 +360,7 @@
         let currentItemName = '';
         let cameraStream = null;
         let lastScanMethod = '';
+        let editMode = false;
 
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
@@ -405,7 +466,7 @@
 
             if (e.key === 'Enter' && value.length >= 8) {
                 lastScanMethod = 'manual';
-                performSearch(value);
+                manualSearch();
             }
         });
 
@@ -438,15 +499,17 @@
         function performSearch(upc) {
             currentUPC = normalizeUPC(upc);
             
+            // Check exact match in UPC mapping
             if (upcMapping[currentUPC]) {
                 const itemNum = upcMapping[currentUPC];
                 const item = allItems.find(i => i.number == itemNum);
                 if (item) {
-                    selectProduct(item.number, item.name);
+                    showConfirmScreen(item.number, item.name);
                     return;
                 }
             }
 
+            // Fuzzy match (first 11 digits)
             const first11 = currentUPC.substring(0, 11);
             const fuzzyMatch = allItems.find(item => {
                 if (item.upc) {
@@ -457,15 +520,82 @@
             });
 
             if (fuzzyMatch) {
-                selectProduct(fuzzyMatch.number, fuzzyMatch.name);
+                showConfirmScreen(fuzzyMatch.number, fuzzyMatch.name);
                 return;
             }
 
+            // No match - show dropdown
             displayDropdown();
+        }
+
+        function showConfirmScreen(itemNum, itemName) {
+            currentItemNum = itemNum;
+            currentItemName = itemName;
+            editMode = false;
+            
+            document.getElementById('scanSection').style.display = 'none';
+            document.getElementById('dropdownSection').classList.add('hidden');
+            document.getElementById('manualFormSection').classList.add('hidden');
+            document.getElementById('qtySection').classList.add('hidden');
+            document.getElementById('confirmSection').classList.remove('hidden');
+            
+            document.getElementById('confirmUPC').textContent = currentUPC;
+            document.getElementById('confirmProductName').textContent = itemName;
+            document.getElementById('confirmItemNumber').textContent = itemNum;
+            document.getElementById('changeDropdownSection').classList.add('hidden');
+        }
+
+        function confirmSelection() {
+            document.getElementById('confirmSection').classList.add('hidden');
+            document.getElementById('qtySection').classList.remove('hidden');
+            document.getElementById('previewName').textContent = currentItemName;
+            document.getElementById('previewNumber').textContent = currentItemNum;
+            document.getElementById('previewUPC').textContent = currentUPC;
+            document.getElementById('qtyInput').value = '';
+            document.getElementById('qtyInput').focus();
+        }
+
+        function showChangeDropdown() {
+            document.getElementById('changeDropdownSection').classList.remove('hidden');
+            displayChangeDropdown();
+        }
+
+        function displayChangeDropdown() {
+            const dropdown = document.getElementById('selectDropdown');
+            dropdown.innerHTML = allItems.map((item, idx) => `
+                <div class="select-option" data-index="${idx}" onclick="selectFromChangeDropdown(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
+                    <div class="select-option-name">${item.name}</div>
+                    <div class="select-option-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('selectSearch').value = '';
+            closeSelectDropdown();
+        }
+
+        function selectFromChangeDropdown(itemNum, itemName) {
+            currentItemNum = itemNum;
+            currentItemName = itemName;
+            document.getElementById('confirmProductName').textContent = itemName;
+            document.getElementById('confirmItemNumber').textContent = itemNum;
+            document.getElementById('selectLabel').textContent = itemName;
+            closeSelectDropdown();
+            document.getElementById('changeDropdownSection').classList.add('hidden');
+        }
+
+        function cancelConfirm() {
+            lastScanMethod = '';
+            document.getElementById('confirmSection').classList.add('hidden');
+            document.getElementById('scanSection').style.display = 'block';
+            document.getElementById('upcInput').value = '';
+            document.getElementById('searchBtn').style.display = 'none';
+            document.getElementById('upcInput').focus();
         }
 
         function displayDropdown() {
             document.getElementById('searchBtn').style.display = 'none';
+            document.getElementById('scanSection').style.display = 'none';
+            document.getElementById('confirmSection').classList.add('hidden');
             document.getElementById('dropdownSection').classList.remove('hidden');
             
             const dropdown = document.getElementById('selectDropdown');
@@ -478,6 +608,20 @@
             
             document.getElementById('selectSearch').value = '';
             closeSelectDropdown();
+        }
+
+        function selectProductFromDropdown(itemNum, itemName) {
+            currentItemNum = itemNum;
+            currentItemName = itemName;
+            document.getElementById('selectLabel').textContent = itemName;
+            closeSelectDropdown();
+            document.getElementById('dropdownSection').classList.add('hidden');
+            document.getElementById('qtySection').classList.remove('hidden');
+            document.getElementById('previewName').textContent = itemName;
+            document.getElementById('previewNumber').textContent = itemNum;
+            document.getElementById('previewUPC').textContent = currentUPC;
+            document.getElementById('qtyInput').value = '';
+            document.getElementById('qtyInput').focus();
         }
 
         function toggleSelectDropdown() {
@@ -508,28 +652,6 @@
             });
         }
 
-        function selectProductFromDropdown(itemNum, itemName) {
-            document.getElementById('selectLabel').textContent = itemName;
-            closeSelectDropdown();
-            selectProduct(itemNum, itemName);
-        }
-
-        function selectProduct(itemNum, itemName) {
-            currentItemNum = itemNum;
-            currentItemName = itemName;
-            
-            document.getElementById('dropdownSection').classList.add('hidden');
-            document.getElementById('manualFormSection').classList.add('hidden');
-            
-            document.getElementById('scanSection').style.display = 'none';
-            document.getElementById('qtySection').classList.remove('hidden');
-            document.getElementById('previewName').textContent = itemName;
-            document.getElementById('previewNumber').textContent = itemNum;
-            document.getElementById('previewUPC').textContent = currentUPC;
-            document.getElementById('qtyInput').value = '';
-            document.getElementById('qtyInput').focus();
-        }
-
         function showManualForm() {
             closeSelectDropdown();
             document.getElementById('dropdownSection').classList.add('hidden');
@@ -553,7 +675,15 @@
                 upcMapping[currentUPC] = number;
             }
 
-            selectProduct(number, name);
+            currentItemNum = number;
+            currentItemName = name;
+            document.getElementById('manualFormSection').classList.add('hidden');
+            document.getElementById('qtySection').classList.remove('hidden');
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewNumber').textContent = number;
+            document.getElementById('previewUPC').textContent = currentUPC;
+            document.getElementById('qtyInput').value = '';
+            document.getElementById('qtyInput').focus();
         }
 
         function cancelManualForm() {
@@ -562,7 +692,7 @@
             displayDropdown();
         }
 
-        function clearSearch() {
+        function cancelSearch() {
             lastScanMethod = '';
             document.getElementById('upcInput').value = '';
             document.getElementById('searchBtn').style.display = 'none';
@@ -570,7 +700,15 @@
             document.getElementById('manualFormSection').classList.add('hidden');
             document.getElementById('selectLabel').textContent = 'Choose a product...';
             closeSelectDropdown();
+            document.getElementById('scanSection').style.display = 'block';
             document.getElementById('upcInput').focus();
+        }
+
+        function editProduct() {
+            editMode = true;
+            document.getElementById('qtySection').classList.add('hidden');
+            document.getElementById('dropdownSection').classList.remove('hidden');
+            displayDropdown();
         }
 
         function saveAndNext() {
@@ -603,7 +741,7 @@
         function cancelQty() {
             document.getElementById('qtySection').classList.add('hidden');
             document.getElementById('scanSection').style.display = 'block';
-            clearSearch();
+            cancelSearch();
         }
 
         function resetScanner() {
@@ -611,6 +749,7 @@
             currentItemNum = '';
             currentItemName = '';
             lastScanMethod = '';
+            editMode = false;
             document.getElementById('upcInput').value = '';
             document.getElementById('searchBtn').style.display = 'none';
             document.getElementById('upcInput').focus();
