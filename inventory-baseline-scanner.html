@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Baseline Scanner - KC9</title>
-    <!-- DEPLOYMENT TIMESTAMP: Update when redeploying -->
-    <!-- Last deployed: 09/08/2026 at 5:30 PM EST -->
+    <!-- Last deployed: 09/08/2026 at 5:40 PM EST -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,15 +65,15 @@
         
         /* CUSTOM SEARCHABLE SELECT */
         .select-container { position: relative; margin-bottom: 15px; }
-        .select-trigger { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; transition: border-color 0.2s; }
+        .select-trigger { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; transition: all 0.2s; user-select: none; }
         .select-trigger:hover { border-color: #007bff; }
-        .select-trigger.active { border-color: #007bff; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+        .select-trigger.active { border-color: #007bff; background: #f8f9fa; }
         
         .select-search { width: 100%; padding: 12px; border: 1px solid #ddd; border-top: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 14px; display: none; }
-        .select-trigger.active ~ .select-search { display: block; }
+        .select-container.open .select-search { display: block; }
         
-        .select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; max-height: 300px; overflow-y: auto; z-index: 9999; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .select-trigger.active ~ .select-dropdown { display: block; }
+        .select-dropdown { position: fixed; background: white; border: 1px solid #ddd; border-radius: 6px; max-height: 400px; overflow-y: auto; z-index: 99999; display: none; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+        .select-container.open .select-dropdown { display: block; }
         .select-option { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s; font-size: 14px; }
         .select-option:hover { background: #e3f2fd; }
         .select-option-name { font-weight: 600; color: #333; }
@@ -218,13 +217,13 @@
                 <div id="changeDropdownSection" class="hidden" style="margin-top: 20px;">
                     <div class="form-group">
                         <label>Select Different Product:</label>
-                        <div class="select-container">
-                            <div class="select-trigger" onclick="toggleSelectDropdown()">
-                                <span id="selectLabel">Choose a product...</span>
+                        <div class="select-container" id="changeContainer">
+                            <div class="select-trigger" onclick="toggleDropdown('changeContainer')">
+                                <span id="changeLabel">Choose a product...</span>
                                 <i class="fas fa-chevron-down"></i>
                             </div>
-                            <input type="text" id="selectSearch" class="select-search" placeholder="Type to filter..." onkeyup="filterSelectOptions()">
-                            <div class="select-dropdown" id="selectDropdown"></div>
+                            <input type="text" id="changeSearch" class="select-search" placeholder="Type to filter..." onkeyup="filterOptions('changeSearch', 'changeDropdown')">
+                            <div class="select-dropdown" id="changeDropdown"></div>
                         </div>
                     </div>
                 </div>
@@ -239,13 +238,13 @@
                 
                 <div class="form-group">
                     <label>Products:</label>
-                    <div class="select-container">
-                        <div class="select-trigger" onclick="toggleSelectDropdown()">
-                            <span id="selectLabel">Choose a product...</span>
+                    <div class="select-container" id="mainContainer">
+                        <div class="select-trigger" onclick="toggleDropdown('mainContainer')">
+                            <span id="mainLabel">Choose a product...</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <input type="text" id="selectSearch" class="select-search" placeholder="Type to filter..." onkeyup="filterSelectOptions()">
-                        <div class="select-dropdown" id="selectDropdown"></div>
+                        <input type="text" id="mainSearch" class="select-search" placeholder="Type to filter..." onkeyup="filterOptions('mainSearch', 'mainDropdown')">
+                        <div class="select-dropdown" id="mainDropdown"></div>
                     </div>
                 </div>
                 
@@ -404,24 +403,13 @@
 
         async function loadAllItems() {
             try {
-                console.log('📡 Fetching from:', APPS_SCRIPT_URL + '?action=getAllItems');
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems&callback=cb_' + Date.now());
-                console.log('Response status:', response.status);
-                
                 const text = await response.text();
-                console.log('Raw response:', text.substring(0, 200));
-                
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[0]);
-                    console.log('Parsed data keys:', Object.keys(data).slice(0, 5));
                     allItems = Object.values(data).sort((a, b) => a.name.localeCompare(b.name));
-                    console.log('✓ allItems array:', allItems.length, 'items');
-                    console.log('First item:', allItems[0]);
                     document.getElementById('totalCount').textContent = allItems.length;
-                } else {
-                    console.error('❌ No JSON match found in response');
-                    showMessage('Failed to parse products from Google Sheets', 'error');
                 }
             } catch (error) {
                 console.error('❌ Error loading items:', error);
@@ -431,17 +419,14 @@
 
         async function loadUPCMapping() {
             try {
-                console.log('📡 Fetching UPC mapping...');
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getUPCMapping&callback=cb_' + Date.now());
                 const text = await response.text();
-                console.log('UPC mapping response:', text.substring(0, 200));
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[0]);
                     Object.entries(data).forEach(([upc, itemNum]) => {
                         upcMapping[normalizeUPC(upc)] = itemNum;
                     });
-                    console.log('✓ UPC mapping loaded:', Object.keys(upcMapping).length);
                 }
             } catch (error) {
                 console.error('❌ Error loading UPC mapping:', error);
@@ -476,11 +461,9 @@
 
         document.getElementById('upcInput').addEventListener('keyup', (e) => {
             const value = e.target.value.trim();
-            
             if (value.length > 0 && !lastScanMethod) {
                 document.getElementById('searchBtn').style.display = 'inline-block';
             }
-
             if (e.key === 'Enter' && value.length >= 8) {
                 lastScanMethod = 'manual';
                 manualSearch();
@@ -515,8 +498,6 @@
 
         function performSearch(upc) {
             currentUPC = normalizeUPC(upc);
-            
-            // Check exact match in UPC mapping
             if (upcMapping[currentUPC]) {
                 const itemNum = upcMapping[currentUPC];
                 const item = allItems.find(i => i.number == itemNum);
@@ -525,8 +506,6 @@
                     return;
                 }
             }
-
-            // Fuzzy match (first 11 digits)
             const first11 = currentUPC.substring(0, 11);
             const fuzzyMatch = allItems.find(item => {
                 if (item.upc) {
@@ -535,13 +514,10 @@
                 }
                 return false;
             });
-
             if (fuzzyMatch) {
                 showConfirmScreen(fuzzyMatch.number, fuzzyMatch.name);
                 return;
             }
-
-            // No match - show dropdown
             displayDropdown();
         }
 
@@ -549,13 +525,11 @@
             currentItemNum = itemNum;
             currentItemName = itemName;
             editMode = false;
-            
             document.getElementById('scanSection').style.display = 'none';
             document.getElementById('dropdownSection').classList.add('hidden');
             document.getElementById('manualFormSection').classList.add('hidden');
             document.getElementById('qtySection').classList.add('hidden');
             document.getElementById('confirmSection').classList.remove('hidden');
-            
             document.getElementById('confirmUPC').textContent = currentUPC;
             document.getElementById('confirmProductName').textContent = itemName;
             document.getElementById('confirmItemNumber').textContent = itemNum;
@@ -574,31 +548,76 @@
 
         function showChangeDropdown() {
             document.getElementById('changeDropdownSection').classList.remove('hidden');
-            displayChangeDropdown();
+            populateDropdown('changeDropdown', 'changeLabel');
+            positionDropdown('changeContainer', 'changeDropdown');
         }
 
-        function displayChangeDropdown() {
-            const dropdown = document.getElementById('selectDropdown');
+        function displayDropdown() {
+            document.getElementById('searchBtn').style.display = 'none';
+            document.getElementById('scanSection').style.display = 'none';
+            document.getElementById('confirmSection').classList.add('hidden');
+            document.getElementById('dropdownSection').classList.remove('hidden');
+            populateDropdown('mainDropdown', 'mainLabel');
+            positionDropdown('mainContainer', 'mainDropdown');
+        }
+
+        function populateDropdown(dropdownId, labelId) {
+            const dropdown = document.getElementById(dropdownId);
             dropdown.innerHTML = allItems.map((item, idx) => `
-                <div class="select-option" data-index="${idx}" onclick="selectFromChangeDropdown(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
+                <div class="select-option" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}', '${labelId}')">
                     <div class="select-option-name">${item.name}</div>
                     <div class="select-option-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
                 </div>
             `).join('');
-            
-            document.getElementById('selectSearch').value = '';
-            document.querySelector('.select-trigger').classList.add('active');
-            document.getElementById('selectSearch').focus();
         }
 
-        function selectFromChangeDropdown(itemNum, itemName) {
+        function positionDropdown(containerId, dropdownId) {
+            const container = document.getElementById(containerId);
+            const trigger = container.querySelector('.select-trigger');
+            const dropdown = document.getElementById(dropdownId);
+            const rect = trigger.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+            dropdown.style.left = (rect.left + window.scrollX) + 'px';
+            dropdown.style.width = rect.width + 'px';
+        }
+
+        function toggleDropdown(containerId) {
+            const container = document.getElementById(containerId);
+            container.classList.toggle('open');
+            if (container.classList.contains('open')) {
+                const dropdownId = container.querySelector('.select-dropdown').id;
+                positionDropdown(containerId, dropdownId);
+                container.querySelector('.select-search').focus();
+            }
+        }
+
+        function selectProduct(itemNum, itemName, labelId) {
             currentItemNum = itemNum;
             currentItemName = itemName;
-            document.getElementById('confirmProductName').textContent = itemName;
-            document.getElementById('confirmItemNumber').textContent = itemNum;
-            document.getElementById('selectLabel').textContent = itemName;
-            closeSelectDropdown();
+            document.getElementById(labelId).textContent = itemName;
+            closeAllDropdowns();
             document.getElementById('changeDropdownSection').classList.add('hidden');
+            document.getElementById('dropdownSection').classList.add('hidden');
+            document.getElementById('qtySection').classList.remove('hidden');
+            document.getElementById('previewName').textContent = itemName;
+            document.getElementById('previewNumber').textContent = itemNum;
+            document.getElementById('previewUPC').textContent = currentUPC;
+            document.getElementById('qtyInput').value = '';
+            document.getElementById('qtyInput').focus();
+        }
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.select-container').forEach(c => c.classList.remove('open'));
+        }
+
+        function filterOptions(searchId, dropdownId) {
+            const search = document.getElementById(searchId).value.toLowerCase();
+            const options = document.getElementById(dropdownId).querySelectorAll('.select-option');
+            options.forEach(option => {
+                const name = option.querySelector('.select-option-name').textContent.toLowerCase();
+                const detail = option.querySelector('.select-option-detail').textContent.toLowerCase();
+                option.style.display = (name.includes(search) || detail.includes(search)) ? 'block' : 'none';
+            });
         }
 
         function cancelConfirm() {
@@ -610,73 +629,8 @@
             document.getElementById('upcInput').focus();
         }
 
-        function displayDropdown() {
-            console.log('displayDropdown called, allItems.length:', allItems.length);
-            document.getElementById('searchBtn').style.display = 'none';
-            document.getElementById('scanSection').style.display = 'none';
-            document.getElementById('confirmSection').classList.add('hidden');
-            document.getElementById('dropdownSection').classList.remove('hidden');
-            
-            const dropdown = document.getElementById('selectDropdown');
-            console.log('Rendering dropdown with', allItems.length, 'items');
-            dropdown.innerHTML = allItems.map((item, idx) => `
-                <div class="select-option" data-index="${idx}" onclick="selectProductFromDropdown(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
-                    <div class="select-option-name">${item.name}</div>
-                    <div class="select-option-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
-                </div>
-            `).join('');
-            
-            document.getElementById('selectSearch').value = '';
-            const trigger = document.querySelector('.select-trigger');
-            trigger.classList.add('active');
-            document.getElementById('selectSearch').focus();
-        }
-
-        function selectProductFromDropdown(itemNum, itemName) {
-            currentItemNum = itemNum;
-            currentItemName = itemName;
-            document.getElementById('selectLabel').textContent = itemName;
-            closeSelectDropdown();
-            document.getElementById('dropdownSection').classList.add('hidden');
-            document.getElementById('qtySection').classList.remove('hidden');
-            document.getElementById('previewName').textContent = itemName;
-            document.getElementById('previewNumber').textContent = itemNum;
-            document.getElementById('previewUPC').textContent = currentUPC;
-            document.getElementById('qtyInput').value = '';
-            document.getElementById('qtyInput').focus();
-        }
-
-        function toggleSelectDropdown() {
-            const trigger = document.querySelector('.select-trigger');
-            trigger.classList.toggle('active');
-            if (trigger.classList.contains('active')) {
-                document.getElementById('selectSearch').focus();
-            }
-        }
-
-        function closeSelectDropdown() {
-            const triggers = document.querySelectorAll('.select-trigger');
-            triggers.forEach(t => t.classList.remove('active'));
-        }
-
-        function filterSelectOptions() {
-            const search = document.getElementById('selectSearch').value.toLowerCase();
-            const options = document.querySelectorAll('.select-option');
-            
-            options.forEach(option => {
-                const name = option.querySelector('.select-option-name').textContent.toLowerCase();
-                const detail = option.querySelector('.select-option-detail').textContent.toLowerCase();
-                
-                if (name.includes(search) || detail.includes(search)) {
-                    option.classList.remove('hidden');
-                } else {
-                    option.classList.add('hidden');
-                }
-            });
-        }
-
         function showManualForm() {
-            closeSelectDropdown();
+            closeAllDropdowns();
             document.getElementById('dropdownSection').classList.add('hidden');
             document.getElementById('manualFormSection').classList.remove('hidden');
             document.getElementById('manualUPC').textContent = currentUPC;
@@ -688,16 +642,13 @@
         function confirmManualProduct() {
             const name = document.getElementById('manualName').value.trim();
             const number = document.getElementById('manualNumber').value.trim();
-            
             if (!name || !number) {
                 showMessage('Enter both product name and item number', 'error');
                 return;
             }
-
             if (currentUPC) {
                 upcMapping[currentUPC] = number;
             }
-
             currentItemNum = number;
             currentItemName = name;
             document.getElementById('manualFormSection').classList.add('hidden');
@@ -721,8 +672,7 @@
             document.getElementById('searchBtn').style.display = 'none';
             document.getElementById('dropdownSection').classList.add('hidden');
             document.getElementById('manualFormSection').classList.add('hidden');
-            document.getElementById('selectLabel').textContent = 'Choose a product...';
-            closeSelectDropdown();
+            closeAllDropdowns();
             document.getElementById('scanSection').style.display = 'block';
             document.getElementById('upcInput').focus();
         }
@@ -736,12 +686,10 @@
 
         function saveAndNext() {
             const qty = document.getElementById('qtyInput').value;
-            
             if (!qty || qty < 0) {
                 showMessage('Enter valid quantity', 'error');
                 return;
             }
-
             scannedItems.push({
                 upc: currentUPC || '',
                 itemNumber: currentItemNum,
@@ -749,13 +697,10 @@
                 qty: parseFloat(qty),
                 timestamp: new Date().toISOString()
             });
-
             saveScannedItemsToStorage();
             displayScannedItems();
             updateProgress();
-
             showMessage(`✓ ${currentItemName} saved (${qty} cartons)`, 'success');
-            
             document.getElementById('qtySection').classList.add('hidden');
             document.getElementById('scanSection').style.display = 'block';
             resetScanner();
@@ -781,7 +726,6 @@
         function startCamera() {
             const video = document.getElementById('cameraPreview');
             video.style.display = 'block';
-
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                 .then(stream => {
                     cameraStream = stream;
@@ -796,7 +740,6 @@
         function scanBarcodeFromCamera() {
             const video = document.getElementById('cameraPreview');
             const codeReader = new ZXing.BrowserMultiFormatReader();
-
             const decodeFromVideoElement = () => {
                 codeReader.decodeFromVideoElement(video)
                     .then(result => {
@@ -808,7 +751,6 @@
                         setTimeout(decodeFromVideoElement, 100);
                     });
             };
-
             decodeFromVideoElement();
         }
 
@@ -830,15 +772,12 @@
         function displayScannedItems() {
             const list = document.getElementById('scannedItemsList');
             list.innerHTML = '';
-            
             if (scannedItems.length === 0) {
                 document.getElementById('scannedItemsSection').classList.add('hidden');
                 return;
             }
-            
             document.getElementById('scannedItemsSection').classList.remove('hidden');
             document.getElementById('scannedCount').textContent = scannedItems.length;
-            
             scannedItems.forEach((item, idx) => {
                 const li = document.createElement('li');
                 li.innerHTML = `
@@ -873,7 +812,6 @@
                 showMessage('No items to submit', 'error');
                 return;
             }
-            
             document.getElementById('confirmText').textContent = `You're about to submit ${scannedItems.length} items to Google Sheets. This action cannot be undone. Continue?`;
             document.getElementById('confirmModal').classList.add('active');
         }
@@ -887,13 +825,10 @@
                 showMessage('No items to submit', 'error');
                 return;
             }
-            
             closeConfirmModal();
             showMessage('Submitting to Google Sheets...', 'loading');
-            
             const countedBy = localStorage.getItem('countedBy') || 'Unknown';
             const date = new Date().toISOString().split('T')[0];
-            
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -911,7 +846,6 @@
                         upcMapping: upcMapping
                     })
                 });
-                
                 const result = await response.json();
                 document.getElementById('messageBox').innerHTML = '';
                 if (result.success) {
@@ -936,7 +870,6 @@
                 countedBy: localStorage.getItem('countedBy'),
                 items: scannedItems
             };
-            
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -960,6 +893,12 @@
                 setTimeout(() => div.remove(), 4000);
             }
         }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.select-container')) {
+                closeAllDropdowns();
+            }
+        });
     </script>
 </body>
 </html>
