@@ -61,7 +61,9 @@
         .location-inputs input:focus { outline: none; border-color: #0056b3; box-shadow: 0 0 0 2px rgba(0,86,179,0.1); }
         
         .order-result { background: #fff3cd; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #ffc107; font-size: 12px; font-weight: 600; text-align: center; color: #856404; }
+        .order-result input { background: #fff3cd; border: 1px solid #ffc107; padding: 6px; border-radius: 4px; font-weight: 600; text-align: center; color: #856404; font-size: 12px; width: 100%; }
         .order-result.green { background: #d4edda; border-color: #28a745; color: #155724; }
+        .order-result.green input { background: #d4edda; border-color: #28a745; color: #155724; }
         
         .move-buttons { display: flex; gap: 6px; margin-top: 12px; }
         .move-btn { flex: 1; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
@@ -79,6 +81,8 @@
         .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
         
         .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -86,7 +90,7 @@
         <div class="header">
             <h1>Smart Ordering v3</h1>
             <p>Sales-based and 4-week average ordering with manual count option</p>
-            <div class="last-modified">Last modified: 2026-09-08 23:50:00</div>
+            <div class="last-modified" id="lastModified">Last modified: Loading...</div>
         </div>
 
         <div class="controls">
@@ -113,7 +117,7 @@
             </div>
         </div>
 
-        <div id="content" class="grid"></div>
+        <div id="content" class="grid"><div class="loading"><div class="loading-spinner"></div>Loading items...</div></div>
 
         <div class="action-bar">
             <button class="save-btn" onclick="saveToSheets()"><i class="fas fa-save"></i> Save to Sheets</button>
@@ -131,7 +135,19 @@
         let currentFilter = 'all';
         let orderData = {};
 
+        function updateTimestamp() {
+            const now = new Date();
+            const formatted = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('lastModified').textContent = 'Last modified: ' + formatted;
+        }
+
         async function initPage() {
+            updateTimestamp();
             setDefaultDates();
             await loadAllItems();
             await loadOrderData();
@@ -174,6 +190,13 @@
             } catch (error) {
                 console.error('Error loading order data:', error);
             }
+        }
+
+        function smartRound(num) {
+            const decimal = num - Math.floor(num);
+            if (decimal < 0.4) return Math.floor(num);
+            if (decimal >= 0.5) return Math.ceil(num);
+            return Math.round(num);
         }
 
         function displayItems() {
@@ -227,9 +250,11 @@
                 </div>
             `;
 
+            const defaultQty = smartRound(order.sales_based || 0);
             let orderResult = `
                 <div class="order-result" id="result-${item.number}">
-                    Order Qty: ${(order.sales_based || 0).toFixed(2)}
+                    <label style="display: block; color: #666; font-size: 11px; margin-bottom: 4px;">Order Qty (Cartons):</label>
+                    <input type="number" id="orderqty-${item.number}" value="${defaultQty}" style="width: 100%;" />
                 </div>
             `;
 
@@ -283,11 +308,12 @@
             const checkbox = document.getElementById(`manual-${itemNumber}`);
             const loc1Input = document.getElementById(`loc1-${itemNumber}`);
             const loc2Input = document.getElementById(`loc2-${itemNumber}`);
+            const orderQtyInput = document.getElementById(`orderqty-${itemNumber}`);
             
-            if (!loc1Input || !loc2Input) return;
+            if (!orderQtyInput) return;
             
-            const loc1 = parseFloat(loc1Input.value) || 0;
-            const loc2 = parseFloat(loc2Input.value) || 0;
+            const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
+            const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
             const order = orderData[itemNumber] || {};
             const mustHave = item.must_have || 0;
 
@@ -299,9 +325,11 @@
                 orderQty = order.sales_based || 0;
             }
 
+            const roundedQty = smartRound(orderQty);
+            orderQtyInput.value = roundedQty;
+            
             const resultDiv = document.getElementById(`result-${itemNumber}`);
             if (resultDiv) {
-                resultDiv.textContent = `Order Qty: ${orderQty.toFixed(2)}`;
                 resultDiv.className = checkbox && checkbox.checked ? 'order-result green' : 'order-result';
             }
         }
@@ -389,22 +417,13 @@
                 const checkbox = document.getElementById(`manual-${item.number}`);
                 const loc1Input = document.getElementById(`loc1-${item.number}`);
                 const loc2Input = document.getElementById(`loc2-${item.number}`);
+                const orderQtyInput = document.getElementById(`orderqty-${item.number}`);
                 
                 const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
                 const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
-                const order = orderData[item.number] || {};
+                const orderQty = orderQtyInput ? parseFloat(orderQtyInput.value) || 0 : 0;
                 const mustHave = item.must_have || 0;
-
-                let orderQty;
-                let didManualCount = false;
-                
-                if (checkbox && checkbox.checked) {
-                    const totalStock = loc1 + loc2;
-                    orderQty = Math.max(0, mustHave - totalStock);
-                    didManualCount = true;
-                } else {
-                    orderQty = order.sales_based || 0;
-                }
+                const didManualCount = checkbox && checkbox.checked;
 
                 data.push({
                     date: new Date().toISOString().split('T')[0],
@@ -434,7 +453,7 @@
                 message += `Item Name: ${item.itemName}\n`;
                 message += `Item #: ${item.itemNumber}\n`;
                 message += `Must Have: ${item.mustHave}\n`;
-                message += `Order Qty: ${item.orderQty.toFixed(2)}\n`;
+                message += `Order Qty: ${item.orderQty}\n`;
                 message += `Based on Sales: ${(orderData[item.itemNumber]?.sales_based || 0).toFixed(2)}\n`;
                 message += `4 Week Avg: ${(orderData[item.itemNumber]?.four_week_avg || 0).toFixed(2)}\n`;
                 message += `Did Manual Count: ${item.didManualCount ? 'Yes' : 'No'}\n`;
