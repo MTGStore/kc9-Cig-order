@@ -418,10 +418,13 @@
                 }
             });
 
-            if (results.length === 0) {
-                showMessage('No products found. Try manual entry.', 'error');
-                return;
-            }
+           if (results.length === 0) {
+    showMessage('No exact match. Use manual entry to add.', 'error');
+    document.getElementById('step1Section').style.display = 'none';
+    document.getElementById('step2Section').style.display = 'block';
+    document.getElementById('dropdownList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No matching products found</div>';
+    return;
+}
 
             displayDropdown(results);
             document.getElementById('step1Section').style.display = 'none';
