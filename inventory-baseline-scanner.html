@@ -418,14 +418,7 @@
                 }
             });
 
-           if (results.length === 0) {
-    showMessage('No exact match. Use manual entry to add.', 'error');
-    document.getElementById('step1Section').style.display = 'none';
-    document.getElementById('step2Section').style.display = 'block';
-    document.getElementById('dropdownList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No matching products found</div>';
-    return;
-}
-
+            // Always go to Step 2 - either show results OR allow manual entry
             displayDropdown(results);
             document.getElementById('step1Section').style.display = 'none';
             document.getElementById('step2Section').style.display = 'block';
@@ -433,12 +426,16 @@
 
         function displayDropdown(results) {
             const list = document.getElementById('dropdownList');
-            list.innerHTML = results.map(item => `
-                <div class="dropdown-item" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
-                    <div class="dropdown-item-name">${item.name}</div>
-                    <div class="dropdown-item-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
-                </div>
-            `).join('');
+            if (results.length === 0) {
+                list.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No matching products found</div>';
+            } else {
+                list.innerHTML = results.map(item => `
+                    <div class="dropdown-item" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
+                        <div class="dropdown-item-name">${item.name}</div>
+                        <div class="dropdown-item-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
+                    </div>
+                `).join('');
+            }
         }
 
         function selectProduct(itemNum, itemName) {
@@ -602,6 +599,7 @@
             scannedItems.splice(idx, 1);
             saveScannedItemsToStorage();
             displayScannedItems();
+            updateProgress();
         }
 
         function saveScannedItemsToStorage() {
