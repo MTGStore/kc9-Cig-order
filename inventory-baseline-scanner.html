@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Baseline Scanner - KC9</title>
+    <!-- DEPLOYMENT TIMESTAMP: Update when redeploying -->
+    <meta name="deployment-time" content="09/08/2026 2:10 PM EST">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,7 +55,7 @@
         .btn-camera { background: #ff6c00; color: white; }
         .btn-camera:hover { background: #e55a00; }
         
-        .item-preview { background: #f9f9f9; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #007bff; }
+        .item-preview { background: #f0f0f0; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #007bff; }
         .preview-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
         .preview-label { color: #666; font-weight: 500; }
         .preview-value { color: #333; font-weight: 600; }
@@ -62,7 +64,7 @@
         .error-msg-alert { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         .loading-msg { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         
-        .dropdown-list { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; max-height: 400px; overflow-y: auto; margin-bottom: 15px; }
+        .dropdown-list { background: white; border: 1px solid #ddd; border-radius: 6px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
         .dropdown-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
         .dropdown-item:hover { background: #e3f2fd; }
         .dropdown-item:last-child { border-bottom: none; }
@@ -85,6 +87,14 @@
         video { width: 100%; max-width: 400px; border-radius: 6px; margin: 15px 0; }
         
         .hidden { display: none !important; }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .modal-title { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 15px; }
+        .modal-text { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-buttons .btn { flex: 1; }
     </style>
 </head>
 <body>
@@ -94,7 +104,7 @@
             <h1><i class="fas fa-lock"></i> Inventory Baseline</h1>
             <p>Enter password to access</p>
             <div style="font-size: 11px; color: #999; margin-top: 15px;">
-                Last deployed: <strong>09/08/2026 at 5:45 PM</strong>
+                Last deployed: <strong>09/08/2026 at 2:10 PM EST</strong>
             </div>
         </div>
         <div class="login-form">
@@ -121,8 +131,8 @@
         <div class="container">
             <div class="header">
                 <h1><i class="fas fa-barcode"></i> Inventory Baseline Scanner</h1>
-                <p>Scan products and enter current on-hand quantities in cartons</p>
-                <div class="last-modified" id="lastModified">Last deployed: 09/08/2026 at 5:45 PM</div>
+                <p>Scan products and enter on-hand quantities in cartons</p>
+                <div class="last-modified">Last deployed: 09/08/2026 at 2:10 PM EST</div>
             </div>
 
             <div class="progress-text">Progress: <strong id="progressCount">0</strong> of <strong id="totalCount">160</strong> items scanned</div>
@@ -132,11 +142,11 @@
 
             <div id="messageBox"></div>
 
-            <!-- MAIN SCANNER SECTION -->
-            <div class="scanner-section" id="mainSection">
-                <h2><i class="fas fa-barcode"></i> Step 1: Scan or Type UPC Code</h2>
+            <!-- STEP 1: SCAN UPC -->
+            <div class="scanner-section" id="scanSection">
+                <h2><i class="fas fa-barcode"></i> Scan or Type UPC</h2>
                 <div class="info-box">
-                    💡 Scan with barcode scanner, phone camera, or type manually. Camera/scanner auto-searches. Manual requires Search button.
+                    💡 Scan with barcode scanner or camera (auto-searches). Type manually + click Search.
                 </div>
                 
                 <div class="form-group">
@@ -155,9 +165,9 @@
 
                 <video id="cameraPreview" style="display: none;"></video>
 
-                <!-- DROPDOWN RESULTS (Hidden until search) -->
-                <div id="dropdownSection" class="hidden">
-                    <div class="form-group" style="margin-top: 20px;">
+                <!-- DROPDOWN (Hidden until search fails) -->
+                <div id="dropdownSection" class="hidden" style="margin-top: 20px;">
+                    <div class="form-group">
                         <label>Select Product from List:</label>
                         <div class="dropdown-list" id="dropdownList"></div>
                     </div>
@@ -174,7 +184,7 @@
                     <div class="item-preview" style="background: #fff9e6; border-left-color: #ff6c00;">
                         <div class="preview-row">
                             <span class="preview-label">Scanned UPC:</span>
-                            <span class="preview-value" id="manualUPC">-</span>
+                            <span class="preview-value" id="manualUPC" style="font-size: 12px;">-</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -194,22 +204,22 @@
                 </div>
             </div>
 
-            <!-- QUANTITY INPUT SECTION (Hidden until product selected) -->
+            <!-- STEP 2: PREVIEW & ENTER QTY -->
             <div class="scanner-section" id="qtySection" class="hidden">
-                <h2><i class="fas fa-box"></i> Step 2: Enter Quantity</h2>
+                <h2><i class="fas fa-box"></i> Review & Enter Quantity</h2>
                 
                 <div class="item-preview">
                     <div class="preview-row">
                         <span class="preview-label">Product:</span>
-                        <span class="preview-value" id="selectedProductName">-</span>
+                        <span class="preview-value" id="previewName">-</span>
                     </div>
                     <div class="preview-row">
                         <span class="preview-label">Item #:</span>
-                        <span class="preview-value" id="selectedItemNumber">-</span>
+                        <span class="preview-value" id="previewNumber">-</span>
                     </div>
                     <div class="preview-row">
-                        <span class="preview-label">UPC Scanned:</span>
-                        <span class="preview-value" id="selectedUPC" style="font-size: 12px;">-</span>
+                        <span class="preview-label">UPC:</span>
+                        <span class="preview-value" id="previewUPC" style="font-size: 12px;">-</span>
                     </div>
                 </div>
 
@@ -233,13 +243,25 @@
                 <h2><i class="fas fa-list"></i> Scanned Items (<span id="scannedCount">0</span>)</h2>
                 <ul class="item-list" id="scannedItemsList"></ul>
                 <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-success" onclick="submitAll()">
-                        <i class="fas fa-check-double"></i> Submit All to Sheets
+                    <button class="btn btn-success" onclick="confirmSubmit()">
+                        <i class="fas fa-check-double"></i> Submit to Sheets
                     </button>
                     <button class="btn btn-secondary" onclick="exportSession()">
                         <i class="fas fa-download"></i> Download Session
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title">Confirm Submission</div>
+            <div class="modal-text" id="confirmText">Are you sure you want to submit all items?</div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Go Back</button>
+                <button class="btn btn-success" onclick="submitAll()">Confirm Submit</button>
             </div>
         </div>
     </div>
@@ -255,7 +277,7 @@
         let currentItemNum = '';
         let currentItemName = '';
         let cameraStream = null;
-        let lastScannedMethod = ''; // 'camera', 'scanner', or 'manual'
+        let lastScanMethod = '';
 
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
@@ -263,9 +285,7 @@
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('nameScreen').style.display = 'block';
                 const savedName = localStorage.getItem('countedBy');
-                if (savedName) {
-                    document.getElementById('nameInput').value = savedName;
-                }
+                if (savedName) document.getElementById('nameInput').value = savedName;
                 document.getElementById('nameInput').focus();
             } else {
                 document.getElementById('errorMsg').style.display = 'block';
@@ -354,33 +374,26 @@
             return upcA || upcE;
         }
 
-        // UPC Input - detect method and auto-search if barcode/camera
         document.getElementById('upcInput').addEventListener('keyup', (e) => {
             const value = e.target.value.trim();
             
-            // Show search button only for manual typing
-            if (value.length > 0 && !lastScannedMethod) {
+            if (value.length > 0 && !lastScanMethod) {
                 document.getElementById('searchBtn').style.display = 'inline-block';
             }
 
-            // Auto-search on Enter key (simulates scanner/camera)
             if (e.key === 'Enter' && value.length >= 8) {
-                lastScannedMethod = 'manual';
+                lastScanMethod = 'manual';
                 performSearch(value);
             }
         });
 
-        // Barcode scanner/camera input (auto-triggers on paste or rapid input)
         document.getElementById('upcInput').addEventListener('input', debounce(function(e) {
             const value = e.target.value.trim();
-            // If input looks like barcode (8+ digits, no delays between keystrokes)
-            if (value.length >= 8 && /^\d+$/.test(value)) {
-                if (!lastScannedMethod) {
-                    lastScannedMethod = 'scanner';
-                    performSearch(value);
-                }
+            if (value.length >= 8 && /^\d+$/.test(value) && !lastScanMethod) {
+                lastScanMethod = 'scanner';
+                performSearch(value);
             }
-        }, 200));
+        }, 150));
 
         function debounce(func, delay) {
             let timeout;
@@ -396,14 +409,13 @@
                 showMessage('Please enter a UPC code', 'error');
                 return;
             }
-            lastScannedMethod = 'manual';
+            lastScanMethod = 'manual';
             performSearch(upc);
         }
 
         function performSearch(upc) {
             currentUPC = normalizeUPC(upc);
             
-            // Check if UPC already mapped
             if (upcMapping[currentUPC]) {
                 const itemNum = upcMapping[currentUPC];
                 const item = allItems.find(i => i.number == itemNum);
@@ -413,7 +425,6 @@
                 }
             }
 
-            // Fuzzy match (first 11 digits)
             const first11 = currentUPC.substring(0, 11);
             const fuzzyMatch = allItems.find(item => {
                 if (item.upc) {
@@ -428,7 +439,6 @@
                 return;
             }
 
-            // No match - show dropdown
             displayDropdown();
         }
 
@@ -449,16 +459,14 @@
             currentItemNum = itemNum;
             currentItemName = itemName;
             
-            // Hide search sections
             document.getElementById('dropdownSection').classList.add('hidden');
             document.getElementById('manualFormSection').classList.add('hidden');
             
-            // Show quantity section
-            document.getElementById('mainSection').style.display = 'none';
+            document.getElementById('scanSection').style.display = 'none';
             document.getElementById('qtySection').classList.remove('hidden');
-            document.getElementById('selectedProductName').textContent = itemName;
-            document.getElementById('selectedItemNumber').textContent = itemNum;
-            document.getElementById('selectedUPC').textContent = currentUPC;
+            document.getElementById('previewName').textContent = itemName;
+            document.getElementById('previewNumber').textContent = itemNum;
+            document.getElementById('previewUPC').textContent = currentUPC;
             document.getElementById('qtyInput').value = '';
             document.getElementById('qtyInput').focus();
         }
@@ -481,7 +489,6 @@
                 return;
             }
 
-            // Save UPC mapping for future reference
             if (currentUPC) {
                 upcMapping[currentUPC] = number;
             }
@@ -495,7 +502,7 @@
         }
 
         function clearSearch() {
-            lastScannedMethod = '';
+            lastScanMethod = '';
             document.getElementById('upcInput').value = '';
             document.getElementById('searchBtn').style.display = 'none';
             document.getElementById('dropdownSection').classList.add('hidden');
@@ -525,15 +532,14 @@
 
             showMessage(`✓ ${currentItemName} saved (${qty} cartons)`, 'success');
             
-            // Reset for next scan
             document.getElementById('qtySection').classList.add('hidden');
-            document.getElementById('mainSection').style.display = 'block';
+            document.getElementById('scanSection').style.display = 'block';
             resetScanner();
         }
 
         function cancelQty() {
             document.getElementById('qtySection').classList.add('hidden');
-            document.getElementById('mainSection').style.display = 'block';
+            document.getElementById('scanSection').style.display = 'block';
             clearSearch();
         }
 
@@ -541,7 +547,7 @@
             currentUPC = '';
             currentItemNum = '';
             currentItemName = '';
-            lastScannedMethod = '';
+            lastScanMethod = '';
             document.getElementById('upcInput').value = '';
             document.getElementById('searchBtn').style.display = 'none';
             document.getElementById('upcInput').focus();
@@ -569,7 +575,7 @@
             const decodeFromVideoElement = () => {
                 codeReader.decodeFromVideoElement(video)
                     .then(result => {
-                        lastScannedMethod = 'camera';
+                        lastScanMethod = 'camera';
                         performSearch(result.text);
                         stopCamera();
                     })
@@ -634,9 +640,21 @@
 
         function loadScannedItemsFromStorage() {
             const stored = localStorage.getItem('scannedItems');
-            if (stored) {
-                scannedItems = JSON.parse(stored);
+            if (stored) scannedItems = JSON.parse(stored);
+        }
+
+        function confirmSubmit() {
+            if (scannedItems.length === 0) {
+                showMessage('No items to submit', 'error');
+                return;
             }
+            
+            document.getElementById('confirmText').textContent = `You're about to submit ${scannedItems.length} items to Google Sheets. This action cannot be undone. Continue?`;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
         }
 
         async function submitAll() {
@@ -644,6 +662,9 @@
                 showMessage('No items to submit', 'error');
                 return;
             }
+            
+            closeConfirmModal();
+            showMessage('Submitting to Google Sheets...', 'loading');
             
             const countedBy = localStorage.getItem('countedBy') || 'Unknown';
             const date = new Date().toISOString().split('T')[0];
@@ -667,8 +688,9 @@
                 });
                 
                 const result = await response.json();
+                document.getElementById('messageBox').innerHTML = '';
                 if (result.success) {
-                    showMessage(`✓ ${scannedItems.length} items submitted!`, 'success');
+                    showMessage(`✓ ${scannedItems.length} items submitted successfully!`, 'success');
                     scannedItems = [];
                     saveScannedItemsToStorage();
                     displayScannedItems();
