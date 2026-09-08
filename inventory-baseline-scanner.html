@@ -65,8 +65,8 @@
         .error-msg-alert { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         .loading-msg { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
         
-        .dropdown-list { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-        .dropdown-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .dropdown-list { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; max-height: 400px; overflow-y: auto; margin-bottom: 15px; }
+        .dropdown-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
         .dropdown-item:hover { background: #e3f2fd; }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item-name { font-weight: 600; color: #333; }
@@ -87,9 +87,7 @@
         
         video { width: 100%; max-width: 400px; border-radius: 6px; margin: 15px 0; }
         
-        .loading { text-align: center; padding: 20px; }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .filter-stats { font-size: 12px; color: #999; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -137,22 +135,20 @@
 
             <div id="messageBox"></div>
 
-            <!-- STEP 1: INPUT METHOD -->
+            <!-- STEP 1: SCAN OR BROWSE -->
             <div class="scanner-section" id="step1Section">
                 <h2><i class="fas fa-barcode"></i> Step 1: Find Product</h2>
                 <div class="info-box">
-                    💡 Barcode scanner will work automatically. Type UPC and press Search. Or use camera to scan.
+                    💡 Scan barcode, type to filter list, or scroll all 160 items. Click product to select.
                 </div>
                 
                 <div class="form-group">
-                    <label for="barcodeInput">Scan or Type UPC Code</label>
-                    <input type="text" id="barcodeInput" placeholder="Scan barcode or type UPC (e.g., 02820000384)" autocomplete="off">
+                    <label for="barcodeInput">Scan Barcode or Filter by Name/UPC</label>
+                    <input type="text" id="barcodeInput" placeholder="Scan, type product name, or item #..." autocomplete="off">
+                    <div class="filter-stats">Showing <strong id="itemCount">160</strong> items</div>
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-search" onclick="searchByUPC()">
-                        <i class="fas fa-search"></i> Search UPC
-                    </button>
                     <button class="btn btn-camera" onclick="startCamera()">
                         <i class="fas fa-camera"></i> Use Camera
                     </button>
@@ -160,43 +156,39 @@
 
                 <video id="cameraPreview" style="display: none;"></video>
                 <canvas id="canvas" style="display: none;"></canvas>
+
+                <div class="form-group">
+                    <label>Products - Click to Select:</label>
+                    <div class="dropdown-list" id="dropdownList"></div>
+                </div>
             </div>
 
-            <!-- STEP 2: SELECT OR ADD PRODUCT -->
+            <!-- STEP 2: MANUAL ENTRY (Hidden by default) -->
             <div class="scanner-section" id="step2Section" style="display: none;">
-                <h2><i class="fas fa-check"></i> Step 2: Select Product</h2>
+                <h2><i class="fas fa-plus"></i> Step 2: Add New Product</h2>
                 
-                <div id="dropdownContainer">
-                    <div class="form-group">
-                        <label>Found Products - Click to Select:</label>
-                        <div class="dropdown-list" id="dropdownList"></div>
-                    </div>
+                <div class="form-group">
+                    <label for="manualItemName">Product Name *</label>
+                    <input type="text" id="manualItemName" placeholder="e.g., Marlboro Gold Short">
+                </div>
+                <div class="form-group">
+                    <label for="manualItemNumber">Item Number *</label>
+                    <input type="text" id="manualItemNumber" placeholder="e.g., 101">
+                </div>
+                <div class="form-group">
+                    <label for="manualUPC">UPC Code (to remember for next scan)</label>
+                    <input type="text" id="manualUPC" placeholder="e.g., 028200003843" readonly>
                 </div>
 
-                <div id="manualEntryContainer" style="display: none;">
-                    <div class="form-group">
-                        <label for="manualItemName">Product Name (Manual Entry)</label>
-                        <input type="text" id="manualItemName" placeholder="e.g., Marlboro Gold Short">
-                    </div>
-                    <div class="form-group">
-                        <label for="manualItemNumber">Item Number (Manual Entry)</label>
-                        <input type="text" id="manualItemNumber" placeholder="e.g., 101">
-                    </div>
-                    <button class="btn btn-success" onclick="addManualItem()">Add Manual Item</button>
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="confirmManualItem()">Save Product & Count</button>
+                    <button class="btn btn-secondary" onclick="cancelManualEntry()">Cancel</button>
                 </div>
-
-                <button class="btn btn-secondary" onclick="toggleManualEntry()" style="margin-top: 10px;">
-                    <i class="fas fa-plus"></i> Can't Find? Add Manually
-                </button>
-
-                <button class="btn btn-secondary" onclick="cancelSearch()" style="margin-top: 10px;">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
             </div>
 
             <!-- STEP 3: ENTER QUANTITY -->
             <div class="scanner-section" id="step3Section" style="display: none;">
-                <h2><i class="fas fa-box"></i> Step 3: Enter Quantity</h2>
+                <h2><i class="fas fa-box"></i> Step 2: Enter Quantity</h2>
                 
                 <div class="item-preview" id="itemPreview">
                     <div class="preview-row">
@@ -211,7 +203,7 @@
 
                 <div class="form-group">
                     <label for="qtyInput">Current Qty in Cartons *</label>
-                    <input type="number" id="qtyInput" placeholder="e.g., 1.5 (1 carton + 5 packs)" min="0" step="0.1" required>
+                    <input type="number" id="qtyInput" placeholder="e.g., 1.5 (1 carton + 5 packs)" min="0" step="0.1" required autofocus>
                 </div>
 
                 <div class="button-group">
@@ -252,7 +244,7 @@
         let currentItemNum = '';
         let currentItemName = '';
         let cameraStream = null;
-        let manualEntryMode = false;
+        let lastScannedUPC = '';
 
         // Get last GitHub update time
         async function getLastUpdateTime() {
@@ -319,6 +311,7 @@
             document.getElementById('messageBox').innerHTML = '';
             loadScannedItemsFromStorage();
             displayScannedItems();
+            displayAllItems();
             document.getElementById('barcodeInput').focus();
         }
 
@@ -382,92 +375,146 @@
             return upcA || upcE;
         }
 
-        // Barcode scanner - auto on Enter key
-        document.getElementById('barcodeInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const upc = document.getElementById('barcodeInput').value.trim();
-                if (upc) {
-                    searchByUPC(upc);
+        // Real-time filter
+        document.getElementById('barcodeInput').addEventListener('keyup', (e) => {
+            const query = e.target.value.trim();
+            if (e.key === 'Enter' && query) {
+                // Scanned with barcode scanner (13+ digits = likely barcode)
+                if (/^\d{8,}$/.test(query)) {
+                    handleScannedBarcode(query);
                 }
+            } else {
+                // Live filter
+                displayFilteredItems(query);
             }
         });
 
-        function searchByUPC(upcOverride) {
-            const upc = upcOverride || document.getElementById('barcodeInput').value.trim();
-            if (!upc) {
-                showMessage('Please enter or scan a UPC', 'error');
+        function displayAllItems() {
+            const list = document.getElementById('dropdownList');
+            list.innerHTML = allItems.map(item => `
+                <div class="dropdown-item" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}', '')">
+                    <div class="dropdown-item-name">${item.name}</div>
+                    <div class="dropdown-item-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
+                </div>
+            `).join('');
+            document.getElementById('itemCount').textContent = allItems.length;
+        }
+
+        function displayFilteredItems(query) {
+            if (!query) {
+                displayAllItems();
                 return;
             }
 
-            currentUPC = normalizeUPC(upc);
-            const results = [];
+            const searchTerm = query.toLowerCase();
+            const results = allItems.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) || 
+                item.number.toString().includes(searchTerm) ||
+                (item.upc && item.upc.includes(query))
+            );
 
-            // Check UPC mapping first
-            if (upcMapping[currentUPC]) {
-                const itemNum = upcMapping[currentUPC];
-                const item = allItems.find(i => i.number == itemNum);
-                if (item) results.push(item);
-            }
-
-            // Search by name/number (if UPC not found or partial match)
-            const searchTerm = upc.toLowerCase();
-            allItems.forEach(item => {
-                if ((item.name.toLowerCase().includes(searchTerm) || item.number.toString().includes(searchTerm)) && 
-                    !results.find(r => r.number === item.number)) {
-                    results.push(item);
-                }
-            });
-
-            // Always go to Step 2 - either show results OR allow manual entry
-            displayDropdown(results);
-            document.getElementById('step1Section').style.display = 'none';
-            document.getElementById('step2Section').style.display = 'block';
-        }
-
-        function displayDropdown(results) {
             const list = document.getElementById('dropdownList');
             if (results.length === 0) {
-                list.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No matching products found</div>';
+                list.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #999;">
+                        No products found<br>
+                        <button class="btn btn-secondary" onclick="showManualEntry('${query}')" style="margin-top: 10px;">
+                            <i class="fas fa-plus"></i> Add as New Product
+                        </button>
+                    </div>
+                `;
             } else {
                 list.innerHTML = results.map(item => `
-                    <div class="dropdown-item" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}')">
+                    <div class="dropdown-item" onclick="selectProduct(${item.number}, '${item.name.replace(/'/g, "\\'")}', '')">
                         <div class="dropdown-item-name">${item.name}</div>
                         <div class="dropdown-item-detail">Item #${item.number} ${item.upc ? '| UPC: ' + item.upc : ''}</div>
                     </div>
                 `).join('');
             }
+            document.getElementById('itemCount').textContent = results.length;
         }
 
-        function selectProduct(itemNum, itemName) {
+        function handleScannedBarcode(barcode) {
+            lastScannedUPC = normalizeUPC(barcode);
+            
+            // Check if UPC already mapped
+            if (upcMapping[lastScannedUPC]) {
+                const itemNum = upcMapping[lastScannedUPC];
+                const item = allItems.find(i => i.number == itemNum);
+                if (item) {
+                    selectProduct(item.number, item.name, lastScannedUPC);
+                    return;
+                }
+            }
+
+            // Try fuzzy match (first 11 digits)
+            const first11 = lastScannedUPC.substring(0, 11);
+            const fuzzyMatch = allItems.find(item => {
+                if (item.upc) {
+                    const itemUPC = normalizeUPC(item.upc);
+                    return itemUPC.substring(0, 11) === first11;
+                }
+                return false;
+            });
+
+            if (fuzzyMatch) {
+                selectProduct(fuzzyMatch.number, fuzzyMatch.name, lastScannedUPC);
+                return;
+            }
+
+            // No match - show manual entry
+            showManualEntry(barcode);
+        }
+
+        function selectProduct(itemNum, itemName, scannedUPC) {
             currentItemNum = itemNum;
             currentItemName = itemName;
+            currentUPC = scannedUPC;
             document.getElementById('previewName').textContent = itemName;
             document.getElementById('previewNumber').textContent = itemNum;
+            document.getElementById('step1Section').style.display = 'none';
             document.getElementById('step2Section').style.display = 'none';
             document.getElementById('step3Section').style.display = 'block';
             document.getElementById('qtyInput').value = '';
             document.getElementById('qtyInput').focus();
         }
 
-        function toggleManualEntry() {
-            manualEntryMode = !manualEntryMode;
-            document.getElementById('dropdownContainer').style.display = manualEntryMode ? 'none' : 'block';
-            document.getElementById('manualEntryContainer').style.display = manualEntryMode ? 'block' : 'none';
-            if (manualEntryMode) {
-                document.getElementById('manualItemName').focus();
-            }
+        function showManualEntry(upc) {
+            lastScannedUPC = normalizeUPC(upc);
+            document.getElementById('manualUPC').value = upc;
+            document.getElementById('manualItemName').value = '';
+            document.getElementById('manualItemNumber').value = '';
+            document.getElementById('step1Section').style.display = 'none';
+            document.getElementById('step2Section').style.display = 'block';
+            document.getElementById('step3Section').style.display = 'none';
+            document.getElementById('manualItemName').focus();
         }
 
-        function addManualItem() {
+        function confirmManualItem() {
             const name = document.getElementById('manualItemName').value.trim();
             const number = document.getElementById('manualItemNumber').value.trim();
+            const upc = document.getElementById('manualUPC').value;
             
             if (!name || !number) {
                 showMessage('Enter both product name and item number', 'error');
                 return;
             }
 
-            selectProduct(number, name);
+            // Save UPC mapping
+            if (upc) {
+                upcMapping[lastScannedUPC] = number;
+            }
+
+            selectProduct(number, name, lastScannedUPC);
+        }
+
+        function cancelManualEntry() {
+            document.getElementById('step1Section').style.display = 'block';
+            document.getElementById('step2Section').style.display = 'none';
+            document.getElementById('step3Section').style.display = 'none';
+            document.getElementById('barcodeInput').value = '';
+            document.getElementById('barcodeInput').focus();
+            displayAllItems();
         }
 
         async function saveItem() {
@@ -486,10 +533,6 @@
                 timestamp: new Date().toISOString()
             });
 
-            if (currentUPC && currentItemNum) {
-                upcMapping[currentUPC] = currentItemNum;
-            }
-
             saveScannedItemsToStorage();
             displayScannedItems();
             updateProgress();
@@ -502,23 +545,16 @@
             currentUPC = '';
             currentItemNum = '';
             currentItemName = '';
-            manualEntryMode = false;
             document.getElementById('step1Section').style.display = 'block';
             document.getElementById('step2Section').style.display = 'none';
             document.getElementById('step3Section').style.display = 'none';
             document.getElementById('barcodeInput').value = '';
             document.getElementById('barcodeInput').focus();
-            document.getElementById('dropdownContainer').style.display = 'block';
-            document.getElementById('manualEntryContainer').style.display = 'none';
-        }
-
-        function cancelSearch() {
-            resetScanner();
+            displayAllItems();
         }
 
         function cancelQty() {
-            document.getElementById('step3Section').style.display = 'none';
-            document.getElementById('step2Section').style.display = 'block';
+            resetScanner();
         }
 
         function startCamera() {
@@ -544,9 +580,9 @@
             const decodeFromVideoElement = () => {
                 codeReader.decodeFromVideoElement(video)
                     .then(result => {
-                        const upc = result.text;
+                        const barcode = result.text;
                         stopCamera();
-                        searchByUPC(upc);
+                        handleScannedBarcode(barcode);
                     })
                     .catch(err => {
                         setTimeout(decodeFromVideoElement, 100);
