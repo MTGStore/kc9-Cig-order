@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Baseline Scanner - KC9</title>
     <!-- DEPLOYMENT TIMESTAMP: Update when redeploying -->
-    <!-- Last deployed: 09/08/2026 at 5:28 PM EST -->
+    <!-- Last deployed: 09/08/2026 at 5:30 PM EST -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -73,7 +73,7 @@
         .select-search { width: 100%; padding: 12px; border: 1px solid #ddd; border-top: none; border-bottom: 1px solid #eee; border-radius: 0; font-size: 14px; display: none; }
         .select-trigger.active ~ .select-search { display: block; }
         
-        .select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; max-height: 300px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; max-height: 300px; overflow-y: auto; z-index: 9999; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .select-trigger.active ~ .select-dropdown { display: block; }
         .select-option { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s; font-size: 14px; }
         .select-option:hover { background: #e3f2fd; }
@@ -119,7 +119,7 @@
             <h1><i class="fas fa-lock"></i> Inventory Baseline</h1>
             <p>Enter password to access</p>
             <div style="font-size: 11px; color: #999; margin-top: 15px;">
-                Last deployed: <strong>09/08/2026 at 2:20 PM EST</strong>
+                Last deployed: <strong>09/08/2026 at 5:30 PM EST</strong>
             </div>
         </div>
         <div class="login-form">
@@ -147,7 +147,7 @@
             <div class="header">
                 <h1><i class="fas fa-barcode"></i> Inventory Baseline Scanner</h1>
                 <p>Scan products and enter on-hand quantities in cartons</p>
-                <div class="last-modified">Last deployed: 09/08/2026 at 2:20 PM EST</div>
+                <div class="last-modified">Last deployed: 09/08/2026 at 5:30 PM EST</div>
             </div>
 
             <div class="progress-text">Progress: <strong id="progressCount">0</strong> of <strong id="totalCount">160</strong> items scanned</div>
@@ -627,7 +627,8 @@
             `).join('');
             
             document.getElementById('selectSearch').value = '';
-            document.querySelector('.select-trigger').classList.add('active');
+            const trigger = document.querySelector('.select-trigger');
+            trigger.classList.add('active');
             document.getElementById('selectSearch').focus();
         }
 
@@ -654,7 +655,8 @@
         }
 
         function closeSelectDropdown() {
-            document.querySelector('.select-trigger').classList.remove('active');
+            const triggers = document.querySelectorAll('.select-trigger');
+            triggers.forEach(t => t.classList.remove('active'));
         }
 
         function filterSelectOptions() {
