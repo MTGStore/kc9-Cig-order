@@ -86,8 +86,6 @@
         .whatsapp-btn { background: #25d366; color: white; flex: 1; min-width: 150px; }
         .whatsapp-btn:hover { background: #20c651; }
         .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .refresh-btn { background: #17a2b8; color: white; flex: 1; min-width: 150px; }
-        .refresh-btn:hover { background: #138496; }
         
         .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
         .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
@@ -132,7 +130,7 @@
                 </div>
             </div>
 
-            <div class="cache-status" id="cacheStatus">Loading from cache...</div>
+            <div class="cache-status" id="cacheStatus">Loading data...</div>
         </div>
 
         <div id="content" class="grid"><div class="loading"><div class="loading-spinner"></div>Loading items...</div></div>
@@ -140,7 +138,6 @@
         <div class="action-bar">
             <button class="save-btn" onclick="saveToSheets()"><i class="fas fa-save"></i> Save to Sheets</button>
             <button class="whatsapp-btn" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
-            <button class="refresh-btn" onclick="refreshCache()"><i class="fas fa-sync"></i> Refresh Cache</button>
         </div>
     </div>
 
@@ -153,6 +150,7 @@
         let filteredItems = [];
         let currentFilter = 'all';
         let orderData = {};
+        let cacheTimestamp = '';
 
         function updateTimestamp() {
             const now = new Date();
@@ -184,51 +182,43 @@
 
         async function loadAllItems() {
             try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=getAllItems&callback=test`);
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems&callback=cb_' + Date.now());
                 const text = await response.text();
-                const cleanJson = text.replace('test(', '').replace(');', '').trim();
-                allItemsData = JSON.parse(cleanJson);
-                allItems = Object.values(allItemsData);
-                filteredItems = allItems;
-                console.log('Loaded ' + allItems.length + ' items');
+                console.log('Raw response:', text.substring(0, 100));
+                
+                // Parse JSONP response
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    allItemsData = JSON.parse(jsonMatch[0]);
+                    allItems = Object.values(allItemsData);
+                    filteredItems = allItems;
+                    console.log('Loaded ' + allItems.length + ' items');
+                } else {
+                    throw new Error('No JSON found in response');
+                }
             } catch (error) {
                 console.error('Error loading items:', error);
+                document.getElementById('content').innerHTML = '<div class="loading">Error loading items. Check console.</div>';
             }
         }
 
         async function loadOrderDataFromCache() {
             try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=getOrderCalculationFromCache&callback=test2`);
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache&callback=cb_' + Date.now());
                 const text = await response.text();
-                const cleanJson = text.replace('test2(', '').replace(');', '').trim();
-                orderData = JSON.parse(cleanJson);
-                console.log('Loaded order data from cache');
+                
+                // Parse JSONP response
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const data = JSON.parse(jsonMatch[0]);
+                    orderData = data;
+                    console.log('Loaded order data from cache: ' + Object.keys(orderData).length + ' items');
+                } else {
+                    throw new Error('No JSON found in cache response');
+                }
             } catch (error) {
                 console.error('Error loading order data from cache:', error);
-            }
-        }
-
-        async function refreshCache() {
-            try {
-                document.getElementById('cacheStatus').textContent = 'Refreshing cache...';
-                document.getElementById('cacheStatus').classList.add('loading');
-                
-                // Call the cacheOrderCalculations function via Apps Script
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'refreshCache' })
-                });
-                
-                // Wait a moment for cache to build
-                setTimeout(async () => {
-                    await loadOrderDataFromCache();
-                    displayItems();
-                    updateCacheStatus();
-                    document.getElementById('cacheStatus').classList.remove('loading');
-                }, 2000);
-            } catch (error) {
-                console.error('Error refreshing cache:', error);
-                updateCacheStatus();
+                orderData = {};
             }
         }
 
@@ -236,11 +226,21 @@
             const statusDiv = document.getElementById('cacheStatus');
             const itemCount = Object.keys(orderData).length;
             if (itemCount > 0) {
-                statusDiv.textContent = '✓ Cache loaded: ' + itemCount + ' items ready (Updated automatically)';
-                statusDiv.classList.remove('loading');
+                const now = new Date();
+                const timeStr = now.getFullYear() + '-' + 
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(now.getDate()).padStart(2, '0') + ' ' +
+                    String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0');
+                statusDiv.innerHTML = '✓ Cache active: ' + itemCount + ' items ready | Last checked: ' + timeStr + ' (Auto-refreshes daily at 5 AM)';
+                statusDiv.style.background = '#e8f5e9';
+                statusDiv.style.borderColor = '#4caf50';
+                statusDiv.style.color = '#2e7d32';
             } else {
-                statusDiv.textContent = 'Cache loading...';
-                statusDiv.classList.add('loading');
+                statusDiv.innerHTML = '⚠ Cache empty. Refresh page or contact admin.';
+                statusDiv.style.background = '#fff3cd';
+                statusDiv.style.borderColor = '#ffc107';
+                statusDiv.style.color = '#856404';
             }
         }
 
