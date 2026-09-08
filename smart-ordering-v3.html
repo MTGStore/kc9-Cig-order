@@ -90,7 +90,7 @@
         <div class="header">
             <h1>Smart Ordering v3</h1>
             <p>Sales-based and 4-week average ordering with manual count option</p>
-            <div class="last-modified">Last modified: 2026-09-07 22:30:00</div>
+            <div class="last-modified">Last modified: 2026-09-08 23:45:00</div>
         </div>
 
         <div class="controls">
@@ -100,7 +100,7 @@
             </div>
 
             <div class="filter-buttons">
-                <button class="filter-btn" onclick="filterByStatus('all')">All Items</button>
+                <button class="filter-btn active" onclick="filterByStatus('all')">All Items</button>
                 <button class="filter-btn" onclick="filterByStatus('gray')">Unverified</button>
                 <button class="filter-btn" onclick="filterByStatus('blue')">Auto-calc</button>
                 <button class="filter-btn" onclick="filterByStatus('green')">Manual Count</button>
@@ -153,11 +153,13 @@
 
         async function loadAllItems() {
             try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=getAllItems&callback=handleItems`);
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=getAllItems&callback=test`);
                 const text = await response.text();
-                const json = JSON.parse(text.replace('handleItems(', '').replace(');', ''));
-                allItemsData = json;
-                allItems = Object.values(json);
+                const cleanJson = text.replace('test(', '').replace(');', '').trim();
+                allItemsData = JSON.parse(cleanJson);
+                allItems = Object.values(allItemsData);
+                filteredItems = allItems;
+                console.log('Loaded ' + allItems.length + ' items');
             } catch (error) {
                 console.error('Error loading items:', error);
             }
@@ -168,11 +170,12 @@
                 const startDate = document.getElementById('startDate').value;
                 const endDate = document.getElementById('endDate').value;
                 
-                const url = `${APPS_SCRIPT_URL}?action=getOrderCalculation&mode=sales&startDate=${startDate}&endDate=${endDate}&callback=handleOrderData`;
+                const url = `${APPS_SCRIPT_URL}?action=getOrderCalculation&mode=sales&startDate=${startDate}&endDate=${endDate}&callback=test2`;
                 const response = await fetch(url);
                 const text = await response.text();
-                const json = JSON.parse(text.replace('handleOrderData(', '').replace(');', ''));
-                orderData = json;
+                const cleanJson = text.replace('test2(', '').replace(');', '').trim();
+                orderData = JSON.parse(cleanJson);
+                console.log('Loaded order data');
             } catch (error) {
                 console.error('Error loading order data:', error);
             }
@@ -182,8 +185,8 @@
             const grid = document.getElementById('content');
             grid.innerHTML = '';
 
-            if (!allItems || allItems.length === 0) {
-                grid.innerHTML = '<div class="loading">Loading items...</div>';
+            if (!filteredItems || filteredItems.length === 0) {
+                grid.innerHTML = '<div class="loading">No items to display</div>';
                 return;
             }
 
@@ -364,7 +367,7 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    payload: JSON.stringify({
+                    body: JSON.stringify({
                         action: 'saveSmartOrder',
                         data: dataToSave
                     })
@@ -378,10 +381,10 @@
 
         function collectOrderData() {
             const data = [];
-            filteredItems.forEach(item => {
+            allItems.forEach(item => {
                 const checkbox = document.getElementById(`manual-${item.number}`);
-                const loc1 = parseFloat(document.getElementById(`loc1-${item.number}`).value) || 0;
-                const loc2 = parseFloat(document.getElementById(`loc2-${item.number}`).value) || 0;
+                const loc1 = parseFloat(document.getElementById(`loc1-${item.number}`)?.value) || 0;
+                const loc2 = parseFloat(document.getElementById(`loc2-${item.number}`)?.value) || 0;
                 const order = orderData[item.number] || {};
                 const mustHave = item.must_have || 0;
 
@@ -436,7 +439,6 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // Initialize
         window.addEventListener('load', initPage);
     </script>
 </body>
