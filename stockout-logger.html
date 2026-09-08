@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stockout Logger - KC9</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; color: #333; margin-bottom: 5px; }
+        .header p { font-size: 13px; color: #666; }
+        .last-modified { font-size: 11px; color: #999; margin-top: 10px; }
+        
+        .form-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.1); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 12px 20px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background: #dc3545; color: white; }
+        .btn-primary:hover { background: #c82333; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        
+        .log-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .log-table th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; font-size: 13px; color: #333; border-bottom: 2px solid #dee2e6; }
+        .log-table td { padding: 12px; border-bottom: 1px solid #dee2e6; font-size: 13px; }
+        .log-table tr:hover { background: #f8f9fa; }
+        .log-table .status-active { color: #dc3545; font-weight: 600; }
+        .log-table .action-btn { padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .log-table .action-btn:hover { background: #218838; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: #666; }
+        .success-msg { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+        .error-msg { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-exclamation-circle"></i> Stockout Logger</h1>
+            <p>Log when items run out of stock</p>
+            <div class="last-modified" id="lastModified">Last modified: Loading...</div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; font-size: 18px; color: #333;">Log a Stockout</h2>
+            
+            <div id="messageBox"></div>
+
+            <div class="form-group">
+                <label for="itemSelect">Item Name *</label>
+                <select id="itemSelect" required>
+                    <option value="">-- Select an item --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="itemNumber">Item Number (Auto-filled)</label>
+                <input type="text" id="itemNumber" readonly style="background: #f8f9fa; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label for="dateRanOut">Date Item Ran Out *</label>
+                <input type="date" id="dateRanOut" required>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <textarea id="notes" placeholder="e.g., Customer requested, will reorder immediately, check with supplier"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="logStockout()"><i class="fas fa-plus"></i> Log Stockout</button>
+                <button class="btn btn-secondary" onclick="clearForm()"><i class="fas fa-times"></i> Clear</button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; font-size: 18px; color: #333;">Active Stockouts</h2>
+            <div id="logTableContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        
+        let allItems = [];
+        let stockoutLog = [];
+
+        function updateTimestamp() {
+            const now = new Date();
+            const formatted = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('lastModified').textContent = 'Last modified: ' + formatted;
+        }
+
+        async function initPage() {
+            updateTimestamp();
+            setDefaultDate();
+            await loadAllItems();
+            await loadStockoutLog();
+            displayStockoutLog();
+        }
+
+        function setDefaultDate() {
+            const today = new Date();
+            document.getElementById('dateRanOut').value = today.toISOString().split('T')[0];
+        }
+
+        async function loadAllItems() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems&callback=cb_' + Date.now());
+                const text = await response.text();
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const data = JSON.parse(jsonMatch[0]);
+                    allItems = Object.values(data).sort((a, b) => a.name.localeCompare(b.name));
+                    populateItemSelect();
+                } else {
+                    throw new Error('No JSON found');
+                }
+            } catch (error) {
+                console.error('Error loading items:', error);
+                showMessage('Error loading items', 'error');
+            }
+        }
+
+        function populateItemSelect() {
+            const select = document.getElementById('itemSelect');
+            select.innerHTML = '<option value="">-- Select an item --</option>';
+            allItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.number;
+                option.textContent = `${item.name} (#${item.number})`;
+                select.appendChild(option);
+            });
+            select.addEventListener('change', onItemSelect);
+        }
+
+        function onItemSelect() {
+            const itemNumber = document.getElementById('itemSelect').value;
+            if (!itemNumber) {
+                document.getElementById('itemNumber').value = '';
+                return;
+            }
+            const item = allItems.find(i => i.number == itemNumber);
+            document.getElementById('itemNumber').value = item ? item.number : '';
+        }
+
+        async function loadStockoutLog() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts&callback=cb_' + Date.now());
+                const text = await response.text();
+                const jsonMatch = text.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    stockoutLog = JSON.parse(jsonMatch[0]);
+                } else {
+                    stockoutLog = [];
+                }
+            } catch (error) {
+                console.error('Error loading stockout log:', error);
+                stockoutLog = [];
+            }
+        }
+
+        function displayStockoutLog() {
+            const container = document.getElementById('logTableContainer');
+            const activeStockouts = stockoutLog.filter(s => s.status === 'Active');
+
+            if (activeStockouts.length === 0) {
+                container.innerHTML = '<div class="empty-state">No active stockouts</div>';
+                return;
+            }
+
+            let html = `
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Item #</th>
+                            <th>Date Ran Out</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            activeStockouts.forEach(stock => {
+                html += `
+                    <tr>
+                        <td>${stock.itemName}</td>
+                        <td>${stock.itemNumber}</td>
+                        <td>${stock.dateRanOut}</td>
+                        <td style="font-size: 12px; color: #666;">${stock.notes || '-'}</td>
+                        <td>
+                            <button class="action-btn" onclick="clearStockout('${stock.itemNumber}')">
+                                <i class="fas fa-check"></i> In Stock
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        async function logStockout() {
+            const itemNumber = document.getElementById('itemSelect').value;
+            const dateRanOut = document.getElementById('dateRanOut').value;
+            const notes = document.getElementById('notes').value;
+
+            if (!itemNumber || !dateRanOut) {
+                showMessage('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const item = allItems.find(i => i.number == itemNumber);
+            const itemName = item ? item.name : 'Unknown';
+            const upc = item ? item.upc : '';
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'logStockout',
+                        data: {
+                            dateRanOut: dateRanOut,
+                            itemName: itemName,
+                            itemNumber: itemNumber,
+                            upc: upc,
+                            notes: notes
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('Stockout logged successfully', 'success');
+                    clearForm();
+                    await loadStockoutLog();
+                    displayStockoutLog();
+                } else {
+                    showMessage('Error logging stockout: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error logging stockout', 'error');
+            }
+        }
+
+        async function clearStockout(itemNumber) {
+            if (!confirm('Mark this item as back in stock?')) return;
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'clearStockout',
+                        data: { itemNumber: itemNumber }
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('Stockout cleared', 'success');
+                    await loadStockoutLog();
+                    displayStockoutLog();
+                } else {
+                    showMessage('Error clearing stockout', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error clearing stockout', 'error');
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('itemSelect').value = '';
+            document.getElementById('itemNumber').value = '';
+            document.getElementById('notes').value = '';
+            setDefaultDate();
+        }
+
+        function showMessage(msg, type) {
+            const box = document.getElementById('messageBox');
+            const className = type === 'success' ? 'success-msg' : 'error-msg';
+            box.innerHTML = `<div class="${className}"><i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}</div>`;
+            setTimeout(() => { box.innerHTML = ''; }, 4000);
+        }
+
+        window.addEventListener('load', initPage);
+    </script>
+</body>
+</html>
