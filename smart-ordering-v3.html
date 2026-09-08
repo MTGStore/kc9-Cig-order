@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Ordering v3 - KC9 Cigarette Order</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; color: #333; margin-bottom: 5px; }
+        .header p { font-size: 13px; color: #666; }
+        .last-modified { font-size: 11px; color: #999; margin-top: 10px; }
+        
+        .controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .search-bar button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .search-bar button:hover { background: #0056b3; }
+        
+        .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 14px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .filter-btn.active { background: #007bff; color: white; border-color: #007bff; }
+        .filter-btn:hover { background: #e0e0e0; }
+        .filter-btn.active:hover { background: #0056b3; }
+        
+        .date-range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .date-range input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        
+        .card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; position: relative; }
+        .card.gray { border-left: 4px solid #999; }
+        .card.blue { border-left: 4px solid #007bff; }
+        .card.green { border-left: 4px solid #28a745; background: #f8fff9; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .card-title { font-weight: 600; font-size: 14px; color: #333; }
+        .card-status { font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 4px; }
+        .status-gray { background: #f0f0f0; color: #666; }
+        .status-blue { background: #e3f2fd; color: #1976d2; }
+        .status-green { background: #e8f5e9; color: #388e3c; }
+        
+        .card-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 12px; }
+        .info-row { display: flex; justify-content: space-between; }
+        .info-label { color: #666; }
+        .info-value { font-weight: 600; color: #333; }
+        
+        .order-display { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
+        .order-line { display: flex; justify-content: space-between; margin: 4px 0; }
+        .order-label { color: #666; }
+        .order-value { font-weight: 600; color: #333; }
+        
+        .manual-count-section { background: #f0f8ff; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #b3d9ff; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; margin-bottom: 10px; cursor: pointer; }
+        .checkbox-label input { cursor: pointer; }
+        
+        .location-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .location-inputs input { padding: 8px; border: 1px solid #80b3ff; border-radius: 4px; font-size: 12px; }
+        .location-inputs input:focus { outline: none; border-color: #0056b3; box-shadow: 0 0 0 2px rgba(0,86,179,0.1); }
+        
+        .order-result { background: #fff3cd; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #ffc107; font-size: 12px; font-weight: 600; text-align: center; color: #856404; }
+        .order-result.green { background: #d4edda; border-color: #28a745; color: #155724; }
+        
+        .move-buttons { display: flex; gap: 6px; margin-top: 12px; }
+        .move-btn { flex: 1; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .move-btn:hover { background: #e0e0e0; }
+        .move-btn.up:hover { background: #cce5ff; }
+        .move-btn.down:hover { background: #cce5ff; }
+        
+        .action-bar { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-bar button { padding: 12px 20px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .save-btn { background: #28a745; color: white; flex: 1; min-width: 150px; }
+        .save-btn:hover { background: #218838; }
+        .save-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .whatsapp-btn { background: #25d366; color: white; flex: 1; min-width: 150px; }
+        .whatsapp-btn:hover { background: #20c651; }
+        .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Smart Ordering v3</h1>
+            <p>Sales-based and 4-week average ordering with manual count option</p>
+            <div class="last-modified">Last modified: 2026-09-07 22:30:00</div>
+        </div>
+
+        <div class="controls">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search by brand name..." />
+                <button onclick="filterItems()">Search</button>
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn" onclick="filterByStatus('all')">All Items</button>
+                <button class="filter-btn" onclick="filterByStatus('gray')">Unverified</button>
+                <button class="filter-btn" onclick="filterByStatus('blue')">Auto-calc</button>
+                <button class="filter-btn" onclick="filterByStatus('green')">Manual Count</button>
+            </div>
+
+            <div class="date-range">
+                <div>
+                    <label style="font-size: 12px; color: #666; display: block; margin-bottom: 5px;">Start Date</label>
+                    <input type="date" id="startDate" />
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #666; display: block; margin-bottom: 5px;">End Date</label>
+                    <input type="date" id="endDate" />
+                </div>
+            </div>
+        </div>
+
+        <div id="content" class="grid"></div>
+
+        <div class="action-bar">
+            <button class="save-btn" onclick="saveToSheets()"><i class="fas fa-save"></i> Save to Sheets</button>
+            <button class="whatsapp-btn" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        
+        let allItems = [];
+        let allItemsData = [];
+        let filteredItems = [];
+        let currentFilter = 'all';
+        let orderData = {};
+
+        async function initPage() {
+            setDefaultDates();
+            await loadAllItems();
+            await loadOrderData();
+            displayItems();
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            document.getElementById('startDate').value = sevenDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        async function loadAllItems() {
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=getAllItems&callback=handleItems`);
+                const text = await response.text();
+                const json = JSON.parse(text.replace('handleItems(', '').replace(');', ''));
+                allItemsData = json;
+                allItems = Object.values(json);
+            } catch (error) {
+                console.error('Error loading items:', error);
+            }
+        }
+
+        async function loadOrderData() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const url = `${APPS_SCRIPT_URL}?action=getOrderCalculation&mode=sales&startDate=${startDate}&endDate=${endDate}&callback=handleOrderData`;
+                const response = await fetch(url);
+                const text = await response.text();
+                const json = JSON.parse(text.replace('handleOrderData(', '').replace(');', ''));
+                orderData = json;
+            } catch (error) {
+                console.error('Error loading order data:', error);
+            }
+        }
+
+        function displayItems() {
+            const grid = document.getElementById('content');
+            grid.innerHTML = '';
+
+            if (!allItems || allItems.length === 0) {
+                grid.innerHTML = '<div class="loading">Loading items...</div>';
+                return;
+            }
+
+            filteredItems.forEach((item, index) => {
+                const order = orderData[item.number] || {};
+                const status = getItemStatus(item.number);
+                
+                const card = createCard(item, order, status, index);
+                grid.appendChild(card);
+            });
+        }
+
+        function createCard(item, order, status, index) {
+            const card = document.createElement('div');
+            card.className = `card ${status}`;
+            card.id = `card-${item.number}`;
+
+            const statusBadge = status === 'gray' ? 'Unverified' : status === 'blue' ? 'Auto-calc' : 'Manual Count';
+            const statusClass = `status-${status}`;
+
+            let manualCountHtml = `
+                <div class="manual-count-section">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="manual-${item.number}" onchange="updateCardStatus('${item.number}')">
+                        Manual Count
+                    </label>
+                    <div class="location-inputs" id="locations-${item.number}" style="display: none;">
+                        <input type="number" placeholder="Loc 1" step="0.1" id="loc1-${item.number}" oninput="calculateOrderQty('${item.number}')">
+                        <input type="number" placeholder="Loc 2" step="0.1" id="loc2-${item.number}" oninput="calculateOrderQty('${item.number}')">
+                    </div>
+                </div>
+            `;
+
+            let orderDisplay = `
+                <div class="order-display">
+                    <div class="order-line">
+                        <span class="order-label">Sales Based:</span>
+                        <span class="order-value">${(order.sales_based || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="order-line">
+                        <span class="order-label">4-Week Avg:</span>
+                        <span class="order-value">${(order.four_week_avg || 0).toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+
+            let orderResult = `
+                <div class="order-result" id="result-${item.number}">
+                    Order Qty: ${(order.sales_based || 0).toFixed(2)}
+                </div>
+            `;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">${item.name}</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 4px;">Item #: ${item.number}</div>
+                    </div>
+                    <span class="card-status ${statusClass}">${statusBadge}</span>
+                </div>
+
+                <div class="card-info">
+                    <div class="info-row">
+                        <span class="info-label">Must Have:</span>
+                        <span class="info-value">${item.must_have || 0}</span>
+                    </div>
+                </div>
+
+                ${manualCountHtml}
+                ${orderDisplay}
+                ${orderResult}
+
+                <div class="move-buttons">
+                    <button class="move-btn up" onclick="moveCard('${item.number}', 'up')">↑ Move Up</button>
+                    <button class="move-btn down" onclick="moveCard('${item.number}', 'down')">↓ Move Down</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function updateCardStatus(itemNumber) {
+            const checkbox = document.getElementById(`manual-${itemNumber}`);
+            const locationsDiv = document.getElementById(`locations-${itemNumber}`);
+            
+            if (checkbox.checked) {
+                locationsDiv.style.display = 'grid';
+            } else {
+                locationsDiv.style.display = 'none';
+                document.getElementById(`loc1-${itemNumber}`).value = '';
+                document.getElementById(`loc2-${itemNumber}`).value = '';
+                calculateOrderQty(itemNumber);
+            }
+        }
+
+        function calculateOrderQty(itemNumber) {
+            const item = allItems.find(i => i.number === itemNumber);
+            const checkbox = document.getElementById(`manual-${itemNumber}`);
+            const loc1 = parseFloat(document.getElementById(`loc1-${itemNumber}`).value) || 0;
+            const loc2 = parseFloat(document.getElementById(`loc2-${itemNumber}`).value) || 0;
+            const order = orderData[itemNumber] || {};
+            const mustHave = item.must_have || 0;
+
+            let orderQty;
+            if (checkbox.checked) {
+                const totalStock = loc1 + loc2;
+                orderQty = Math.max(0, mustHave - totalStock);
+            } else {
+                orderQty = order.sales_based || 0;
+            }
+
+            document.getElementById(`result-${itemNumber}`).textContent = `Order Qty: ${orderQty.toFixed(2)}`;
+            document.getElementById(`result-${itemNumber}`).className = checkbox.checked ? 'order-result green' : 'order-result';
+        }
+
+        function getItemStatus(itemNumber) {
+            const checkbox = document.getElementById(`manual-${itemNumber}`);
+            if (!checkbox) return 'gray';
+            return checkbox.checked ? 'green' : 'blue';
+        }
+
+        function filterItems() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            filteredItems = allItems.filter(item => 
+                item.name.toLowerCase().includes(search) || 
+                item.number.toString().includes(search)
+            );
+            applyStatusFilter();
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            applyStatusFilter();
+        }
+
+        function applyStatusFilter() {
+            if (currentFilter === 'all') {
+                displayItems();
+                return;
+            }
+
+            const filtered = filteredItems.filter(item => {
+                const checkbox = document.getElementById(`manual-${item.number}`);
+                if (!checkbox) return currentFilter === 'gray';
+                return checkbox.checked ? currentFilter === 'green' : currentFilter === 'blue';
+            });
+
+            const grid = document.getElementById('content');
+            grid.innerHTML = '';
+            filtered.forEach((item, index) => {
+                const order = orderData[item.number] || {};
+                const status = getItemStatus(item.number);
+                grid.appendChild(createCard(item, order, status, index));
+            });
+        }
+
+        function moveCard(itemNumber, direction) {
+            const grid = document.getElementById('content');
+            const card = document.getElementById(`card-${itemNumber}`);
+            if (!card) return;
+
+            if (direction === 'up' && card.previousElementSibling) {
+                grid.insertBefore(card, card.previousElementSibling);
+            } else if (direction === 'down' && card.nextElementSibling) {
+                grid.insertBefore(card.nextElementSibling, card);
+            }
+        }
+
+        async function saveToSheets() {
+            const dataToSave = collectOrderData();
+            if (dataToSave.length === 0) {
+                alert('No items to save');
+                return;
+            }
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    payload: JSON.stringify({
+                        action: 'saveSmartOrder',
+                        data: dataToSave
+                    })
+                });
+                alert('Order saved to Google Sheets!');
+            } catch (error) {
+                console.error('Error saving:', error);
+                alert('Error saving to sheets');
+            }
+        }
+
+        function collectOrderData() {
+            const data = [];
+            filteredItems.forEach(item => {
+                const checkbox = document.getElementById(`manual-${item.number}`);
+                const loc1 = parseFloat(document.getElementById(`loc1-${item.number}`).value) || 0;
+                const loc2 = parseFloat(document.getElementById(`loc2-${item.number}`).value) || 0;
+                const order = orderData[item.number] || {};
+                const mustHave = item.must_have || 0;
+
+                let orderQty;
+                let didManualCount = false;
+                
+                if (checkbox && checkbox.checked) {
+                    const totalStock = loc1 + loc2;
+                    orderQty = Math.max(0, mustHave - totalStock);
+                    didManualCount = true;
+                } else {
+                    orderQty = order.sales_based || 0;
+                }
+
+                data.push({
+                    date: new Date().toISOString().split('T')[0],
+                    countedBy: 'Manager',
+                    itemName: item.name,
+                    itemNumber: item.number,
+                    mustHave: mustHave,
+                    location1: loc1,
+                    location2: loc2,
+                    totalStock: loc1 + loc2,
+                    orderQty: orderQty,
+                    didManualCount: didManualCount
+                });
+            });
+            return data;
+        }
+
+        function sendWhatsApp() {
+            const data = collectOrderData();
+            if (data.length === 0) {
+                alert('No items to send');
+                return;
+            }
+
+            let message = 'KC9 Smart Order Summary\n\n';
+            data.forEach(item => {
+                message += `Item Name: ${item.itemName}\n`;
+                message += `Item #: ${item.itemNumber}\n`;
+                message += `Must Have: ${item.mustHave}\n`;
+                message += `Order Qty: ${item.orderQty.toFixed(2)}\n`;
+                message += `Based on Sales: ${(orderData[item.itemNumber]?.sales_based || 0).toFixed(2)}\n`;
+                message += `4 Week Avg: ${(orderData[item.itemNumber]?.four_week_avg || 0).toFixed(2)}\n`;
+                message += `Did Manual Count: ${item.didManualCount ? 'Yes' : 'No'}\n`;
+                message += `---\n\n`;
+            });
+
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Initialize
+        window.addEventListener('load', initPage);
+    </script>
+</body>
+</html>
