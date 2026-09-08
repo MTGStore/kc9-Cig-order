@@ -18,8 +18,6 @@
         .controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
         .search-bar input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        .search-bar button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
-        .search-bar button:hover { background: #0056b3; }
         
         .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-btn { padding: 8px 14px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
@@ -81,8 +79,6 @@
         .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
         
         .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -90,11 +86,11 @@
         <div class="header">
             <h1>Smart Ordering v3</h1>
             <p>Sales-based and 4-week average ordering with manual count option</p>
-            <div class="last-modified">Last modified: 2026-09-08 23:45:00</div>
+            <div class="last-modified">Last modified: 2026-09-08 23:50:00</div>
         </div>
 
         <div class="controls">
-                        <div class="search-bar">
+            <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Search by brand name..." oninput="filterItems()" />
             </div>
 
@@ -192,7 +188,6 @@
             filteredItems.forEach((item, index) => {
                 const order = orderData[item.number] || {};
                 const status = getItemStatus(item.number);
-                
                 const card = createCard(item, order, status, index);
                 grid.appendChild(card);
             });
@@ -282,23 +277,33 @@
         }
 
         function calculateOrderQty(itemNumber) {
-            const item = allItems.find(i => i.number === itemNumber);
+            const item = allItems.find(i => i.number == itemNumber);
+            if (!item) return;
+            
             const checkbox = document.getElementById(`manual-${itemNumber}`);
-            const loc1 = parseFloat(document.getElementById(`loc1-${itemNumber}`).value) || 0;
-            const loc2 = parseFloat(document.getElementById(`loc2-${itemNumber}`).value) || 0;
+            const loc1Input = document.getElementById(`loc1-${itemNumber}`);
+            const loc2Input = document.getElementById(`loc2-${itemNumber}`);
+            
+            if (!loc1Input || !loc2Input) return;
+            
+            const loc1 = parseFloat(loc1Input.value) || 0;
+            const loc2 = parseFloat(loc2Input.value) || 0;
             const order = orderData[itemNumber] || {};
             const mustHave = item.must_have || 0;
 
             let orderQty;
-            if (checkbox.checked) {
+            if (checkbox && checkbox.checked) {
                 const totalStock = loc1 + loc2;
                 orderQty = Math.max(0, mustHave - totalStock);
             } else {
                 orderQty = order.sales_based || 0;
             }
 
-            document.getElementById(`result-${itemNumber}`).textContent = `Order Qty: ${orderQty.toFixed(2)}`;
-            document.getElementById(`result-${itemNumber}`).className = checkbox.checked ? 'order-result green' : 'order-result';
+            const resultDiv = document.getElementById(`result-${itemNumber}`);
+            if (resultDiv) {
+                resultDiv.textContent = `Order Qty: ${orderQty.toFixed(2)}`;
+                resultDiv.className = checkbox && checkbox.checked ? 'order-result green' : 'order-result';
+            }
         }
 
         function getItemStatus(itemNumber) {
@@ -382,8 +387,11 @@
             const data = [];
             allItems.forEach(item => {
                 const checkbox = document.getElementById(`manual-${item.number}`);
-                const loc1 = parseFloat(document.getElementById(`loc1-${item.number}`)?.value) || 0;
-                const loc2 = parseFloat(document.getElementById(`loc2-${item.number}`)?.value) || 0;
+                const loc1Input = document.getElementById(`loc1-${item.number}`);
+                const loc2Input = document.getElementById(`loc2-${item.number}`);
+                
+                const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
+                const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
                 const order = orderData[item.number] || {};
                 const mustHave = item.must_have || 0;
 
