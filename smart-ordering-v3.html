@@ -32,6 +32,9 @@
         .date-range .label-desc { font-size: 11px; color: #999; margin-bottom: 8px; line-height: 1.4; }
         .date-range input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
         
+        .cache-status { background: #e8f5e9; border: 1px solid #4caf50; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 12px; color: #2e7d32; }
+        .cache-status.loading { background: #e3f2fd; border-color: #2196f3; color: #1565c0; }
+        
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
         
         .card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; position: relative; }
@@ -83,6 +86,8 @@
         .whatsapp-btn { background: #25d366; color: white; flex: 1; min-width: 150px; }
         .whatsapp-btn:hover { background: #20c651; }
         .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .refresh-btn { background: #17a2b8; color: white; flex: 1; min-width: 150px; }
+        .refresh-btn:hover { background: #138496; }
         
         .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
         .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
@@ -126,6 +131,8 @@
                     <input type="date" id="endDate" />
                 </div>
             </div>
+
+            <div class="cache-status" id="cacheStatus">Loading from cache...</div>
         </div>
 
         <div id="content" class="grid"><div class="loading"><div class="loading-spinner"></div>Loading items...</div></div>
@@ -133,6 +140,7 @@
         <div class="action-bar">
             <button class="save-btn" onclick="saveToSheets()"><i class="fas fa-save"></i> Save to Sheets</button>
             <button class="whatsapp-btn" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
+            <button class="refresh-btn" onclick="refreshCache()"><i class="fas fa-sync"></i> Refresh Cache</button>
         </div>
     </div>
 
@@ -161,8 +169,9 @@
             updateTimestamp();
             setDefaultDates();
             await loadAllItems();
-            await loadOrderData();
+            await loadOrderDataFromCache();
             displayItems();
+            updateCacheStatus();
         }
 
         function setDefaultDates() {
@@ -187,19 +196,51 @@
             }
         }
 
-        async function loadOrderData() {
+        async function loadOrderDataFromCache() {
             try {
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value;
-                
-                const url = `${APPS_SCRIPT_URL}?action=getOrderCalculation&mode=sales&startDate=${startDate}&endDate=${endDate}&callback=test2`;
-                const response = await fetch(url);
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=getOrderCalculationFromCache&callback=test2`);
                 const text = await response.text();
                 const cleanJson = text.replace('test2(', '').replace(');', '').trim();
                 orderData = JSON.parse(cleanJson);
-                console.log('Loaded order data');
+                console.log('Loaded order data from cache');
             } catch (error) {
-                console.error('Error loading order data:', error);
+                console.error('Error loading order data from cache:', error);
+            }
+        }
+
+        async function refreshCache() {
+            try {
+                document.getElementById('cacheStatus').textContent = 'Refreshing cache...';
+                document.getElementById('cacheStatus').classList.add('loading');
+                
+                // Call the cacheOrderCalculations function via Apps Script
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'refreshCache' })
+                });
+                
+                // Wait a moment for cache to build
+                setTimeout(async () => {
+                    await loadOrderDataFromCache();
+                    displayItems();
+                    updateCacheStatus();
+                    document.getElementById('cacheStatus').classList.remove('loading');
+                }, 2000);
+            } catch (error) {
+                console.error('Error refreshing cache:', error);
+                updateCacheStatus();
+            }
+        }
+
+        function updateCacheStatus() {
+            const statusDiv = document.getElementById('cacheStatus');
+            const itemCount = Object.keys(orderData).length;
+            if (itemCount > 0) {
+                statusDiv.textContent = '✓ Cache loaded: ' + itemCount + ' items ready (Updated automatically)';
+                statusDiv.classList.remove('loading');
+            } else {
+                statusDiv.textContent = 'Cache loading...';
+                statusDiv.classList.add('loading');
             }
         }
 
@@ -220,7 +261,7 @@
             }
 
             filteredItems.forEach((item, index) => {
-                const order = orderData[item.number] || {};
+                const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
                 const status = getItemStatus(item.number);
                 const card = createCard(item, order, status, index);
                 grid.appendChild(card);
@@ -382,7 +423,7 @@
             const grid = document.getElementById('content');
             grid.innerHTML = '';
             filtered.forEach((item, index) => {
-                const order = orderData[item.number] || {};
+                const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
                 const status = getItemStatus(item.number);
                 grid.appendChild(createCard(item, order, status, index));
             });
