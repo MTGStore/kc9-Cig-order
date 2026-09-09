@@ -427,7 +427,7 @@
             <h1>📤 Sales History Uploader</h1>
             <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/09/2026 at 5:00 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 5:15 PM EST</strong>
             </div>
         </div>
         
@@ -521,7 +521,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
         let allItems = {};
         let upcMapping = {};
         let parsedData = [];
@@ -609,7 +609,6 @@
                 const description = parts[1].trim();
                 const qtySold = parseInt(parts[2].trim()) || 0;
                 
-                // SKIP: Total, empty description, qty 0 with no description
                 if (scanCode === '' || 
                     description.toLowerCase() === 'total' || 
                     description === '' || 
@@ -623,7 +622,7 @@
                 let matchStatus = 'no-match';
                 let isAutoMapped = false;
                 
-                // Priority 1: Check UPC Mapping (saved/remembered mappings)
+                // Priority 1: Check UPC Mapping
                 if (upcMapping[normalizedScanCode] && upcMapping[normalizedScanCode].number) {
                     matchedItem = {
                         name: upcMapping[normalizedScanCode].name,
@@ -632,20 +631,22 @@
                     matchStatus = 'auto-mapped';
                     isAutoMapped = true;
                 } 
-                // Priority 2: Check Master List by normalized UPC
-                else if (allItems[normalizedScanCode]) {
+                // Priority 2: Check by normalized UPC
+                else if (allItems[normalizedScanCode] && allItems[normalizedScanCode].number) {
                     matchedItem = allItems[normalizedScanCode];
                     matchStatus = 'matched';
                 }
-                // Priority 3: Fuzzy match by description
+                // Priority 3: Fuzzy match by description using name index
                 else {
                     const descLower = description.toLowerCase();
-                    for (const key in allItems) {
-                        const item = allItems[key];
-                        if (item.name && (item.name.toLowerCase().includes(descLower) || 
-                            descLower.includes(item.name.toLowerCase()))) {
-                            matchedItem = item;
+                    const nameIndex = allItems['__nameIndex__'] || {};
+                    let found = false;
+                    
+                    for (const itemNameKey in nameIndex) {
+                        if (itemNameKey.includes(descLower) || descLower.includes(itemNameKey)) {
+                            matchedItem = nameIndex[itemNameKey];
                             matchStatus = 'partial';
+                            found = true;
                             break;
                         }
                     }
