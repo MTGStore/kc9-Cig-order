@@ -427,7 +427,7 @@
             <h1>📤 Sales History Uploader</h1>
             <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/09/2026 at 5:15 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 5:30 PM EST</strong>
             </div>
         </div>
         
@@ -636,17 +636,15 @@
                     matchedItem = allItems[normalizedScanCode];
                     matchStatus = 'matched';
                 }
-                // Priority 3: Fuzzy match by description using name index
+                // Priority 3: Fuzzy match by description using items list
                 else {
                     const descLower = description.toLowerCase();
-                    const nameIndex = allItems['__nameIndex__'] || {};
-                    let found = false;
+                    const itemsList = allItems['__itemsList__'] || [];
                     
-                    for (const itemNameKey in nameIndex) {
-                        if (itemNameKey.includes(descLower) || descLower.includes(itemNameKey)) {
-                            matchedItem = nameIndex[itemNameKey];
+                    for (let j = 0; j < itemsList.length; j++) {
+                        if (itemsList[j].nameLower.includes(descLower) || descLower.includes(itemsList[j].nameLower)) {
+                            matchedItem = itemsList[j].itemObj;
                             matchStatus = 'partial';
-                            found = true;
                             break;
                         }
                     }
