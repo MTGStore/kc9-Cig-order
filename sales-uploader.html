@@ -427,7 +427,7 @@
             <h1>📤 Sales History Uploader</h1>
             <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/08/2026 at 5:30 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 3:45 PM EST</strong>
             </div>
         </div>
         
@@ -624,13 +624,10 @@
                 let isAutoMapped = false;
                 
                 // Priority 1: Check UPC Mapping (saved/remembered mappings)
-                if (upcMapping[normalizedScanCode]) {
+                if (upcMapping[normalizedScanCode] && upcMapping[normalizedScanCode].number) {
                     matchedItem = {
-                        name: upcMapping[normalizedScanCode],
-                        number: Object.keys(allItems).find(num => {
-                            const item = allItems[num];
-                            return item && item.name === upcMapping[normalizedScanCode];
-                        }) || 'N/A',
+                        name: upcMapping[normalizedScanCode].name,
+                        number: upcMapping[normalizedScanCode].number,
                     };
                     matchStatus = 'auto-mapped';
                     isAutoMapped = true;
@@ -645,7 +642,7 @@
                     const descLower = description.toLowerCase();
                     for (const itemNum in allItems) {
                         const item = allItems[itemNum];
-                        if (item.name.toLowerCase().includes(descLower) || 
+                        if (item.name && item.name.toLowerCase().includes(descLower) || 
                             descLower.includes(item.name.toLowerCase())) {
                             matchedItem = item;
                             matchStatus = 'partial';
@@ -784,6 +781,11 @@
         
         function saveConfirmedMappings() {
             const confirmedItems = parsedData.filter(item => item.confirmed && !item.isAutoMapped);
+            
+            if (confirmedItems.length === 0) {
+                console.log('No new confirmed mappings to save');
+                return;
+            }
             
             confirmedItems.forEach(item => {
                 const mappingPayload = {
