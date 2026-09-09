@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales History Uploader - KC9</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -382,6 +383,14 @@
             color: #0c5460;
         }
         
+        .date-input-wrapper {
+            position: relative;
+        }
+        
+        .date-input-wrapper input[type="date"] {
+            width: 100%;
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -416,9 +425,9 @@
     <div class="container">
         <div class="header">
             <h1>📤 Sales History Uploader</h1>
-            <p>Upload weekly sales CSV • Auto-match UPC • Edit • Confirm & Save to Sheets</p>
+            <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
-                <strong>Last Modified:</strong> <span id="lastModified">Loading...</span>
+                <strong>Last deployed: 09/08/2026 at 5:30 PM EST</strong>
             </div>
         </div>
         
@@ -442,12 +451,16 @@
             <h2>Step 2: Date Range for This Sales Data</h2>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Start Date (e.g., 9/1/2026)</label>
-                    <input type="text" id="startDate" placeholder="9/1/2026">
+                    <label>Start Date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="startDate">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>End Date (e.g., 9/7/2026)</label>
-                    <input type="text" id="endDate" placeholder="9/7/2026">
+                    <label>End Date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="endDate">
+                    </div>
                 </div>
             </div>
         </div>
@@ -455,7 +468,7 @@
         <div class="card">
             <h2>Step 3: Preview, Edit, Confirm & Match Results</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                🔵 Blue = Auto-mapped from saved UPC Mapping • ✏️ Edit fields (until confirmed) • ✅ Confirm to lock • ↩️ Unconfirm to edit • 🚫 Ignore to skip • Green = Matched • Yellow = Partial • Red = No match
+                🔵 Blue = Auto-mapped (remembered from previous upload) • ✏️ Edit fields (until confirmed) • ✅ Confirm to lock & remember • ↩️ Unconfirm to edit • 🚫 Ignore to skip • Green = Exact match • Yellow = Partial • Red = No match
             </p>
             <div class="preview-section" id="previewSection">
                 <table class="preview-table">
@@ -498,7 +511,7 @@
         <div class="card">
             <h2>Step 4: Save to Sheets</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                Click below to save active (non-ignored) rows to your Sales History tab. Confirmed mappings will also be saved to UPC Mapping.
+                Click below to save active (non-ignored) rows to your Sales History tab. Confirmed mappings will be remembered for future uploads.
             </p>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="saveToSheets()">💾 Save to Sheets</button>
@@ -514,29 +527,18 @@
         let parsedData = [];
         
         window.addEventListener('load', () => {
-            displayLastModified();
             loadAllItems();
             loadUPCMapping();
+            setDefaultDates();
         });
         
-        function displayLastModified() {
-            const lastMod = new Date(document.lastModified);
-            const formatted = lastMod.toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            });
-            const currentTime = new Date().toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            });
-            document.getElementById('lastModified').textContent = formatted + ' (Page loaded at ' + currentTime + ')';
+        function setDefaultDates() {
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            document.getElementById('endDate').valueAsDate = today;
+            document.getElementById('startDate').valueAsDate = yesterday;
         }
         
         function loadAllItems() {
@@ -549,20 +551,20 @@
         
         function handleAllItems(data) {
             allItems = data;
-            console.log('Loaded ' + Object.keys(data).length + ' items from Master List');
+            console.log('✓ Loaded ' + Object.keys(data).length + ' items from Master List');
         }
         
         function loadUPCMapping() {
             const url = APPS_SCRIPT_URL + '?action=getUPCMapping&callback=handleUPCMapping';
             const script = document.createElement('script');
             script.src = url;
-            script.onerror = () => console.log('UPC Mapping not ready yet');
+            script.onerror = () => console.log('UPC Mapping loading...');
             document.head.appendChild(script);
         }
         
         function handleUPCMapping(data) {
             upcMapping = data;
-            console.log('Loaded UPC Mapping with ' + Object.keys(data).length + ' verified mappings');
+            console.log('✓ Loaded UPC Mapping with ' + Object.keys(data).length + ' saved mappings');
         }
         
         function handleCSVUpload(event) {
@@ -588,6 +590,12 @@
             reader.readAsText(file);
         }
         
+        function normalizeUPC(upc) {
+            if (!upc) return '';
+            let cleaned = upc.toString().replace(/[^0-9]/g, '');
+            return cleaned.padStart(12, '0');
+        }
+        
         function parseAndMatchCSV(csv) {
             const lines = csv.trim().split('\n');
             parsedData = [];
@@ -596,12 +604,12 @@
                 const parts = lines[i].split(',');
                 if (parts.length < 3) continue;
                 
-                const scanCode = parts[0].trim();
+                const scanCode = normalizeUPC(parts[0].trim());
                 const description = parts[1].trim();
                 const qtySold = parseInt(parts[2].trim()) || 0;
                 
-                // SKIP rows: Total, empty description, qty is 0 with empty description
-                if (scanCode.toLowerCase() === 'total' || 
+                // SKIP: Total, empty description, qty 0 with no description
+                if (scanCode === '' || 
                     description.toLowerCase() === 'total' || 
                     description === '' || 
                     (qtySold === 0 && description === '')) {
@@ -614,25 +622,31 @@
                 let matchStatus = 'no-match';
                 let isAutoMapped = false;
                 
-                // Check UPC Mapping first (saved from previous confirmations)
+                // Priority 1: Check UPC Mapping (saved/remembered mappings)
                 if (upcMapping[scanCode]) {
                     matchedItem = {
-                        name: upcMapping[scanCode].itemName,
-                        number: upcMapping[scanCode].itemNumber,
-                        mustHave: 0
+                        name: upcMapping[scanCode],
+                        number: Object.keys(allItems).find(num => {
+                            const item = allItems[num];
+                            return item && item.name === upcMapping[scanCode];
+                        }) || 'N/A',
                     };
                     matchStatus = 'auto-mapped';
                     isAutoMapped = true;
-                } else if (allItems[scanCode]) {
+                } 
+                // Priority 2: Check Master List by UPC
+                else if (allItems[scanCode]) {
                     matchedItem = allItems[scanCode];
                     matchStatus = 'matched';
-                } else {
+                }
+                // Priority 3: Fuzzy match by description
+                else {
                     const descLower = description.toLowerCase();
-                    for (const upc in allItems) {
-                        const item = allItems[upc];
+                    for (const itemNum in allItems) {
+                        const item = allItems[itemNum];
                         if (item.name.toLowerCase().includes(descLower) || 
                             descLower.includes(item.name.toLowerCase())) {
-                            matchedItem = allItems[upc];
+                            matchedItem = item;
                             matchStatus = 'partial';
                             break;
                         }
@@ -724,11 +738,11 @@
         }
         
         function saveToSheets() {
-            const startDate = document.getElementById('startDate').value.trim();
-            const endDate = document.getElementById('endDate').value.trim();
+            const startDateInput = document.getElementById('startDate').value;
+            const endDateInput = document.getElementById('endDate').value;
             
-            if (!startDate || !endDate) {
-                showAlert('Please enter both start and end dates', 'error');
+            if (!startDateInput || !endDateInput) {
+                showAlert('Please select both start and end dates', 'error');
                 return;
             }
             
@@ -739,15 +753,14 @@
                 return;
             }
             
-            // Save sales history
+            showAlert('Saving to Sheets...', 'info');
+            
             const payload = {
                 action: 'uploadSalesHistory',
                 data: activeData,
-                startDate: startDate,
-                endDate: endDate
+                startDate: startDateInput,
+                endDate: endDateInput
             };
-            
-            showAlert('Saving to Sheets...', 'info');
             
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
@@ -756,9 +769,8 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    // Save confirmed UPC mappings
                     saveConfirmedMappings();
-                    showAlert(`✅ Saved ${result.rowsAdded} items to Sales History!`, 'success');
+                    showAlert(`✅ Saved ${result.count} items to Sales History!`, 'success');
                     setTimeout(() => resetForm(), 2000);
                 } else {
                     showAlert('Error saving: ' + result.error, 'error');
@@ -770,36 +782,32 @@
         }
         
         function saveConfirmedMappings() {
-            // Save any newly confirmed mappings to UPC Mapping tab
             const confirmedItems = parsedData.filter(item => item.confirmed && !item.isAutoMapped);
             
             confirmedItems.forEach(item => {
-                const mappingData = {
+                const mappingPayload = {
                     action: 'saveUPCMapping',
-                    data: {
-                        csvUpc: item.csvUpc,
+                    data: [{
+                        upc: item.csvUpc,
                         itemNumber: item.itemNumber,
-                        itemName: item.itemName,
-                        status: 'Verified'
-                    }
+                        itemName: item.itemName
+                    }]
                 };
                 
                 fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(mappingData)
+                    body: JSON.stringify(mappingPayload)
                 })
-                .then(response => response.json())
-                .catch(error => console.log('Mapping save error:', error));
+                .catch(error => console.log('Mapping save:', error));
             });
         }
         
         function resetForm() {
             parsedData = [];
             document.getElementById('csvInput').value = '';
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
             document.getElementById('previewSection').classList.remove('active');
             document.getElementById('previewBody').innerHTML = '';
+            setDefaultDates();
         }
         
         function showAlert(message, type) {
