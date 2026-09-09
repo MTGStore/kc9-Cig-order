@@ -3,615 +3,1157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Ordering v3 - KC9 Cigarette Order</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>KC9 Smart Order - v3</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-        
-        .login-container { max-width: 400px; margin: 100px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .login-header { text-align: center; margin-bottom: 30px; }
-        .login-header h1 { font-size: 24px; color: #333; margin-bottom: 10px; }
-        .login-header p { font-size: 14px; color: #666; }
-        .login-form { display: flex; flex-direction: column; }
-        .login-form input { padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        .login-form input:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.1); }
-        .login-form button { padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
-        .login-form button:hover { background: #0056b3; }
-        .error-msg { color: #dc3545; font-size: 12px; margin-bottom: 10px; }
-        
-        .app-container { display: none; }
-        
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .header h1 { font-size: 24px; color: #333; margin-bottom: 5px; }
-        .header p { font-size: 13px; color: #666; }
-        .header .subtitle { font-size: 14px; color: #555; margin: 12px 0; line-height: 1.6; }
-        .last-modified { font-size: 11px; color: #999; margin-top: 10px; }
-        
-        .controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .search-bar input { flex: 1; min-width: 200px; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        
-        .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-        .filter-btn { padding: 8px 14px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-        .filter-btn.active { background: #007bff; color: white; border-color: #007bff; }
-        .filter-btn:hover { background: #e0e0e0; }
-        .filter-btn.active:hover { background: #0056b3; }
-        
-        .date-range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        @media (max-width: 768px) { .date-range { grid-template-columns: 1fr; } }
-        .date-range > div { display: flex; flex-direction: column; }
-        .date-range label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; font-weight: 500; }
-        .date-range .label-desc { font-size: 11px; color: #999; margin-bottom: 8px; line-height: 1.4; }
-        .date-range input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
-        
-        .cache-status { background: #e8f5e9; border: 1px solid #4caf50; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 12px; color: #2e7d32; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-        
-        .card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; position: relative; }
-        .card.gray { border-left: 4px solid #999; }
-        .card.blue { border-left: 4px solid #007bff; }
-        .card.green { border-left: 4px solid #28a745; background: #f8fff9; }
-        .card.stockout { border: 2px solid #dc3545; background: #fff5f5; }
-        
-        .stockout-alert { background: #dc3545; color: white; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .stockout-alert i { font-size: 14px; }
-        
-        .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
-        .card-title { font-weight: 600; font-size: 14px; color: #333; }
-        .card-status { font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 4px; }
-        .status-gray { background: #f0f0f0; color: #666; }
-        .status-blue { background: #e3f2fd; color: #1976d2; }
-        .status-green { background: #e8f5e9; color: #388e3c; }
-        
-        .card-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 12px; }
-        .info-row { display: flex; justify-content: space-between; }
-        .info-label { color: #666; }
-        .info-value { font-weight: 600; color: #333; }
-        
-        .order-display { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
-        .order-line { display: flex; justify-content: space-between; margin: 4px 0; }
-        .order-label { color: #666; }
-        .order-value { font-weight: 600; color: #333; }
-        
-        .manual-count-section { background: #f0f8ff; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #b3d9ff; }
-        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; margin-bottom: 10px; cursor: pointer; }
-        .checkbox-label input { cursor: pointer; }
-        
-        .location-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-        .location-inputs input { padding: 8px; border: 1px solid #80b3ff; border-radius: 4px; font-size: 12px; }
-        .location-inputs input:focus { outline: none; border-color: #0056b3; box-shadow: 0 0 0 2px rgba(0,86,179,0.1); }
-        
-        .order-result { background: #fff3cd; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #ffc107; font-size: 12px; font-weight: 600; text-align: center; color: #856404; }
-        .order-result input { background: #fff3cd; border: 1px solid #ffc107; padding: 6px; border-radius: 4px; font-weight: 600; text-align: center; color: #856404; font-size: 12px; width: 100%; }
-        .order-result.green { background: #d4edda; border-color: #28a745; color: #155724; }
-        .order-result.green input { background: #d4edda; border-color: #28a745; color: #155724; }
-        
-        .move-buttons { display: flex; gap: 6px; margin-top: 12px; }
-        .move-btn { flex: 1; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
-        .move-btn:hover { background: #e0e0e0; }
-        
-        .action-bar { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-wrap: wrap; }
-        .action-bar button { padding: 12px 20px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
-        .save-btn { background: #28a745; color: white; flex: 1; min-width: 150px; }
-        .save-btn:hover { background: #218838; }
-        .save-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .whatsapp-btn { background: #25d366; color: white; flex: 1; min-width: 150px; }
-        .whatsapp-btn:hover { background: #20c651; }
-        .whatsapp-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .logger-btn { background: #dc3545; color: white; flex: 1; min-width: 150px; }
-        .logger-btn:hover { background: #c82333; }
-        
-        .loading { text-align: center; padding: 40px; font-size: 16px; color: #666; }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        #errorMsg {
+            display: none;
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #loginScreen {
+            display: flex;
+        }
+
+        #appScreen {
+            display: none;
+            width: 100%;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header-info {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .controls-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .control-group input,
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .cache-status {
+            background: #e8f4f8;
+            border-left: 4px solid #00bcd4;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #00695c;
+            margin-bottom: 15px;
+        }
+
+        .cache-status a {
+            color: #00695c;
+            text-decoration: underline;
+        }
+
+        #content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .card.gray {
+            border-left: 4px solid #999;
+        }
+
+        .card.blue {
+            border-left: 4px solid #2196f3;
+        }
+
+        .card.green {
+            border-left: 4px solid #4caf50;
+        }
+
+        .card.stockout {
+            border: 2px solid #dc3545;
+            background: #fff5f5;
+        }
+
+        .stockout-alert {
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .card-header > div:first-child > div:last-child {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .card-status {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status-gray {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .status-blue {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-green {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .card-info {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 700;
+        }
+
+        .manual-count-section {
+            background: #f0f7ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e7ff;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            user-select: none;
+        }
+
+        .checkbox-label input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .location-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .location-inputs input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .location-inputs input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .order-display {
+            background: #fafafa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border: 1px solid #efefef;
+            font-size: 13px;
+        }
+
+        .order-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            align-items: center;
+        }
+
+        .order-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .order-value {
+            color: #333;
+            font-weight: 700;
+        }
+
+        .order-result {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .order-result.green {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .order-result input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .order-result input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .move-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .move-btn {
+            padding: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #333;
+        }
+
+        .move-btn:hover {
+            background: #efefef;
+            border-color: #999;
+        }
+
+        .move-btn.up {
+            border-left: 3px solid #4caf50;
+        }
+
+        .move-btn.down {
+            border-left: 3px solid #ff9800;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-save {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .btn-whatsapp:hover {
+            background: #20ba5a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-stockout {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-stockout:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-logout {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .last-modified {
+            text-align: center;
+            padding: 10px;
+            font-size: 11px;
+            color: #999;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            #content {
+                grid-template-columns: 1fr;
+            }
+
+            .control-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+
+            .app-header {
+                padding: 15px;
+            }
+
+            .header-title {
+                font-size: 20px;
+            }
+
+            .header-info {
+                font-size: 12px;
+                gap: 10px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
-    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="login-container">
         <div class="login-header">
-            <h1><i class="fas fa-lock"></i> KC9 Smart Ordering</h1>
-            <p>Enter password to access</p>
+            <h1>🔒 KC9 Smart Order</h1>
+            <p>Secure Access Required</p>
         </div>
-        <div class="login-form">
-            <div class="error-msg" id="errorMsg" style="display: none;"></div>
+        <div id="errorMsg"></div>
+        <div class="form-group">
+            <label for="passwordInput">Password</label>
             <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter') authenticate()">
-            <button onclick="authenticate()">Access Tool</button>
         </div>
+        <button class="login-btn" onclick="authenticate()">
+            <i class="fas fa-lock"></i> Unlock
+        </button>
     </div>
 
-    <!-- APP SCREEN (HIDDEN UNTIL LOGIN) -->
-    <div id="appScreen" class="app-container">
-        <div class="container">
-            <div class="header">
-                <h1>Smart Ordering v3</h1>
-                <p>Sales-based and 4-week average ordering with manual count option</p>
-                <div class="subtitle">
-                    This tool calculates how many cartons to order based on sales data and stock levels. 
-                    Select a date range to see sales from that period, enter your current inventory, and get an instant order recommendation. 
-                    Manually edit quantities before saving to Google Sheets or sending via WhatsApp.
+    <div id="appScreen">
+        <div class="app-container">
+            <div class="app-header">
+                <div class="header-title">
+                    <i class="fas fa-clipboard-list"></i> KC9 Smart Order
                 </div>
-                <div class="last-modified" id="lastModified">Last modified: Loading...</div>
+                <div class="header-info">
+                    <span><i class="fas fa-calendar"></i> Order Cycle: Sep 15-16, 2026</span>
+                    <span id="lastModified"><i class="fas fa-clock"></i> Last modified: --</span>
+                </div>
             </div>
 
-            <div class="controls">
-                <div class="search-bar">
-                    <input type="text" id="searchInput" placeholder="Search by brand name..." oninput="filterItems()" />
-                </div>
+            <div class="app-content">
+                <div class="controls-section">
+                    <div id="cacheStatus" class="cache-status"></div>
 
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterByStatus('all')">All Items</button>
-                    <button class="filter-btn" onclick="filterByStatus('stockout')">⚠ Stockouts</button>
-                    <button class="filter-btn" onclick="filterByStatus('gray')">Unverified</button>
-                    <button class="filter-btn" onclick="filterByStatus('blue')">Auto-calc</button>
-                    <button class="filter-btn" onclick="filterByStatus('green')">Manual Count</button>
-                </div>
+                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search by item name or number..." onkeyup="filterItems()">
 
-                <div class="date-range">
-                    <div>
-                        <label>Start Date</label>
-                        <div class="label-desc">Beginning of sales period to analyze</div>
-                        <input type="date" id="startDate" />
-                    </div>
-                    <div>
-                        <label>End Date</label>
-                        <div class="label-desc">End of sales period to analyze</div>
-                        <input type="date" id="endDate" />
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterByStatus('all')">
+                            <i class="fas fa-th"></i> All
+                        </button>
+                        <button class="filter-btn" onclick="filterByStatus('green')">
+                            <i class="fas fa-check-circle"></i> Manual Count
+                        </button>
+                        <button class="filter-btn" onclick="filterByStatus('blue')">
+                            <i class="fas fa-calculator"></i> Auto-Calc
+                        </button>
+                        <button class="filter-btn" onclick="filterByStatus('stockout')">
+                            <i class="fas fa-exclamation-circle"></i> Stockout
+                        </button>
                     </div>
                 </div>
 
-                <div class="cache-status" id="cacheStatus">Loading data...</div>
+                <div id="content" class="loading">Loading items...</div>
             </div>
 
-            <div id="content" class="grid"><div class="loading"><div class="loading-spinner"></div>Loading items...</div></div>
-
-            <div class="action-bar">
-                <button class="save-btn" onclick="saveToSheets()"><i class="fas fa-save"></i> Save to Sheets</button>
-                <button class="whatsapp-btn" onclick="sendWhatsApp()"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
-                <button class="logger-btn" onclick="openStockoutLogger()"><i class="fas fa-exclamation-circle"></i> Log Stockout</button>
+            <div class="action-buttons">
+                <button class="btn btn-save" onclick="saveToSheets()">
+                    <i class="fas fa-save"></i> Save to Sheets
+                </button>
+                <button class="btn btn-whatsapp" onclick="sendWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> Send to WhatsApp
+                </button>
+                <button class="btn btn-stockout" onclick="openStockoutLogger()">
+                    <i class="fas fa-clipboard-check"></i> Log Stockout
+                </button>
+                <button class="btn btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
+
+            <div id="lastModified" class="last-modified"></div>
         </div>
     </div>
 
     <script>
-        const PASSWORD = 'Arjun917$';
+async function authenticate() {
+    const password = document.getElementById('passwordInput').value;
+    
+    if (!password) {
+        document.getElementById('errorMsg').style.display = 'block';
+        document.getElementById('errorMsg').textContent = 'Please enter a password';
+        return;
+    }
 
-        function authenticate() {
-            const password = document.getElementById('passwordInput').value;
-            
-            if (password === PASSWORD) {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                localStorage.setItem('authenticated', 'true');
-                initPage();
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').textContent = 'Incorrect password';
-                document.getElementById('passwordInput').value = '';
-            }
-        }
-
-        window.addEventListener('load', () => {
-            if (localStorage.getItem('authenticated') === 'true') {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                initPage();
-            }
+    try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'validatePassword',
+                password: password
+            })
         });
-
-        const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
         
-        let allItems = [];
-        let allItemsData = {};
-        let filteredItems = [];
-        let currentFilter = 'all';
-        let orderData = {};
-        let stockoutLog = [];
-
-        function updateTimestamp() {
-            const now = new Date();
-            const formatted = now.getFullYear() + '-' + 
-                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(now.getDate()).padStart(2, '0') + ' ' +
-                String(now.getHours()).padStart(2, '0') + ':' +
-                String(now.getMinutes()).padStart(2, '0') + ':' +
-                String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('lastModified').textContent = 'Last modified: ' + formatted;
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            localStorage.setItem('authenticated', 'true');
+            localStorage.setItem('userPassword', password);
+            initPage();
+        } else {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').textContent = 'Incorrect password';
+            document.getElementById('passwordInput').value = '';
         }
+    } catch (error) {
+        console.error('Auth error:', error);
+        document.getElementById('errorMsg').style.display = 'block';
+        document.getElementById('errorMsg').textContent = 'Error connecting to server';
+    }
+}
 
-        async function initPage() {
-            updateTimestamp();
-            setDefaultDates();
-            await loadAllItems();
-            await loadOrderDataFromCache();
-            await loadStockoutLog();
-            displayItems();
-            updateCacheStatus();
+function logout() {
+    localStorage.removeItem('authenticated');
+    localStorage.removeItem('userPassword');
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('errorMsg').style.display = 'none';
+}
+
+window.addEventListener('load', () => {
+    if (localStorage.getItem('authenticated') === 'true') {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+        initPage();
+    }
+});
+
+const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
+
+let allItems = [];
+let allItemsData = {};
+let filteredItems = [];
+let currentFilter = 'all';
+let orderData = {};
+let stockoutLog = [];
+
+function updateTimestamp() {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    
+    const formatted = `${month}/${day}/${year} at ${hours}:${minutes} ${ampm} EST`;
+    document.getElementById('lastModified').textContent = 'Last modified: ' + formatted;
+}
+
+async function initPage() {
+    updateTimestamp();
+    await loadAllItems();
+    await loadOrderDataFromCache();
+    await loadStockoutLog();
+    displayItems();
+    updateCacheStatus();
+}
+
+async function loadAllItems() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems');
+        const data = await response.json();
+        allItemsData = data;
+        allItems = Object.values(data).filter(item => item && item.number && item.name);
+        filteredItems = [...allItems];
+        console.log('✓ Loaded ' + allItems.length + ' items');
+    } catch (error) {
+        console.error('Error loading items:', error);
+        document.getElementById('content').innerHTML = '<div class="loading">Failed to load items</div>';
+    }
+}
+
+async function loadOrderDataFromCache() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache');
+        const data = await response.json();
+        if (data && typeof data === 'object') {
+            orderData = data;
+            console.log('✓ Loaded order data from cache');
         }
+    } catch (error) {
+        console.error('Error loading order data:', error);
+        orderData = {};
+    }
+}
 
-        function setDefaultDates() {
-            const today = new Date();
-            const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-            
-            document.getElementById('startDate').value = sevenDaysAgo.toISOString().split('T')[0];
-            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+async function loadStockoutLog() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts');
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            stockoutLog = data.filter(s => s && s.status === 'Active');
         }
+    } catch (error) {
+        console.error('Error loading stockout log:', error);
+        stockoutLog = [];
+    }
+}
 
-        async function loadAllItems() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems');
-                const data = await response.json();
-                allItemsData = data;
-                allItems = Object.values(data).filter(item => item && item.number && item.name);
-                filteredItems = allItems;
-                console.log('✓ Loaded ' + allItems.length + ' items');
-            } catch (error) {
-                console.error('Error loading items:', error);
-                document.getElementById('content').innerHTML = '<div class="loading">Failed to load items</div>';
-            }
+function updateCacheStatus() {
+    const statusDiv = document.getElementById('cacheStatus');
+    const itemCount = Object.keys(orderData).length;
+    const stockoutCount = stockoutLog.length;
+    if (itemCount > 0) {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeStr = `${month}/${day}/${now.getFullYear()} ${hours}:${minutes}`;
+        const stockoutMsg = stockoutCount > 0 ? ` | <span style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> ${stockoutCount} item(s) out of stock</span>` : '';
+        statusDiv.innerHTML = '✓ Cache active: ' + itemCount + ' items ready | Last checked: ' + timeStr + ' (Auto-refreshes daily at 5 AM)' + stockoutMsg;
+    }
+}
+
+function smartRound(num) {
+    const decimal = num - Math.floor(num);
+    if (decimal < 0.4) return Math.floor(num);
+    if (decimal >= 0.5) return Math.ceil(num);
+    return Math.round(num);
+}
+
+function displayItems() {
+    const grid = document.getElementById('content');
+    grid.innerHTML = '';
+
+    if (!filteredItems || filteredItems.length === 0) {
+        grid.innerHTML = '<div class="loading">No items to display</div>';
+        return;
+    }
+
+    filteredItems.forEach((item, index) => {
+        const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
+        const status = getItemStatus(item.number);
+        const card = createCard(item, order, status, index);
+        grid.appendChild(card);
+    });
+}
+
+function isItemInStockout(itemNumber) {
+    return stockoutLog.some(s => s && s.itemNumber == itemNumber);
+}
+
+function getStockoutInfo(itemNumber) {
+    return stockoutLog.find(s => s && s.itemNumber == itemNumber);
+}
+
+function createCard(item, order, status, index) {
+    const card = document.createElement('div');
+    const isStockout = isItemInStockout(item.number);
+    card.className = `card ${isStockout ? 'stockout' : status}`;
+    card.id = `card-${item.number}`;
+
+    const statusBadge = status === 'gray' ? 'Unverified' : status === 'blue' ? 'Auto-calc' : 'Manual Count';
+    const statusClass = `status-${status}`;
+
+    let stockoutAlert = '';
+    if (isStockout) {
+        const info = getStockoutInfo(item.number);
+        stockoutAlert = `
+            <div class="stockout-alert">
+                <i class="fas fa-exclamation-circle"></i>
+                STOCKOUT on ${info.dateRanOut} - Please check inventory
+            </div>
+        `;
+    }
+
+    let manualCountHtml = `
+        <div class="manual-count-section">
+            <label class="checkbox-label">
+                <input type="checkbox" id="manual-${item.number}" onchange="updateCardStatus('${item.number}')">
+                Manual Count
+            </label>
+            <div class="location-inputs" id="locations-${item.number}" style="display: none;">
+                <input type="number" placeholder="Loc 1" step="0.1" id="loc1-${item.number}" oninput="calculateOrderQty('${item.number}')">
+                <input type="number" placeholder="Loc 2" step="0.1" id="loc2-${item.number}" oninput="calculateOrderQty('${item.number}')">
+            </div>
+        </div>
+    `;
+
+    let orderDisplay = `
+        <div class="order-display">
+            <div class="order-line">
+                <span class="order-label">Sales Based:</span>
+                <span class="order-value">${(order.sales_based || 0).toFixed(2)}</span>
+            </div>
+            <div class="order-line">
+                <span class="order-label">4-Week Avg:</span>
+                <span class="order-value">${(order.four_week_avg || 0).toFixed(2)}</span>
+            </div>
+        </div>
+    `;
+
+    const defaultQty = smartRound(order.sales_based || 0);
+    let orderResult = `
+        <div class="order-result" id="result-${item.number}">
+            <label style="display: block; color: #666; font-size: 11px; margin-bottom: 4px;">Order Qty (Cartons):</label>
+            <input type="number" id="orderqty-${item.number}" value="${defaultQty}" style="width: 100%;" />
+        </div>
+    `;
+
+    card.innerHTML = `
+        ${stockoutAlert}
+        <div class="card-header">
+            <div>
+                <div class="card-title">${item.name}</div>
+                <div style="font-size: 12px; color: #999; margin-top: 4px;">Item #: ${item.number}</div>
+            </div>
+            <span class="card-status ${statusClass}">${statusBadge}</span>
+        </div>
+
+        <div class="card-info">
+            <div class="info-row">
+                <span class="info-label">Must Have:</span>
+                <span class="info-value">${item.must_have || 0}</span>
+            </div>
+        </div>
+
+        ${manualCountHtml}
+        ${orderDisplay}
+        ${orderResult}
+
+        <div class="move-buttons">
+            <button class="move-btn up" onclick="moveCard('${item.number}', 'up')">↑ Move Up</button>
+            <button class="move-btn down" onclick="moveCard('${item.number}', 'down')">↓ Move Down</button>
+        </div>
+    `;
+
+    return card;
+}
+
+function updateCardStatus(itemNumber) {
+    const checkbox = document.getElementById(`manual-${itemNumber}`);
+    const locationsDiv = document.getElementById(`locations-${itemNumber}`);
+    
+    if (checkbox.checked) {
+        locationsDiv.style.display = 'grid';
+    } else {
+        locationsDiv.style.display = 'none';
+        document.getElementById(`loc1-${itemNumber}`).value = '';
+        document.getElementById(`loc2-${itemNumber}`).value = '';
+        calculateOrderQty(itemNumber);
+    }
+}
+
+function calculateOrderQty(itemNumber) {
+    const item = allItems.find(i => i.number == itemNumber);
+    if (!item) return;
+    
+    const checkbox = document.getElementById(`manual-${itemNumber}`);
+    const loc1Input = document.getElementById(`loc1-${itemNumber}`);
+    const loc2Input = document.getElementById(`loc2-${itemNumber}`);
+    const orderQtyInput = document.getElementById(`orderqty-${itemNumber}`);
+    
+    if (!orderQtyInput) return;
+    
+    const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
+    const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
+    const order = orderData[itemNumber] || {};
+    const mustHave = item.must_have || 0;
+
+    let orderQty;
+    if (checkbox && checkbox.checked) {
+        const totalStock = loc1 + loc2;
+        orderQty = Math.max(0, mustHave - totalStock);
+    } else {
+        orderQty = order.sales_based || 0;
+    }
+
+    const roundedQty = smartRound(orderQty);
+    orderQtyInput.value = roundedQty;
+    
+    const resultDiv = document.getElementById(`result-${itemNumber}`);
+    if (resultDiv) {
+        resultDiv.className = checkbox && checkbox.checked ? 'order-result green' : 'order-result';
+    }
+}
+
+function getItemStatus(itemNumber) {
+    const checkbox = document.getElementById(`manual-${itemNumber}`);
+    if (!checkbox) return 'gray';
+    return checkbox.checked ? 'green' : 'blue';
+}
+
+function filterItems() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    filteredItems = allItems.filter(item => 
+        item.name.toLowerCase().includes(search) || 
+        item.number.toString().includes(search)
+    );
+    applyStatusFilter();
+}
+
+function filterByStatus(status) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    applyStatusFilter();
+}
+
+function applyStatusFilter() {
+    if (currentFilter === 'all') {
+        displayItems();
+        return;
+    }
+
+    if (currentFilter === 'stockout') {
+        const filtered = filteredItems.filter(item => isItemInStockout(item.number));
+        const grid = document.getElementById('content');
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="loading">No items in stockout</div>';
+            return;
         }
+        filtered.forEach((item, index) => {
+            const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
+            const status = getItemStatus(item.number);
+            grid.appendChild(createCard(item, order, status, index));
+        });
+        return;
+    }
 
-        async function loadOrderDataFromCache() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache');
-                const data = await response.json();
-                if (data && typeof data === 'object') {
-                    orderData = data;
-                    console.log('✓ Loaded order data from cache');
-                }
-            } catch (error) {
-                console.error('Error loading order data:', error);
-                orderData = {};
-            }
+    const grid = document.getElementById('content');
+    grid.innerHTML = '';
+    
+    filteredItems.forEach((item, index) => {
+        const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
+        const status = getItemStatus(item.number);
+        grid.appendChild(createCard(item, order, status, index));
+    });
+}
+
+function moveCard(itemNumber, direction) {
+    const grid = document.getElementById('content');
+    const card = document.getElementById(`card-${itemNumber}`);
+    if (!card) return;
+
+    if (direction === 'up' && card.previousElementSibling) {
+        grid.insertBefore(card, card.previousElementSibling);
+    } else if (direction === 'down' && card.nextElementSibling) {
+        grid.insertBefore(card.nextElementSibling, card);
+    }
+}
+
+async function saveToSheets() {
+    const dataToSave = collectOrderData();
+    if (dataToSave.length === 0) {
+        alert('No items to save');
+        return;
+    }
+
+    const password = localStorage.getItem('userPassword');
+    
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'saveSmartOrder',
+                data: dataToSave,
+                password: password
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✓ Order saved to Google Sheets!');
+        } else {
+            alert('Error: ' + result.error);
         }
+    } catch (error) {
+        console.error('Error saving:', error);
+        alert('Error saving to sheets');
+    }
+}
 
-        async function loadStockoutLog() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts');
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    stockoutLog = data.filter(s => s && s.status === 'Active');
-                }
-            } catch (error) {
-                console.error('Error loading stockout log:', error);
-                stockoutLog = [];
-            }
-        }
-
-        function updateCacheStatus() {
-            const statusDiv = document.getElementById('cacheStatus');
-            const itemCount = Object.keys(orderData).length;
-            const stockoutCount = stockoutLog.length;
-            if (itemCount > 0) {
-                const now = new Date();
-                const timeStr = now.getFullYear() + '-' + 
-                    String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                    String(now.getDate()).padStart(2, '0') + ' ' +
-                    String(now.getHours()).padStart(2, '0') + ':' +
-                    String(now.getMinutes()).padStart(2, '0');
-                const stockoutMsg = stockoutCount > 0 ? ` | <span style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> ${stockoutCount} item(s) out of stock</span>` : '';
-                statusDiv.innerHTML = '✓ Cache active: ' + itemCount + ' items ready | Last checked: ' + timeStr + ' (Auto-refreshes daily at 5 AM)' + stockoutMsg;
-            }
-        }
-
-        function smartRound(num) {
-            const decimal = num - Math.floor(num);
-            if (decimal < 0.4) return Math.floor(num);
-            if (decimal >= 0.5) return Math.ceil(num);
-            return Math.round(num);
-        }
-
-        function displayItems() {
-            const grid = document.getElementById('content');
-            grid.innerHTML = '';
-
-            if (!filteredItems || filteredItems.length === 0) {
-                grid.innerHTML = '<div class="loading">No items to display</div>';
-                return;
-            }
-
-            filteredItems.forEach((item, index) => {
-                const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
-                const status = getItemStatus(item.number);
-                const card = createCard(item, order, status, index);
-                grid.appendChild(card);
+function collectOrderData() {
+    const data = [];
+    allItems.forEach(item => {
+        const checkbox = document.getElementById(`manual-${item.number}`);
+        const orderQtyInput = document.getElementById(`orderqty-${item.number}`);
+        
+        const orderQty = orderQtyInput ? parseFloat(orderQtyInput.value) || 0 : 0;
+        
+        if (orderQty > 0) {
+            data.push({
+                week: getWeekNumber(new Date()),
+                itemName: item.name,
+                itemNumber: item.number,
+                orderQty: orderQty
             });
         }
+    });
+    return data;
+}
 
-        function isItemInStockout(itemNumber) {
-            return stockoutLog.some(s => s && s.itemNumber == itemNumber);
-        }
+function getWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
 
-        function getStockoutInfo(itemNumber) {
-            return stockoutLog.find(s => s && s.itemNumber == itemNumber);
-        }
+function sendWhatsApp() {
+    const data = collectOrderData();
+    if (data.length === 0) {
+        alert('No items to send');
+        return;
+    }
 
-        function createCard(item, order, status, index) {
-            const card = document.createElement('div');
-            const isStockout = isItemInStockout(item.number);
-            card.className = `card ${isStockout ? 'stockout' : status}`;
-            card.id = `card-${item.number}`;
+    let message = 'KC9 Smart Order Summary - ' + new Date().toLocaleDateString() + '\n\n';
+    data.forEach(item => {
+        message += `${item.itemName} (#${item.itemNumber}): ${item.orderQty} cartons\n`;
+    });
 
-            const statusBadge = status === 'gray' ? 'Unverified' : status === 'blue' ? 'Auto-calc' : 'Manual Count';
-            const statusClass = `status-${status}`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+}
 
-            let stockoutAlert = '';
-            if (isStockout) {
-                const info = getStockoutInfo(item.number);
-                stockoutAlert = `
-                    <div class="stockout-alert">
-                        <i class="fas fa-exclamation-circle"></i>
-                        STOCKOUT on ${info.dateRanOut} - Please check inventory
-                    </div>
-                `;
-            }
-
-            let manualCountHtml = `
-                <div class="manual-count-section">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="manual-${item.number}" onchange="updateCardStatus('${item.number}')">
-                        Manual Count
-                    </label>
-                    <div class="location-inputs" id="locations-${item.number}" style="display: none;">
-                        <input type="number" placeholder="Loc 1" step="0.1" id="loc1-${item.number}" oninput="calculateOrderQty('${item.number}')">
-                        <input type="number" placeholder="Loc 2" step="0.1" id="loc2-${item.number}" oninput="calculateOrderQty('${item.number}')">
-                    </div>
-                </div>
-            `;
-
-            let orderDisplay = `
-                <div class="order-display">
-                    <div class="order-line">
-                        <span class="order-label">Sales Based:</span>
-                        <span class="order-value">${(order.sales_based || 0).toFixed(2)}</span>
-                    </div>
-                    <div class="order-line">
-                        <span class="order-label">4-Week Avg:</span>
-                        <span class="order-value">${(order.four_week_avg || 0).toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-
-            const defaultQty = smartRound(order.sales_based || 0);
-            let orderResult = `
-                <div class="order-result" id="result-${item.number}">
-                    <label style="display: block; color: #666; font-size: 11px; margin-bottom: 4px;">Order Qty (Cartons):</label>
-                    <input type="number" id="orderqty-${item.number}" value="${defaultQty}" style="width: 100%;" />
-                </div>
-            `;
-
-            card.innerHTML = `
-                ${stockoutAlert}
-                <div class="card-header">
-                    <div>
-                        <div class="card-title">${item.name}</div>
-                        <div style="font-size: 12px; color: #999; margin-top: 4px;">Item #: ${item.number}</div>
-                    </div>
-                    <span class="card-status ${statusClass}">${statusBadge}</span>
-                </div>
-
-                <div class="card-info">
-                    <div class="info-row">
-                        <span class="info-label">Must Have:</span>
-                        <span class="info-value">${item.must_have || 0}</span>
-                    </div>
-                </div>
-
-                ${manualCountHtml}
-                ${orderDisplay}
-                ${orderResult}
-
-                <div class="move-buttons">
-                    <button class="move-btn up" onclick="moveCard('${item.number}', 'up')">↑ Move Up</button>
-                    <button class="move-btn down" onclick="moveCard('${item.number}', 'down')">↓ Move Down</button>
-                </div>
-            `;
-
-            return card;
-        }
-
-        function updateCardStatus(itemNumber) {
-            const checkbox = document.getElementById(`manual-${itemNumber}`);
-            const locationsDiv = document.getElementById(`locations-${itemNumber}`);
-            
-            if (checkbox.checked) {
-                locationsDiv.style.display = 'grid';
-            } else {
-                locationsDiv.style.display = 'none';
-                document.getElementById(`loc1-${itemNumber}`).value = '';
-                document.getElementById(`loc2-${itemNumber}`).value = '';
-                calculateOrderQty(itemNumber);
-            }
-        }
-
-        function calculateOrderQty(itemNumber) {
-            const item = allItems.find(i => i.number == itemNumber);
-            if (!item) return;
-            
-            const checkbox = document.getElementById(`manual-${itemNumber}`);
-            const loc1Input = document.getElementById(`loc1-${itemNumber}`);
-            const loc2Input = document.getElementById(`loc2-${itemNumber}`);
-            const orderQtyInput = document.getElementById(`orderqty-${itemNumber}`);
-            
-            if (!orderQtyInput) return;
-            
-            const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
-            const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
-            const order = orderData[itemNumber] || {};
-            const mustHave = item.must_have || 0;
-
-            let orderQty;
-            if (checkbox && checkbox.checked) {
-                const totalStock = loc1 + loc2;
-                orderQty = Math.max(0, mustHave - totalStock);
-            } else {
-                orderQty = order.sales_based || 0;
-            }
-
-            const roundedQty = smartRound(orderQty);
-            orderQtyInput.value = roundedQty;
-            
-            const resultDiv = document.getElementById(`result-${itemNumber}`);
-            if (resultDiv) {
-                resultDiv.className = checkbox && checkbox.checked ? 'order-result green' : 'order-result';
-            }
-        }
-
-        function getItemStatus(itemNumber) {
-            const checkbox = document.getElementById(`manual-${itemNumber}`);
-            if (!checkbox) return 'gray';
-            return checkbox.checked ? 'green' : 'blue';
-        }
-
-        function filterItems() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            filteredItems = allItems.filter(item => 
-                item.name.toLowerCase().includes(search) || 
-                item.number.toString().includes(search)
-            );
-            applyStatusFilter();
-        }
-
-        function filterByStatus(status) {
-            currentFilter = status;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            applyStatusFilter();
-        }
-
-        function applyStatusFilter() {
-            if (currentFilter === 'all') {
-                displayItems();
-                return;
-            }
-
-            if (currentFilter === 'stockout') {
-                const filtered = filteredItems.filter(item => isItemInStockout(item.number));
-                const grid = document.getElementById('content');
-                grid.innerHTML = '';
-                if (filtered.length === 0) {
-                    grid.innerHTML = '<div class="loading">No items in stockout</div>';
-                    return;
-                }
-                filtered.forEach((item, index) => {
-                    const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
-                    const status = getItemStatus(item.number);
-                    grid.appendChild(createCard(item, order, status, index));
-                });
-                return;
-            }
-
-            const filtered = filteredItems.filter(item => {
-                const checkbox = document.getElementById(`manual-${item.number}`);
-                if (!checkbox) return currentFilter === 'gray';
-                return checkbox.checked ? currentFilter === 'green' : currentFilter === 'blue';
-            });
-
-            const grid = document.getElementById('content');
-            grid.innerHTML = '';
-            filtered.forEach((item, index) => {
-                const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
-                const status = getItemStatus(item.number);
-                grid.appendChild(createCard(item, order, status, index));
-            });
-        }
-
-        function moveCard(itemNumber, direction) {
-            const grid = document.getElementById('content');
-            const card = document.getElementById(`card-${itemNumber}`);
-            if (!card) return;
-
-            if (direction === 'up' && card.previousElementSibling) {
-                grid.insertBefore(card, card.previousElementSibling);
-            } else if (direction === 'down' && card.nextElementSibling) {
-                grid.insertBefore(card.nextElementSibling, card);
-            }
-        }
-
-        async function saveToSheets() {
-            const dataToSave = collectOrderData();
-            if (dataToSave.length === 0) {
-                alert('No items to save');
-                return;
-            }
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'saveSmartOrder',
-                        data: dataToSave
-                    })
-                });
-                alert('Order saved to Google Sheets!');
-            } catch (error) {
-                console.error('Error saving:', error);
-                alert('Error saving to sheets');
-            }
-        }
-
-        function collectOrderData() {
-            const data = [];
-            allItems.forEach(item => {
-                const checkbox = document.getElementById(`manual-${item.number}`);
-                const loc1Input = document.getElementById(`loc1-${item.number}`);
-                const loc2Input = document.getElementById(`loc2-${item.number}`);
-                const orderQtyInput = document.getElementById(`orderqty-${item.number}`);
-                
-                const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
-                const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
-                const orderQty = orderQtyInput ? parseFloat(orderQtyInput.value) || 0 : 0;
-                const mustHave = item.must_have || 0;
-                const didManualCount = checkbox && checkbox.checked;
-
-                data.push({
-                    date: new Date().toISOString().split('T')[0],
-                    countedBy: 'Manager',
-                    itemName: item.name,
-                    itemNumber: item.number,
-                    mustHave: mustHave,
-                    location1: loc1,
-                    location2: loc2,
-                    totalStock: loc1 + loc2,
-                    orderQty: orderQty,
-                    didManualCount: didManualCount
-                });
-            });
-            return data;
-        }
-
-        function sendWhatsApp() {
-            const data = collectOrderData();
-            if (data.length === 0) {
-                alert('No items to send');
-                return;
-            }
-
-            let message = 'KC9 Smart Order Summary\n\n';
-            data.forEach(item => {
-                message += `Item Name: ${item.itemName}\n`;
-                message += `Item #: ${item.itemNumber}\n`;
-                message += `Must Have: ${item.mustHave}\n`;
-                message += `Order Qty: ${item.orderQty}\n`;
-                message += `Based on Sales: ${(orderData[item.itemNumber]?.sales_based || 0).toFixed(2)}\n`;
-                message += `4 Week Avg: ${(orderData[item.itemNumber]?.four_week_avg || 0).toFixed(2)}\n`;
-                message += `Did Manual Count: ${item.didManualCount ? 'Yes' : 'No'}\n`;
-                message += '---\n\n';
-            });
-
-            const encodedMessage = encodeURIComponent(message);
-            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-            window.open(whatsappUrl, '_blank');
-        }
-
-        function openStockoutLogger() {
-            window.location.href = 'stockout-logger.html';
-        }
+function openStockoutLogger() {
+    window.location.href = 'stockout-logger.html';
+}
     </script>
 </body>
 </html>
