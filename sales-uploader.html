@@ -212,19 +212,9 @@
             color: #155724;
         }
         
-        .match-status.partial {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
         .match-status.no-match {
             background: #f8d7da;
             color: #721c24;
-        }
-        
-        .match-status.auto-mapped {
-            background: #b3e5fc;
-            color: #01579b;
         }
         
         .action-btn {
@@ -274,17 +264,6 @@
             display: inline-block;
             background: #4caf50;
             color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 9px;
-            font-weight: 600;
-            margin-left: 5px;
-        }
-        
-        .auto-mapped-badge {
-            display: inline-block;
-            background: #b3e5fc;
-            color: #01579b;
             padding: 2px 6px;
             border-radius: 3px;
             font-size: 9px;
@@ -425,9 +404,9 @@
     <div class="container">
         <div class="header">
             <h1>📤 Sales History Uploader</h1>
-            <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
+            <p>Upload sales CSV • Match UPC to Item # • Confirm & Save</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/09/2026 at 5:30 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 5:45 PM EST</strong>
             </div>
         </div>
         
@@ -438,12 +417,12 @@
         <div class="card">
             <h2>Step 1: Upload CSV File</h2>
             <div class="form-group">
-                <label>Sales CSV File (Scan code | Description | # Sold)</label>
+                <label>Sales CSV File (Scan Code | Description | Qty Sold)</label>
                 <button class="upload-btn" onclick="document.getElementById('csvInput').click()">📄 Choose CSV File</button>
                 <input type="file" id="csvInput" class="csv-input" accept=".csv" onchange="handleCSVUpload(event)">
             </div>
             <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                Expected format: 3 columns (Scan code, Description, # Sold)
+                Expected format: 3 columns (Scan Code, Description, Qty Sold)
             </p>
         </div>
         
@@ -466,18 +445,18 @@
         </div>
         
         <div class="card">
-            <h2>Step 3: Preview, Edit, Confirm & Match Results</h2>
+            <h2>Step 3: Preview & Match Results</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                🔵 Blue = Auto-mapped (remembered from previous upload) • ✏️ Edit fields (until confirmed) • ✅ Confirm to lock & remember • ↩️ Unconfirm to edit • 🚫 Ignore to skip • Green = Exact match • Yellow = Partial • Red = No match
+                🟢 GREEN = Matched in UPC Mapping (locked) • 🔓 Unlock to edit • 🔴 RED = Need manual Item # • ✅ Confirm to save & remember
             </p>
             <div class="preview-section" id="previewSection">
                 <table class="preview-table">
                     <thead>
                         <tr>
-                            <th>CSV UPC</th>
-                            <th>Item Name</th>
-                            <th>Qty</th>
-                            <th>Units</th>
+                            <th>Scan Code</th>
+                            <th>POS Description</th>
+                            <th>Qty (packs)</th>
+                            <th>Cartons</th>
                             <th>Item #</th>
                             <th>Match</th>
                             <th>Actions</th>
@@ -493,12 +472,12 @@
                         <div class="label">Total Items</div>
                     </div>
                     <div class="stat-box">
-                        <div class="number" id="confirmedItems">0</div>
-                        <div class="label">Confirmed</div>
+                        <div class="number" id="matchedItems">0</div>
+                        <div class="label">Matched (Green)</div>
                     </div>
                     <div class="stat-box">
-                        <div class="number" id="autoMappedItems">0</div>
-                        <div class="label">Auto-Mapped</div>
+                        <div class="number" id="pendingItems">0</div>
+                        <div class="label">Pending (Red)</div>
                     </div>
                     <div class="stat-box">
                         <div class="number" id="ignoredItems">0</div>
@@ -511,7 +490,7 @@
         <div class="card">
             <h2>Step 4: Save to Sheets</h2>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                Click below to save active (non-ignored) rows to your Sales History tab. Confirmed mappings will be remembered for future uploads.
+                Click below to save confirmed rows to Sales History. New Item # mappings will be remembered for future uploads.
             </p>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="saveToSheets()">💾 Save to Sheets</button>
@@ -522,12 +501,10 @@
 
     <script>
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
-        let allItems = {};
         let upcMapping = {};
         let parsedData = [];
         
         window.addEventListener('load', () => {
-            loadAllItems();
             loadUPCMapping();
             setDefaultDates();
         });
@@ -541,19 +518,6 @@
             document.getElementById('startDate').valueAsDate = yesterday;
         }
         
-        function loadAllItems() {
-            fetch(APPS_SCRIPT_URL + '?action=getAllItems')
-                .then(response => response.json())
-                .then(data => {
-                    allItems = data;
-                    console.log('✓ Loaded ' + Object.keys(data).length + ' items from Master List');
-                })
-                .catch(error => {
-                    console.error('Failed to load items:', error);
-                    showAlert('Failed to load items from Master List', 'error');
-                });
-        }
-        
         function loadUPCMapping() {
             fetch(APPS_SCRIPT_URL + '?action=getUPCMapping')
                 .then(response => response.json())
@@ -563,19 +527,13 @@
                 })
                 .catch(error => {
                     console.error('Failed to load UPC Mapping:', error);
-                    console.log('Continuing without UPC Mapping...');
+                    showAlert('Warning: Could not load UPC Mapping', 'error');
                 });
         }
         
         function handleCSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
-            if (Object.keys(allItems).length === 0) {
-                showAlert('Loading Master List... please wait', 'info');
-                setTimeout(() => handleCSVUpload(event), 2000);
-                return;
-            }
             
             showAlert('Parsing CSV...', 'info');
             const reader = new FileReader();
@@ -606,62 +564,38 @@
                 
                 const scanCode = parts[0].trim();
                 const normalizedScanCode = normalizeUPC(scanCode);
-                const description = parts[1].trim();
-                const qtySold = parseInt(parts[2].trim()) || 0;
+                const posDescription = parts[1].trim();
+                const qtySoldPacks = parseInt(parts[2].trim()) || 0;
                 
-                if (scanCode === '' || 
-                    description.toLowerCase() === 'total' || 
-                    description === '' || 
-                    (qtySold === 0 && description === '')) {
+                // Skip header rows and empty data
+                if (scanCode === '' || posDescription.toLowerCase() === 'description' || qtySoldPacks === 0) {
                     continue;
                 }
                 
-                const unitsSold = qtySold / 10;
+                const cartonsQuantity = (qtySoldPacks / 10).toFixed(2);
                 
-                let matchedItem = null;
+                // Check if UPC exists in UPC Mapping
+                let matchedItemNumber = 'N/A';
                 let matchStatus = 'no-match';
-                let isAutoMapped = false;
+                let isMatched = false;
                 
-                // Priority 1: Check UPC Mapping
                 if (upcMapping[normalizedScanCode] && upcMapping[normalizedScanCode].number) {
-                    matchedItem = {
-                        name: upcMapping[normalizedScanCode].name,
-                        number: upcMapping[normalizedScanCode].number,
-                    };
-                    matchStatus = 'auto-mapped';
-                    isAutoMapped = true;
-                } 
-                // Priority 2: Check by normalized UPC
-                else if (allItems[normalizedScanCode] && allItems[normalizedScanCode].number) {
-                    matchedItem = allItems[normalizedScanCode];
+                    matchedItemNumber = upcMapping[normalizedScanCode].number;
                     matchStatus = 'matched';
-                }
-                // Priority 3: Fuzzy match by description using items list
-                else {
-                    const descLower = description.toLowerCase();
-                    const itemsList = allItems['__itemsList__'] || [];
-                    
-                    for (let j = 0; j < itemsList.length; j++) {
-                        if (itemsList[j].nameLower.includes(descLower) || descLower.includes(itemsList[j].nameLower)) {
-                            matchedItem = itemsList[j].itemObj;
-                            matchStatus = 'partial';
-                            break;
-                        }
-                    }
+                    isMatched = true;
                 }
                 
                 parsedData.push({
-                    csvUpc: scanCode,
-                    csvName: description,
-                    qtySold: qtySold,
-                    unitsSold: unitsSold.toFixed(2),
-                    itemName: matchedItem ? matchedItem.name : 'UNKNOWN',
-                    itemNumber: matchedItem ? matchedItem.number : 'N/A',
-                    upc: matchedItem ? normalizedScanCode : 'N/A',
+                    scanCode: scanCode,
+                    normalizedScanCode: normalizedScanCode,
+                    posDescription: posDescription,
+                    qtySoldPacks: qtySoldPacks,
+                    cartonsQuantity: cartonsQuantity,
+                    itemNumber: matchedItemNumber,
                     matchStatus: matchStatus,
-                    confirmed: isAutoMapped,
-                    ignored: false,
-                    isAutoMapped: isAutoMapped
+                    isMatched: isMatched,
+                    confirmed: isMatched,  // Auto-confirm if matched
+                    ignored: false
                 });
             }
             
@@ -680,15 +614,14 @@
                 const confirmBtnClass = item.confirmed ? 'unconfirm' : '';
                 const confirmBtnText = item.confirmed ? '↩️ Unconfirm' : '✅ Confirm';
                 const confirmBadge = item.confirmed ? '<span class="confirm-badge">Locked</span>' : '';
-                const autoMapBadge = item.isAutoMapped ? '<span class="auto-mapped-badge">Auto-mapped</span>' : '';
                 
                 row.innerHTML = `
-                    <td><input type="text" class="row-input" value="${item.csvUpc}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'csvUpc', this.value)"></td>
-                    <td><input type="text" class="row-input" value="${item.csvName}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'csvName', this.value)"></td>
-                    <td><input type="number" class="row-input" value="${item.qtySold}" ${item.confirmed ? 'disabled' : ''} onchange="updateQty(${index}, this.value)"></td>
-                    <td><input type="text" class="row-input" value="${item.unitsSold}" readonly style="background: #f5f5f5;"></td>
+                    <td><input type="text" class="row-input" value="${item.scanCode}" disabled></td>
+                    <td><input type="text" class="row-input" value="${item.posDescription}" disabled></td>
+                    <td><input type="number" class="row-input" value="${item.qtySoldPacks}" disabled></td>
+                    <td><input type="text" class="row-input" value="${item.cartonsQuantity}" readonly style="background: #f5f5f5;"></td>
                     <td><input type="text" class="row-input" value="${item.itemNumber}" ${item.confirmed ? 'disabled' : ''} onchange="updateField(${index}, 'itemNumber', this.value)"></td>
-                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus.toUpperCase()}</span>${confirmBadge}${autoMapBadge}</td>
+                    <td><span class="match-status ${item.matchStatus}">${item.matchStatus === 'matched' ? '🟢 MATCHED' : '🔴 PENDING'}</span>${confirmBadge}</td>
                     <td>
                         <button class="action-btn btn-confirm ${confirmBtnClass}" onclick="toggleConfirm(${index})">${confirmBtnText}</button>
                         <button class="action-btn btn-ignore ${item.ignored ? 'ignored' : ''}" onclick="toggleIgnore(${index})">${item.ignored ? '✓ Ignored' : '🚫 Ignore'}</button>
@@ -705,13 +638,6 @@
             parsedData[index][field] = value;
         }
         
-        function updateQty(index, value) {
-            const qty = parseInt(value) || 0;
-            parsedData[index].qtySold = qty;
-            parsedData[index].unitsSold = (qty / 10).toFixed(2);
-            displayPreview();
-        }
-        
         function toggleConfirm(index) {
             parsedData[index].confirmed = !parsedData[index].confirmed;
             displayPreview();
@@ -724,13 +650,13 @@
         
         function updateStats() {
             const total = parsedData.length;
-            const confirmed = parsedData.filter(item => item.confirmed).length;
-            const autoMapped = parsedData.filter(item => item.isAutoMapped).length;
+            const matched = parsedData.filter(item => item.matchStatus === 'matched').length;
+            const pending = parsedData.filter(item => item.matchStatus === 'no-match').length;
             const ignored = parsedData.filter(item => item.ignored).length;
             
             document.getElementById('totalItems').textContent = total;
-            document.getElementById('confirmedItems').textContent = confirmed;
-            document.getElementById('autoMappedItems').textContent = autoMapped;
+            document.getElementById('matchedItems').textContent = matched;
+            document.getElementById('pendingItems').textContent = pending;
             document.getElementById('ignoredItems').textContent = ignored;
         }
         
@@ -743,10 +669,11 @@
                 return;
             }
             
-            const activeData = parsedData.filter(item => !item.ignored);
+            // Only save confirmed items that are NOT ignored
+            const activeData = parsedData.filter(item => !item.ignored && item.confirmed);
             
             if (activeData.length === 0) {
-                showAlert('No active items to save (all ignored)', 'error');
+                showAlert('No confirmed items to save', 'error');
                 return;
             }
             
@@ -766,41 +693,14 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    saveConfirmedMappings();
                     showAlert(`✅ Saved ${result.count} items to Sales History!`, 'success');
                     setTimeout(() => resetForm(), 2000);
                 } else {
-                    showAlert('Error saving: ' + result.error, 'error');
+                    showAlert('Error saving: ' + (result.error || 'Unknown error'), 'error');
                 }
             })
             .catch(error => {
                 showAlert('Error: ' + error.message, 'error');
-            });
-        }
-        
-        function saveConfirmedMappings() {
-            const confirmedItems = parsedData.filter(item => item.confirmed && !item.isAutoMapped);
-            
-            if (confirmedItems.length === 0) {
-                console.log('No new confirmed mappings to save');
-                return;
-            }
-            
-            confirmedItems.forEach(item => {
-                const mappingPayload = {
-                    action: 'saveUPCMapping',
-                    data: [{
-                        upc: item.csvUpc,
-                        itemNumber: item.itemNumber,
-                        itemName: item.itemName
-                    }]
-                };
-                
-                fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(mappingPayload)
-                })
-                .catch(error => console.log('Mapping save:', error));
             });
         }
         
