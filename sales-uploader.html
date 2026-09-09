@@ -427,7 +427,7 @@
             <h1>📤 Sales History Uploader</h1>
             <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/09/2026 at 3:45 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 4:15 PM EST</strong>
             </div>
         </div>
         
@@ -542,29 +542,29 @@
         }
         
         function loadAllItems() {
-            const url = APPS_SCRIPT_URL + '?action=getAllItems&callback=handleAllItems';
-            const script = document.createElement('script');
-            script.src = url;
-            script.onerror = () => showAlert('Failed to load items from Master List', 'error');
-            document.head.appendChild(script);
-        }
-        
-        function handleAllItems(data) {
-            allItems = data;
-            console.log('✓ Loaded ' + Object.keys(data).length + ' items from Master List');
+            fetch(APPS_SCRIPT_URL + '?action=getAllItems')
+                .then(response => response.json())
+                .then(data => {
+                    allItems = data;
+                    console.log('✓ Loaded ' + Object.keys(data).length + ' items from Master List');
+                })
+                .catch(error => {
+                    console.error('Failed to load items:', error);
+                    showAlert('Failed to load items from Master List', 'error');
+                });
         }
         
         function loadUPCMapping() {
-            const url = APPS_SCRIPT_URL + '?action=getUPCMapping&callback=handleUPCMapping';
-            const script = document.createElement('script');
-            script.src = url;
-            script.onerror = () => console.log('UPC Mapping loading...');
-            document.head.appendChild(script);
-        }
-        
-        function handleUPCMapping(data) {
-            upcMapping = data;
-            console.log('✓ Loaded UPC Mapping with ' + Object.keys(data).length + ' saved mappings');
+            fetch(APPS_SCRIPT_URL + '?action=getUPCMapping')
+                .then(response => response.json())
+                .then(data => {
+                    upcMapping = data;
+                    console.log('✓ Loaded UPC Mapping with ' + Object.keys(data).length + ' saved mappings');
+                })
+                .catch(error => {
+                    console.error('Failed to load UPC Mapping:', error);
+                    console.log('Continuing without UPC Mapping...');
+                });
         }
         
         function handleCSVUpload(event) {
@@ -642,8 +642,8 @@
                     const descLower = description.toLowerCase();
                     for (const itemNum in allItems) {
                         const item = allItems[itemNum];
-                        if (item.name && item.name.toLowerCase().includes(descLower) || 
-                            descLower.includes(item.name.toLowerCase())) {
+                        if (item.name && (item.name.toLowerCase().includes(descLower) || 
+                            descLower.includes(item.name.toLowerCase()))) {
                             matchedItem = item;
                             matchStatus = 'partial';
                             break;
