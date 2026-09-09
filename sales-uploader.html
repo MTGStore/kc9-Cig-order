@@ -406,7 +406,7 @@
             <h1>📤 Sales History Uploader</h1>
             <p>Upload sales CSV • Match UPC to Item # • Confirm & Save</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/09/2026 at 5:45 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 10:50 PM EST</strong>
             </div>
         </div>
         
@@ -548,12 +548,6 @@
             reader.readAsText(file);
         }
         
-        function normalizeUPC(upc) {
-            if (!upc) return '';
-            let cleaned = upc.toString().replace(/[^0-9]/g, '');
-            return cleaned.padStart(12, '0');
-        }
-        
         function parseAndMatchCSV(csv) {
             const lines = csv.trim().split('\n');
             parsedData = [];
@@ -563,7 +557,6 @@
                 if (parts.length < 3) continue;
                 
                 const scanCode = parts[0].trim();
-                const normalizedScanCode = normalizeUPC(scanCode);
                 const posDescription = parts[1].trim();
                 const qtySoldPacks = parseInt(parts[2].trim()) || 0;
                 
@@ -574,20 +567,19 @@
                 
                 const cartonsQuantity = (qtySoldPacks / 10).toFixed(2);
                 
-                // Check if UPC exists in UPC Mapping
+                // Check if UPC exists in UPC Mapping (exact match, no normalization)
                 let matchedItemNumber = 'N/A';
                 let matchStatus = 'no-match';
                 let isMatched = false;
                 
-                if (upcMapping[normalizedScanCode] && upcMapping[normalizedScanCode].number) {
-                    matchedItemNumber = upcMapping[normalizedScanCode].number;
+                if (upcMapping[scanCode] && upcMapping[scanCode].number) {
+                    matchedItemNumber = upcMapping[scanCode].number;
                     matchStatus = 'matched';
                     isMatched = true;
                 }
                 
                 parsedData.push({
                     scanCode: scanCode,
-                    normalizedScanCode: normalizedScanCode,
                     posDescription: posDescription,
                     qtySoldPacks: qtySoldPacks,
                     cartonsQuantity: cartonsQuantity,
