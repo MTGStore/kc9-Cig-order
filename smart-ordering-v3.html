@@ -178,27 +178,12 @@
     </div>
 
     <script>
-        // PASSWORD HASH (encrypted, not plaintext)
-        // Password: Arjun917$
-        const PASSWORD_HASH = 'd8578edf8458ce06130cda92b0dccaf0';
-
-        function hashPassword(password) {
-            // Simple hash function (MD5-like for demo, not production)
-            let hash = 0;
-            for (let i = 0; i < password.length; i++) {
-                const char = password.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return Math.abs(hash).toString(16);
-        }
+        const PASSWORD = 'Arjun917$';
 
         function authenticate() {
             const password = document.getElementById('passwordInput').value;
-            const hash = hashPassword(password);
             
-            // Check if password matches (Arjun917$)
-            if (password === 'Arjun917$') {
+            if (password === PASSWORD) {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'block';
                 localStorage.setItem('authenticated', 'true');
@@ -210,7 +195,6 @@
             }
         }
 
-        // Check if already authenticated
         window.addEventListener('load', () => {
             if (localStorage.getItem('authenticated') === 'true') {
                 document.getElementById('loginScreen').style.display = 'none';
@@ -220,10 +204,10 @@
         });
 
         const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
         
         let allItems = [];
-        let allItemsData = [];
+        let allItemsData = {};
         let filteredItems = [];
         let currentFilter = 'all';
         let orderData = {};
@@ -260,28 +244,25 @@
 
         async function loadAllItems() {
             try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems&callback=cb_' + Date.now());
-                const text = await response.text();
-                const jsonMatch = text.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    allItemsData = JSON.parse(jsonMatch[0]);
-                    allItems = Object.values(allItemsData);
-                    filteredItems = allItems;
-                    console.log('Loaded ' + allItems.length + ' items');
-                }
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems');
+                const data = await response.json();
+                allItemsData = data;
+                allItems = Object.values(data).filter(item => item && item.number && item.name);
+                filteredItems = allItems;
+                console.log('✓ Loaded ' + allItems.length + ' items');
             } catch (error) {
                 console.error('Error loading items:', error);
+                document.getElementById('content').innerHTML = '<div class="loading">Failed to load items</div>';
             }
         }
 
         async function loadOrderDataFromCache() {
             try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache&callback=cb_' + Date.now());
-                const text = await response.text();
-                const jsonMatch = text.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    orderData = JSON.parse(jsonMatch[0]);
-                    console.log('Loaded order data from cache');
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache');
+                const data = await response.json();
+                if (data && typeof data === 'object') {
+                    orderData = data;
+                    console.log('✓ Loaded order data from cache');
                 }
             } catch (error) {
                 console.error('Error loading order data:', error);
@@ -291,12 +272,10 @@
 
         async function loadStockoutLog() {
             try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts&callback=cb_' + Date.now());
-                const text = await response.text();
-                const jsonMatch = text.match(/\[[\s\S]*\]/);
-                if (jsonMatch) {
-                    const allStockouts = JSON.parse(jsonMatch[0]);
-                    stockoutLog = allStockouts.filter(s => s.status === 'Active');
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts');
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    stockoutLog = data.filter(s => s && s.status === 'Active');
                 }
             } catch (error) {
                 console.error('Error loading stockout log:', error);
@@ -345,11 +324,11 @@
         }
 
         function isItemInStockout(itemNumber) {
-            return stockoutLog.some(s => s.itemNumber == itemNumber);
+            return stockoutLog.some(s => s && s.itemNumber == itemNumber);
         }
 
         function getStockoutInfo(itemNumber) {
-            return stockoutLog.find(s => s.itemNumber == itemNumber);
+            return stockoutLog.find(s => s && s.itemNumber == itemNumber);
         }
 
         function createCard(item, order, status, index) {
@@ -622,7 +601,7 @@
                 message += `Based on Sales: ${(orderData[item.itemNumber]?.sales_based || 0).toFixed(2)}\n`;
                 message += `4 Week Avg: ${(orderData[item.itemNumber]?.four_week_avg || 0).toFixed(2)}\n`;
                 message += `Did Manual Count: ${item.didManualCount ? 'Yes' : 'No'}\n`;
-                message += `---\n\n`;
+                message += '---\n\n';
             });
 
             const encodedMessage = encodeURIComponent(message);
