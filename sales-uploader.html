@@ -604,7 +604,8 @@
                 const parts = lines[i].split(',');
                 if (parts.length < 3) continue;
                 
-                const scanCode = normalizeUPC(parts[0].trim());
+                const scanCode = parts[0].trim();
+                const normalizedScanCode = normalizeUPC(scanCode);
                 const description = parts[1].trim();
                 const qtySold = parseInt(parts[2].trim()) || 0;
                 
@@ -623,20 +624,20 @@
                 let isAutoMapped = false;
                 
                 // Priority 1: Check UPC Mapping (saved/remembered mappings)
-                if (upcMapping[scanCode]) {
+                if (upcMapping[normalizedScanCode]) {
                     matchedItem = {
-                        name: upcMapping[scanCode],
+                        name: upcMapping[normalizedScanCode],
                         number: Object.keys(allItems).find(num => {
                             const item = allItems[num];
-                            return item && item.name === upcMapping[scanCode];
+                            return item && item.name === upcMapping[normalizedScanCode];
                         }) || 'N/A',
                     };
                     matchStatus = 'auto-mapped';
                     isAutoMapped = true;
                 } 
-                // Priority 2: Check Master List by UPC
-                else if (allItems[scanCode]) {
-                    matchedItem = allItems[scanCode];
+                // Priority 2: Check Master List by normalized UPC
+                else if (allItems[normalizedScanCode]) {
+                    matchedItem = allItems[normalizedScanCode];
                     matchStatus = 'matched';
                 }
                 // Priority 3: Fuzzy match by description
@@ -660,7 +661,7 @@
                     unitsSold: unitsSold.toFixed(2),
                     itemName: matchedItem ? matchedItem.name : 'UNKNOWN',
                     itemNumber: matchedItem ? matchedItem.number : 'N/A',
-                    upc: matchedItem ? scanCode : 'N/A',
+                    upc: matchedItem ? normalizedScanCode : 'N/A',
                     matchStatus: matchStatus,
                     confirmed: isAutoMapped,
                     ignored: false,
