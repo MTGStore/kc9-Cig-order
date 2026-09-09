@@ -427,7 +427,7 @@
             <h1>📤 Sales History Uploader</h1>
             <p>Upload weekly sales CSV • Auto-match UPC from saved mappings • Edit • Confirm & Save to Sheets</p>
             <div class="last-modified">
-                <strong>Last deployed: 09/09/2026 at 4:15 PM EST</strong>
+                <strong>Last deployed: 09/09/2026 at 5:00 PM EST</strong>
             </div>
         </div>
         
@@ -640,8 +640,8 @@
                 // Priority 3: Fuzzy match by description
                 else {
                     const descLower = description.toLowerCase();
-                    for (const itemNum in allItems) {
-                        const item = allItems[itemNum];
+                    for (const key in allItems) {
+                        const item = allItems[key];
                         if (item.name && (item.name.toLowerCase().includes(descLower) || 
                             descLower.includes(item.name.toLowerCase()))) {
                             matchedItem = item;
