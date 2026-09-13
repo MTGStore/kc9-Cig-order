@@ -693,7 +693,7 @@ function displayPreview(csvData) {
     const previewBody = document.getElementById('previewBody');
     previewBody.innerHTML = '';
     
-    const maxRows = Math.min(5, csvData.length);
+    const maxRows = csvData.length;
     for (let i = 0; i < maxRows; i++) {
         const item = csvData[i];
         const scanCode = item.scanCode.toString().trim();
