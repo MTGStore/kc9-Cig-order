@@ -288,6 +288,8 @@
             font-size: 12px;
             margin-top: 12px;
             display: none;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .preview-table.active {
@@ -305,6 +307,8 @@
             background: #667eea;
             color: white;
             font-weight: 600;
+            position: sticky;
+            top: 0;
         }
 
         .preview-table tr:nth-child(even) {
@@ -518,7 +522,7 @@
 
                 <div class="section">
                     <div class="section-title">
-                        <i class="fas fa-eye"></i> Preview (First 5 rows)
+                        <i class="fas fa-eye"></i> Preview (All rows)
                     </div>
                     <table class="preview-table" id="previewTable">
                         <thead>
@@ -555,9 +559,10 @@
     <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
 
-// Store password in memory only (not localStorage)
+// Session-only variables (not persisted)
 let userPassword = '';
 let upcMappingCache = {};
+let isAuthenticated = false;
 
 async function authenticate() {
     const password = document.getElementById('passwordInput').value;
@@ -580,16 +585,17 @@ async function authenticate() {
         const result = await response.json();
         
         if (result.success) {
-            userPassword = password; // Store in memory only
+            userPassword = password;
+            isAuthenticated = true;
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
-            localStorage.setItem('authenticated', 'true'); // Only flag, not password
             initPage();
         } else {
             document.getElementById('errorMsg').style.display = 'block';
             document.getElementById('errorMsg').textContent = 'Incorrect password';
             document.getElementById('passwordInput').value = '';
-            userPassword = ''; // Clear on error
+            userPassword = '';
+            isAuthenticated = false;
         }
     } catch (error) {
         console.error('Auth error:', error);
@@ -599,9 +605,9 @@ async function authenticate() {
 }
 
 function logout() {
-    userPassword = ''; // Clear password from memory
-    upcMappingCache = {}; // Clear cache
-    localStorage.removeItem('authenticated');
+    userPassword = '';
+    upcMappingCache = {};
+    isAuthenticated = false;
     document.getElementById('appScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('passwordInput').value = '';
@@ -609,13 +615,9 @@ function logout() {
 }
 
 window.addEventListener('load', () => {
-    if (localStorage.getItem('authenticated') === 'true') {
-        // User is marked authenticated, but we need password for upload
-        // Show app but password is empty until they enter it or use incognito
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'block';
-        initPage();
-    }
+    // Always show login on load (session-only, no persistence)
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('appScreen').style.display = 'none';
 });
 
 function initPage() {
@@ -677,7 +679,7 @@ function parseCSV(csv) {
     
     for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map(col => col.trim());
-        if (cols.length >= 3) {
+        if (cols.length >= 3 && cols[0] && cols[1]) {
             csvData.push({
                 scanCode: cols[0],
                 description: cols[1],
@@ -693,12 +695,10 @@ function displayPreview(csvData) {
     const previewBody = document.getElementById('previewBody');
     previewBody.innerHTML = '';
     
-    const maxRows = csvData.length;
-    for (let i = 0; i < maxRows; i++) {
+    for (let i = 0; i < csvData.length; i++) {
         const item = csvData[i];
         const scanCode = item.scanCode.toString().trim();
         
-        // Check if UPC is in mapping (FIX #1)
         let status = 'no-match';
         if (upcMappingCache[scanCode]) {
             status = 'matched';
@@ -729,8 +729,9 @@ async function uploadData() {
         return;
     }
     
-    if (!userPassword) {
-        showMessage('Password not set. Please logout and login again.', 'error');
+    if (!userPassword || !isAuthenticated) {
+        showMessage('Not authenticated. Please login again.', 'error');
+        logout();
         return;
     }
     
@@ -750,7 +751,7 @@ async function uploadData() {
         
         for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(',').map(col => col.trim());
-            if (cols.length >= 3) {
+            if (cols.length >= 3 && cols[0] && cols[1]) {
                 csvData.push({
                     scanCode: cols[0],
                     posDescription: cols[1],
@@ -769,7 +770,7 @@ async function uploadData() {
                 data: csvData,
                 startDate: startDate,
                 endDate: endDate,
-                password: userPassword // FIX #2: Send password from memory
+                password: userPassword
             })
         });
         
@@ -784,7 +785,7 @@ async function uploadData() {
             document.getElementById('fileName').classList.remove('active');
             document.getElementById('previewTable').classList.remove('active');
             document.getElementById('uploadBtn').disabled = true;
-            loadUPCMapping(); // Reload mapping after upload
+            loadUPCMapping();
         } else {
             showMessage('Error: ' + result.error, 'error');
             document.getElementById('uploadBtn').disabled = false;
