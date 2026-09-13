@@ -554,8 +554,10 @@
 
     <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
-let csvData = [];
+
+// Store password in memory only (not localStorage)
 let userPassword = '';
+let upcMappingCache = {};
 
 async function authenticate() {
     const password = document.getElementById('passwordInput').value;
@@ -578,15 +580,16 @@ async function authenticate() {
         const result = await response.json();
         
         if (result.success) {
+            userPassword = password; // Store in memory only
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
-            userPassword = password;
-            localStorage.setItem('authenticated', 'true');
+            localStorage.setItem('authenticated', 'true'); // Only flag, not password
             initPage();
         } else {
             document.getElementById('errorMsg').style.display = 'block';
             document.getElementById('errorMsg').textContent = 'Incorrect password';
             document.getElementById('passwordInput').value = '';
+            userPassword = ''; // Clear on error
         }
     } catch (error) {
         console.error('Auth error:', error);
@@ -596,17 +599,19 @@ async function authenticate() {
 }
 
 function logout() {
+    userPassword = ''; // Clear password from memory
+    upcMappingCache = {}; // Clear cache
     localStorage.removeItem('authenticated');
     document.getElementById('appScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('passwordInput').value = '';
     document.getElementById('errorMsg').style.display = 'none';
-    userPassword = '';
-    csvData = [];
 }
 
 window.addEventListener('load', () => {
     if (localStorage.getItem('authenticated') === 'true') {
+        // User is marked authenticated, but we need password for upload
+        // Show app but password is empty until they enter it or use incognito
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appScreen').style.display = 'block';
         initPage();
@@ -620,6 +625,7 @@ function initPage() {
     document.getElementById('startDate').value = yesterday.toISOString().split('T')[0];
     document.getElementById('endDate').value = today.toISOString().split('T')[0];
     updateTimestamp();
+    loadUPCMapping();
 }
 
 function updateTimestamp() {
@@ -633,6 +639,18 @@ function updateTimestamp() {
         second: '2-digit'
     });
     document.getElementById('lastModified').textContent = 'Last updated: ' + formatted;
+}
+
+async function loadUPCMapping() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?action=getUPCMapping');
+        const data = await response.json();
+        upcMappingCache = data;
+        console.log('✓ UPC Mapping loaded: ' + Object.keys(data).length + ' UPCs');
+    } catch (error) {
+        console.error('Error loading UPC mapping:', error);
+        upcMappingCache = {};
+    }
 }
 
 function handleFileSelect() {
@@ -655,7 +673,7 @@ function handleFileSelect() {
 
 function parseCSV(csv) {
     const lines = csv.trim().split('\n');
-    csvData = [];
+    const csvData = [];
     
     for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map(col => col.trim());
@@ -668,22 +686,33 @@ function parseCSV(csv) {
         }
     }
     
-    displayPreview();
+    displayPreview(csvData);
 }
 
-function displayPreview() {
+function displayPreview(csvData) {
     const previewBody = document.getElementById('previewBody');
     previewBody.innerHTML = '';
     
     const maxRows = Math.min(5, csvData.length);
     for (let i = 0; i < maxRows; i++) {
         const item = csvData[i];
+        const scanCode = item.scanCode.toString().trim();
+        
+        // Check if UPC is in mapping (FIX #1)
+        let status = 'no-match';
+        if (upcMappingCache[scanCode]) {
+            status = 'matched';
+        }
+        
         const row = document.createElement('tr');
+        const statusClass = status === 'matched' ? 'match-status matched' : 'match-status no-match';
+        const statusText = status === 'matched' ? 'Verified' : 'Pending';
+        
         row.innerHTML = `
             <td>${item.scanCode}</td>
             <td>${item.description}</td>
             <td>${item.qtySold}</td>
-            <td><span class="match-status no-match">Pending</span></td>
+            <td><span class="${statusClass}">${statusText}</span></td>
         `;
         previewBody.appendChild(row);
     }
@@ -700,7 +729,13 @@ async function uploadData() {
         return;
     }
     
-    if (csvData.length === 0) {
+    if (!userPassword) {
+        showMessage('Password not set. Please logout and login again.', 'error');
+        return;
+    }
+    
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files[0]) {
         showMessage('Please select a CSV file', 'error');
         return;
     }
@@ -709,23 +744,32 @@ async function uploadData() {
     document.getElementById('loadingSpinner').classList.add('active');
     
     try {
-        const dataToSend = csvData.map(item => ({
-            scanCode: item.scanCode,
-            posDescription: item.description,
-            qtySoldPacks: item.qtySold,
-            cartonsQuantity: Math.round(item.qtySold / 10 * 100) / 100,
-            matchStatus: 'pending',
-            itemNumber: 'N/A'
-        }));
+        const csv = await fileInput.files[0].text();
+        const lines = csv.trim().split('\n');
+        const csvData = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(',').map(col => col.trim());
+            if (cols.length >= 3) {
+                csvData.push({
+                    scanCode: cols[0],
+                    posDescription: cols[1],
+                    qtySoldPacks: parseFloat(cols[2]) || 0,
+                    cartonsQuantity: Math.round((parseFloat(cols[2]) || 0) / 10 * 100) / 100,
+                    matchStatus: 'pending',
+                    itemNumber: 'N/A'
+                });
+            }
+        }
         
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: 'uploadSalesHistory',
-                data: dataToSend,
+                data: csvData,
                 startDate: startDate,
                 endDate: endDate,
-                password: userPassword
+                password: userPassword // FIX #2: Send password from memory
             })
         });
         
@@ -739,8 +783,8 @@ async function uploadData() {
             document.getElementById('fileInput').value = '';
             document.getElementById('fileName').classList.remove('active');
             document.getElementById('previewTable').classList.remove('active');
-            csvData = [];
             document.getElementById('uploadBtn').disabled = true;
+            loadUPCMapping(); // Reload mapping after upload
         } else {
             showMessage('Error: ' + result.error, 'error');
             document.getElementById('uploadBtn').disabled = false;
