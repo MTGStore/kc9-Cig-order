@@ -4,811 +4,419 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KC9 Sales Uploader</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
+            padding: 20px;
         }
-
-        .login-container {
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            padding: 30px 20px;
-            width: 100%;
-            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
         }
-
-        .login-header {
+        .header {
             text-align: center;
             margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
         }
-
-        .login-header h1 {
+        .header h1 {
             color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 5px;
         }
-
-        .login-header p {
-            color: #999;
-            font-size: 14px;
+        .timestamp {
+            color: #888;
+            font-size: 13px;
         }
-
-        .form-group {
+        .login-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
+            text-align: center;
         }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
+        .login-section input {
+            padding: 10px 15px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            width: 200px;
+            margin-right: 10px;
         }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .login-section button {
+            padding: 10px 20px;
+            background: #667eea;
             color: white;
             border: none;
             border-radius: 6px;
             font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: background 0.3s;
         }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
+        .login-section button:hover {
+            background: #764ba2;
         }
-
-        .login-btn:active {
-            transform: translateY(0);
-        }
-
-        #errorMsg {
+        .upload-section {
             display: none;
-            background: #fee;
-            color: #c00;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            text-align: center;
         }
-
-        #loginScreen {
-            display: flex;
-        }
-
-        #appScreen {
-            display: none;
-            width: 100%;
-        }
-
-        .app-container {
-            width: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            max-height: 100vh;
-        }
-
-        .app-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
-        }
-
-        .header-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .header-info {
-            font-size: 11px;
-            opacity: 0.9;
-            line-height: 1.4;
-        }
-
-        .app-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .section {
-            background: #f9f9f9;
-            padding: 15px;
+        .upload-area {
+            border: 3px dashed #667eea;
             border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .section-title i {
-            color: #667eea;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        @media (min-width: 640px) {
-            .form-row {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .file-upload {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 12px;
-        }
-
-        .file-upload input[type=file] {
-            display: none;
-        }
-
-        .file-upload label {
-            display: block;
-            padding: 12px;
-            background: #e8e8e8;
-            border: 2px dashed #667eea;
-            border-radius: 6px;
+            padding: 40px;
             text-align: center;
+            margin-bottom: 20px;
             cursor: pointer;
-            font-weight: 600;
-            color: #333;
             transition: all 0.3s;
         }
-
-        .file-upload label:hover {
-            background: #ddd;
+        .upload-area:hover {
+            background: #f0f4ff;
             border-color: #764ba2;
         }
-
-        .file-upload input[type=file]:focus + label {
-            background: #d0d0d0;
-            border-color: #764ba2;
+        .upload-area.dragging {
+            background: #e8eef7;
+            border-color: #667eea;
         }
-
-        .file-name {
-            font-size: 12px;
+        .upload-area input {
+            display: none;
+        }
+        .upload-area p {
             color: #666;
-            margin-top: 6px;
-            padding: 6px;
-            background: white;
-            border-radius: 4px;
+            font-size: 16px;
+            margin: 0;
+        }
+        .preview-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: none;
         }
-
-        .file-name.active {
-            display: block;
+        .preview-section h3 {
+            margin-bottom: 15px;
+            color: #333;
         }
-
-        .status-message {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            display: none;
-        }
-
-        .status-message.success {
-            display: block;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .status-message.error {
-            display: block;
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .status-message.info {
-            display: block;
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-        }
-
         .preview-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
-            margin-top: 12px;
-            display: none;
-            max-height: 400px;
-            overflow-y: auto;
+            font-size: 14px;
         }
-
-        .preview-table.active {
-            display: table;
-        }
-
-        .preview-table th,
-        .preview-table td {
-            border: 1px solid #ddd;
+        .preview-table th, .preview-table td {
             padding: 8px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-
         .preview-table th {
             background: #667eea;
             color: white;
             font-weight: 600;
-            position: sticky;
-            top: 0;
         }
-
-        .preview-table tr:nth-child(even) {
-            background: #f9f9f9;
+        .preview-table tr:hover {
+            background: #f5f5f5;
         }
-
-        .match-status {
-            font-size: 11px;
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
-            padding: 3px 6px;
-            border-radius: 3px;
         }
-
-        .match-status.matched {
-            background: #d4edda;
-            color: #155724;
+        .status-verified {
+            background: #c8e6c9;
+            color: #2e7d32;
         }
-
-        .match-status.no-match {
-            background: #f8d7da;
-            color: #721c24;
+        .status-pending {
+            background: #ffe0b2;
+            color: #e65100;
         }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr;
+        .button-group {
+            display: flex;
             gap: 10px;
-            padding: 12px;
-            background: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
+            margin-top: 20px;
         }
-
-        @media (min-width: 640px) {
-            .action-buttons {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .btn {
+        .button-group button {
+            flex: 1;
             padding: 12px;
             border: none;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            white-space: nowrap;
-            min-height: 44px;
         }
-
-        .btn i {
-            font-size: 14px;
-        }
-
-        .btn-upload {
+        .upload-btn {
             background: #4caf50;
             color: white;
         }
-
-        .btn-upload:active {
+        .upload-btn:hover {
             background: #45a049;
-            transform: translateY(-2px);
         }
-
-        .btn-upload:disabled {
+        .upload-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
-
-        .btn-back {
+        .cancel-btn {
             background: #f44336;
             color: white;
         }
-
-        .btn-back:active {
+        .cancel-btn:hover {
             background: #da190b;
-            transform: translateY(-2px);
         }
-
-        .loading-spinner {
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
             display: none;
-            text-align: center;
-            padding: 20px;
         }
-
-        .loading-spinner.active {
+        .status-message.show {
             display: block;
         }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+        .status-message.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .status-message.error {
+            background: #ffcdd2;
+            color: #c62828;
+            border-left: 4px solid #f44336;
         }
-
-        .last-modified {
-            text-align: center;
-            padding: 10px;
-            font-size: 10px;
-            color: #999;
-            background: #fafafa;
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
         }
-
-        @media (max-width: 640px) {
-            body {
-                padding: 0;
-            }
-
-            .login-container {
-                border-radius: 0;
-                padding: 20px 15px;
-                max-width: 100%;
-            }
-
-            .app-header {
-                padding: 12px;
-            }
-
-            .header-title {
-                font-size: 18px;
-            }
-
-            .app-content {
-                padding: 12px;
-            }
-
-            .section {
-                padding: 12px;
-            }
-
-            .btn {
-                padding: 11px;
-                font-size: 12px;
-            }
+        .progress-fill {
+            height: 100%;
+            background: #4caf50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 22px; }
+            .button-group { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-    <div id="loginScreen" class="login-container">
-        <div class="login-header">
-            <h1>🔒 Sales Uploader</h1>
-            <p>Secure Access Required</p>
+    <div class="container">
+        <div class="header">
+            <h1>📤 KC9 Sales Uploader</h1>
+            <p class="timestamp">Updated: 09/14/2026 at 10:20 PM EST</p>
         </div>
-        <div id="errorMsg"></div>
-        <div class="form-group">
-            <label for="passwordInput">Password</label>
-            <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter') authenticate()">
+
+        <div class="login-section" id="loginSection">
+            <input type="password" id="passwordInput" placeholder="Enter Manager Password" />
+            <button onclick="validateLogin()">Login</button>
         </div>
-        <button class="login-btn" onclick="authenticate()">
-            <i class="fas fa-lock"></i> Unlock
-        </button>
-    </div>
 
-    <div id="appScreen">
-        <div class="app-container">
-            <div class="app-header">
-                <div class="header-title">
-                    <i class="fas fa-upload"></i> KC9 Sales Uploader
-                </div>
-                <div class="header-info">
-                    Upload daily POS sales CSV data to calculate smart order recommendations
-                </div>
+        <div class="upload-section" id="uploadSection">
+            <div class="status-message" id="statusMessage"></div>
+
+            <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                <input type="file" id="fileInput" accept=".csv,.txt" onchange="handleFileSelect(event)" multiple>
+                <p>📁 Drag and drop CSV files here or click to select</p>
             </div>
 
-            <div class="app-content">
-                <div class="section">
-                    <div class="section-title">
-                        <i class="fas fa-calendar"></i> Sales Period
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="startDate">Start Date</label>
-                            <input type="date" id="startDate">
-                        </div>
-                        <div class="form-group">
-                            <label for="endDate">End Date</label>
-                            <input type="date" id="endDate">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">
-                        <i class="fas fa-file-csv"></i> Upload CSV File
-                    </div>
-                    <div class="file-upload">
-                        <input type="file" id="fileInput" accept=".csv" onchange="handleFileSelect()">
-                        <label for="fileInput">
-                            <i class="fas fa-cloud-upload-alt"></i> Click to upload or drag CSV file
-                        </label>
-                    </div>
-                    <div class="file-name" id="fileName"></div>
-                    <div class="status-message" id="statusMessage"></div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">
-                        <i class="fas fa-eye"></i> Preview (All rows)
-                    </div>
-                    <table class="preview-table" id="previewTable">
-                        <thead>
-                            <tr>
-                                <th>Scan Code</th>
-                                <th>Description</th>
-                                <th>Qty Sold</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewBody"></tbody>
-                    </table>
-                </div>
-
-                <div class="loading-spinner" id="loadingSpinner">
-                    <div class="spinner"></div>
-                    <p>Uploading and processing...</p>
-                </div>
+            <div class="preview-section" id="previewSection">
+                <h3>Preview (First 20 rows)</h3>
+                <table class="preview-table" id="previewTable">
+                    <thead>
+                        <tr>
+                            <th>Upload Date</th>
+                            <th>Sales Date</th>
+                            <th>Item Name</th>
+                            <th>UPC</th>
+                            <th>Qty</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
             </div>
 
-            <div class="action-buttons">
-                <button class="btn btn-upload" id="uploadBtn" onclick="uploadData()" disabled>
-                    <i class="fas fa-upload"></i> Upload
-                </button>
-                <button class="btn btn-back" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+            <div class="button-group" id="buttonGroup" style="display: none;">
+                <button class="upload-btn" onclick="uploadData()">Upload to Sheets</button>
+                <button class="cancel-btn" onclick="resetForm()">Cancel</button>
             </div>
-
-            <div class="last-modified" id="lastModified"></div>
         </div>
     </div>
 
     <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
+        const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
+        let userPassword = null;
+        let fileData = [];
 
-// Session-only variables (not persisted)
-let userPassword = '';
-let upcMappingCache = {};
-let isAuthenticated = false;
+        function validateLogin() {
+            const password = document.getElementById('passwordInput').value;
+            if (!password) {
+                showStatus('Please enter a password', 'error');
+                return;
+            }
 
-async function authenticate() {
-    const password = document.getElementById('passwordInput').value;
-    
-    if (!password) {
-        document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('errorMsg').textContent = 'Please enter a password';
-        return;
-    }
-
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'validatePassword',
-                password: password
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            userPassword = password;
-            isAuthenticated = true;
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            initPage();
-        } else {
-            document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').textContent = 'Incorrect password';
-            document.getElementById('passwordInput').value = '';
-            userPassword = '';
-            isAuthenticated = false;
+            fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(password))
+                .then(r => r.json())
+                .then(result => {
+                    if (result.valid) {
+                        userPassword = password;
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('uploadSection').style.display = 'block';
+                        showStatus('✓ Logged in successfully', 'success');
+                    } else {
+                        showStatus('Invalid password', 'error');
+                        document.getElementById('passwordInput').value = '';
+                    }
+                })
+                .catch(err => showStatus('Error validating password: ' + err, 'error'));
         }
-    } catch (error) {
-        console.error('Auth error:', error);
-        document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('errorMsg').textContent = 'Error connecting to server';
-    }
-}
 
-function logout() {
-    userPassword = '';
-    upcMappingCache = {};
-    isAuthenticated = false;
-    document.getElementById('appScreen').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('passwordInput').value = '';
-    document.getElementById('errorMsg').style.display = 'none';
-}
-
-window.addEventListener('load', () => {
-    // Always show login on load (session-only, no persistence)
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('appScreen').style.display = 'none';
-});
-
-function initPage() {
-    const today = new Date();
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    
-    document.getElementById('startDate').value = yesterday.toISOString().split('T')[0];
-    document.getElementById('endDate').value = today.toISOString().split('T')[0];
-    updateTimestamp();
-    loadUPCMapping();
-}
-
-function updateTimestamp() {
-    const now = new Date();
-    const formatted = now.toLocaleString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    document.getElementById('lastModified').textContent = 'Last updated: ' + formatted;
-}
-
-async function loadUPCMapping() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL + '?action=getUPCMapping');
-        const data = await response.json();
-        upcMappingCache = data;
-        console.log('✓ UPC Mapping loaded: ' + Object.keys(data).length + ' UPCs');
-    } catch (error) {
-        console.error('Error loading UPC mapping:', error);
-        upcMappingCache = {};
-    }
-}
-
-function handleFileSelect() {
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    
-    if (!file) return;
-    
-    document.getElementById('fileName').textContent = '📄 ' + file.name;
-    document.getElementById('fileName').classList.add('active');
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const csv = e.target.result;
-        parseCSV(csv);
-        document.getElementById('uploadBtn').disabled = false;
-    };
-    reader.readAsText(file);
-}
-
-function parseCSV(csv) {
-    const lines = csv.trim().split('\n');
-    const csvData = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(',').map(col => col.trim());
-        if (cols.length >= 3 && cols[0] && cols[1]) {
-            csvData.push({
-                scanCode: cols[0],
-                description: cols[1],
-                qtySold: parseFloat(cols[2]) || 0
-            });
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('uploadArea').classList.add('dragging');
         }
-    }
-    
-    displayPreview(csvData);
-}
 
-function displayPreview(csvData) {
-    const previewBody = document.getElementById('previewBody');
-    previewBody.innerHTML = '';
-    
-    for (let i = 0; i < csvData.length; i++) {
-        const item = csvData[i];
-        const scanCode = item.scanCode.toString().trim();
-        
-        let status = 'no-match';
-        if (upcMappingCache[scanCode]) {
-            status = 'matched';
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('uploadArea').classList.remove('dragging');
         }
-        
-        const row = document.createElement('tr');
-        const statusClass = status === 'matched' ? 'match-status matched' : 'match-status no-match';
-        const statusText = status === 'matched' ? 'Verified' : 'Pending';
-        
-        row.innerHTML = `
-            <td>${item.scanCode}</td>
-            <td>${item.description}</td>
-            <td>${item.qtySold}</td>
-            <td><span class="${statusClass}">${statusText}</span></td>
-        `;
-        previewBody.appendChild(row);
-    }
-    
-    document.getElementById('previewTable').classList.add('active');
-}
 
-async function uploadData() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    
-    if (!startDate || !endDate) {
-        showMessage('Please select date range', 'error');
-        return;
-    }
-    
-    if (!userPassword || !isAuthenticated) {
-        showMessage('Not authenticated. Please login again.', 'error');
-        logout();
-        return;
-    }
-    
-    const fileInput = document.getElementById('fileInput');
-    if (!fileInput.files[0]) {
-        showMessage('Please select a CSV file', 'error');
-        return;
-    }
-    
-    document.getElementById('uploadBtn').disabled = true;
-    document.getElementById('loadingSpinner').classList.add('active');
-    
-    try {
-        const csv = await fileInput.files[0].text();
-        const lines = csv.trim().split('\n');
-        const csvData = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(',').map(col => col.trim());
-            if (cols.length >= 3 && cols[0] && cols[1]) {
-                csvData.push({
-                    scanCode: cols[0],
-                    posDescription: cols[1],
-                    qtySoldPacks: parseFloat(cols[2]) || 0,
-                    cartonsQuantity: Math.round((parseFloat(cols[2]) || 0) / 10 * 100) / 100,
-                    matchStatus: 'pending',
-                    itemNumber: 'N/A'
-                });
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('uploadArea').classList.remove('dragging');
+            const files = e.dataTransfer.files;
+            processFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            processFiles(e.target.files);
+        }
+
+        function processFiles(files) {
+            fileData = [];
+            let filesProcessed = 0;
+
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csv = e.target.result;
+                    const lines = csv.split('\n');
+                    const uploadDate = new Date().toISOString().split('T')[0];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim() === '') continue;
+                        const fields = lines[i].split('\t');
+                        if (fields.length < 7) continue;
+
+                        fileData.push({
+                            uploadDate: uploadDate,
+                            salesDate: fields[1],
+                            itemName: fields[3],
+                            upc: fields[4],
+                            qty: fields[6],
+                            status: 'Verified'
+                        });
+                    }
+
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        displayPreview();
+                    }
+                };
+                reader.readAsText(file);
             }
         }
-        
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'uploadSalesHistory',
-                data: csvData,
-                startDate: startDate,
-                endDate: endDate,
-                password: userPassword
-            })
-        });
-        
-        const result = await response.json();
-        
-        document.getElementById('loadingSpinner').classList.remove('active');
-        
-        if (result.success) {
-            showMessage('✓ ' + result.message, 'success');
-            updateTimestamp();
-            document.getElementById('fileInput').value = '';
-            document.getElementById('fileName').classList.remove('active');
-            document.getElementById('previewTable').classList.remove('active');
-            document.getElementById('uploadBtn').disabled = true;
-            loadUPCMapping();
-        } else {
-            showMessage('Error: ' + result.error, 'error');
-            document.getElementById('uploadBtn').disabled = false;
-        }
-    } catch (error) {
-        console.error('Upload error:', error);
-        document.getElementById('loadingSpinner').classList.remove('active');
-        showMessage('Error uploading data: ' + error.message, 'error');
-        document.getElementById('uploadBtn').disabled = false;
-    }
-}
 
-function showMessage(text, type) {
-    const msg = document.getElementById('statusMessage');
-    msg.textContent = text;
-    msg.className = 'status-message ' + type;
-    
-    if (type === 'success') {
-        setTimeout(() => {
-            msg.classList.remove(type);
-        }, 5000);
-    }
-}
+        function displayPreview() {
+            const previewBody = document.getElementById('previewBody');
+            previewBody.innerHTML = '';
+
+            const rowsToShow = Math.min(fileData.length, 20);
+            for (let i = 0; i < rowsToShow; i++) {
+                const row = fileData[i];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.uploadDate}</td>
+                    <td>${row.salesDate}</td>
+                    <td>${row.itemName}</td>
+                    <td>${row.upc}</td>
+                    <td>${row.qty}</td>
+                    <td><span class="status-badge status-verified">${row.status}</span></td>
+                `;
+                previewBody.appendChild(tr);
+            }
+
+            document.getElementById('previewSection').style.display = 'block';
+            document.getElementById('buttonGroup').style.display = 'flex';
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = (fileData.length / 166) * 100;
+            document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+        }
+
+        function uploadData() {
+            if (fileData.length === 0) {
+                showStatus('No data to upload', 'error');
+                return;
+            }
+
+            const uploadBtn = document.querySelector('.upload-btn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+
+            fetch(DEPLOYED_URL + '?action=uploadSalesHistory&password=' + encodeURIComponent(userPassword) + '&csvData=' + encodeURIComponent(JSON.stringify(fileData)))
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        showStatus(`✓ Uploaded ${result.rowsAdded} rows successfully!`, 'success');
+                        resetForm();
+                    } else {
+                        showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = 'Upload to Sheets';
+                    }
+                })
+                .catch(err => {
+                    showStatus('Error uploading data: ' + err, 'error');
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = 'Upload to Sheets';
+                });
+        }
+
+        function resetForm() {
+            fileData = [];
+            document.getElementById('fileInput').value = '';
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('buttonGroup').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+        }
+
+        function showStatus(message, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `status-message show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('passwordInput').focus();
+        });
     </script>
 </body>
 </html>
