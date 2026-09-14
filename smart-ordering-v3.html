@@ -63,13 +63,13 @@
         .login-section button:hover {
             background: #764ba2;
         }
-        .search-bar {
+        .toolbar {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        .search-bar input {
+        .toolbar input {
             flex: 1;
             min-width: 200px;
             padding: 12px;
@@ -77,9 +77,32 @@
             border-radius: 6px;
             font-size: 16px;
         }
-        .search-bar input:focus {
+        .toolbar input:focus {
             outline: none;
             border-color: #667eea;
+        }
+        .toolbar button {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .toolbar button:hover {
+            background: #764ba2;
+        }
+        .whatsapp-btn {
+            background: #25D366 !important;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .whatsapp-btn:hover {
+            background: #20ba5a !important;
         }
         .items-container {
             display: grid;
@@ -256,8 +279,8 @@
             .container { padding: 15px; }
             .items-container { grid-template-columns: 1fr; }
             .header h1 { font-size: 22px; }
-            .search-bar { flex-direction: column; }
-            .search-bar input { min-width: unset; }
+            .toolbar { flex-direction: column; }
+            .toolbar input { min-width: unset; }
         }
     </style>
 </head>
@@ -265,7 +288,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 7:00 AM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 12:00 AM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -276,9 +299,10 @@
         <div id="contentArea" style="display: none;">
             <div class="status-message" id="statusMessage"></div>
 
-            <div class="search-bar">
+            <div class="toolbar">
                 <input type="text" id="searchInput" placeholder="🔍 Search by item name or number..." onkeyup="filterItems()">
-                <button onclick="location.reload()" style="padding: 12px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Refresh Data</button>
+                <button onclick="location.reload()">Refresh Data</button>
+                <button class="whatsapp-btn" onclick="sendOrdersViaWhatsApp()">📱 WhatsApp Orders</button>
             </div>
 
             <div class="items-container" id="itemsContainer">
@@ -290,10 +314,11 @@
     </div>
 
     <script>
-      const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
+        const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxP5W9BDfiXLvNAq5Uk99G4a0qe7WQ9UD2-Iz-ir-3sgOVVG_B155vCxwr-DpqGWhMzUA/exec';
         let userPassword = null;
         let allItems = [];
         let orderData = {};
+        let currentCalcMap = {};
 
         function validateLogin() {
             const password = document.getElementById('passwordInput').value;
@@ -332,11 +357,11 @@
             fetch(DEPLOYED_URL + '?action=getOrderCalculationFromCache')
                 .then(r => r.json())
                 .then(calculations => {
-                    const calcMap = {};
+                    currentCalcMap = {};
                     calculations.forEach(row => {
-                        calcMap[row['Item Number']] = row;
+                        currentCalcMap[row['Item Number']] = row;
                     });
-                    renderItems(calcMap);
+                    renderItems(currentCalcMap);
                 })
                 .catch(err => showStatus('Error loading calculations: ' + err, 'error'));
         }
@@ -443,6 +468,53 @@
             document.getElementById('order_' + itemNum).value = qty.toFixed(1);
             document.getElementById('manual_' + itemNum).style.display = 'none';
             showStatus(`✓ Manual count recorded: ${itemName} - ${qty} cartons`, 'success');
+        }
+
+        function sendOrdersViaWhatsApp() {
+            let totalQty = 0;
+            let itemsCount = 0;
+            let message = 'KC9 CIGARETTE ORDER\n';
+            message += 'Date: ' + new Date().toLocaleDateString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'}) + '\n';
+            message += 'Counted by: Harry\n';
+            message += '════════════════════════════\n\n';
+
+            const items = [];
+            for (let i = 0; i < allItems.length; i++) {
+                const itemNum = allItems[i]['Item Number'];
+                const orderQtyInput = document.getElementById('order_' + itemNum);
+                if (orderQtyInput) {
+                    const qty = parseFloat(orderQtyInput.value) || 0;
+                    if (qty > 0) {
+                        items.push({
+                            name: allItems[i]['Item Name'],
+                            number: itemNum,
+                            qty: qty
+                        });
+                        totalQty += qty;
+                        itemsCount++;
+                    }
+                }
+            }
+
+            if (items.length === 0) {
+                showStatus('No items to order', 'error');
+                return;
+            }
+
+            items.forEach(item => {
+                message += 'Item Name: ' + item.name + '\n';
+                message += 'Item #: ' + item.number + '\n';
+                message += 'Order Qty: ' + item.qty.toFixed(2) + ' cartons\n\n';
+            });
+
+            message += '════════════════════════════\n';
+            message += 'TOTAL CARTONS TO ORDER: ' + totalQty.toFixed(2) + '\n';
+            message += 'ITEMS NEEDING ORDER: ' + itemsCount;
+
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = 'https://wa.me/14046689091?text=' + encodedMessage;
+            
+            window.open(whatsappUrl, '_blank');
         }
 
         function filterItems() {
