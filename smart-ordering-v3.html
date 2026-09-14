@@ -122,10 +122,6 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
             transform: translateY(-2px);
         }
-        .item-card.unverified {
-            border-color: #ffa726;
-            background: #fff8f0;
-        }
         .item-header {
             display: flex;
             justify-content: space-between;
@@ -141,18 +137,6 @@
             font-size: 12px;
             color: #999;
             margin-top: 3px;
-        }
-        .verification-badge {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 12px;
-            border-radius: 20px;
-            background: #c8e6c9;
-            color: #2e7d32;
-        }
-        .verification-badge.unverified {
-            background: #ffe0b2;
-            color: #e65100;
         }
         .calc-row {
             display: flex;
@@ -239,13 +223,6 @@
         .submit-btn:hover {
             background: #45a049;
         }
-        .manual-count-btn {
-            background: #2196F3;
-            color: white;
-        }
-        .manual-count-btn:hover {
-            background: #0b7dda;
-        }
         .status-message {
             padding: 12px;
             border-radius: 6px;
@@ -288,7 +265,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 12:00 AM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 9:50 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -317,8 +294,6 @@
         const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
         let userPassword = null;
         let allItems = [];
-        let orderData = {};
-        let currentCalcMap = {};
 
         function validateLogin() {
             const password = document.getElementById('passwordInput').value;
@@ -344,53 +319,36 @@
         }
 
         function loadItems() {
-            fetch(DEPLOYED_URL + '?action=getAllItems')
+            fetch(DEPLOYED_URL + '?action=getSmartOrderData')
                 .then(r => r.json())
                 .then(items => {
                     allItems = items;
-                    loadCalculations();
+                    renderItems(items);
                 })
                 .catch(err => showStatus('Error loading items: ' + err, 'error'));
         }
 
-        function loadCalculations() {
-            fetch(DEPLOYED_URL + '?action=getOrderCalculationFromCache')
-                .then(r => r.json())
-                .then(calculations => {
-                    currentCalcMap = {};
-                    calculations.forEach(row => {
-                        currentCalcMap[row['Item Number']] = row;
-                    });
-                    renderItems(currentCalcMap);
-                })
-                .catch(err => showStatus('Error loading calculations: ' + err, 'error'));
-        }
-
-        function renderItems(calcMap) {
+        function renderItems(items) {
             const container = document.getElementById('itemsContainer');
-            if (allItems.length === 0) {
+            if (!items || items.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No items found</p></div>';
                 return;
             }
 
-            container.innerHTML = allItems.map(item => {
-                const itemNum = item['Item Number'];
-                const calc = calcMap[itemNum] || {};
-                const mustHave = item['Must Have Qty'] || 0;
-                const salesBased = calc['Sales Based'] || 0;
-                const fourWeekAvg = calc['4 Week Avg'] || 0;
-                const onHand = mustHave - salesBased;
-                const isUnverified = item['Status'] === 'Pending' || item['Status'] === 'UNVERIFIED';
+            container.innerHTML = items.map(item => {
+                const itemNum = item['itemNumber'];
+                const itemName = item['itemName'];
+                const mustHave = item['mustHave'] || 0;
+                const orderQty = item['orderQty'] || 0;
+                const fourWeekAvg = item['fourWeekAvg'] || 0;
+                const onHand = mustHave - orderQty;
 
                 return `
-                    <div class="item-card ${isUnverified ? 'unverified' : ''}">
+                    <div class="item-card">
                         <div class="item-header">
                             <div>
-                                <div class="item-name">${item['Item Name']}</div>
+                                <div class="item-name">${itemName}</div>
                                 <div class="item-number">#${itemNum}</div>
-                            </div>
-                            <div class="verification-badge ${isUnverified ? 'unverified' : ''}">
-                                ${isUnverified ? 'UNVERIFIED' : 'VERIFIED'}
                             </div>
                         </div>
 
@@ -406,7 +364,7 @@
                                 </div>
                                 <div class="calc-row" style="border-top: 1px solid rgba(102, 126, 234, 0.3); padding-top: 8px; margin-top: 8px;">
                                     <span class="calc-label" style="font-weight: 700;">= Order Qty:</span>
-                                    <span class="calc-value" style="color: #667eea; font-size: 16px;">${salesBased.toFixed(1)}</span>
+                                    <span class="calc-value" style="color: #667eea; font-size: 16px;">${orderQty.toFixed(1)}</span>
                                 </div>
                             </div>
 
@@ -418,25 +376,14 @@
 
                         <div class="order-input-section">
                             <label>Order (Cartons)</label>
-                            <input type="number" id="order_${itemNum}" value="${salesBased.toFixed(1)}" step="0.1" min="0">
+                            <input type="number" id="order_${itemNum}" value="${orderQty.toFixed(1)}" step="0.1" min="0">
                             <div class="button-group">
-                                <button class="submit-btn" onclick="submitOrder('${itemNum}', '${item['Item Name']}')">Submit Order</button>
-                                <button class="manual-count-btn" onclick="toggleManualCount('${itemNum}')">Manual Count</button>
-                            </div>
-                            <div id="manual_${itemNum}" style="display: none; margin-top: 10px;">
-                                <label style="display: block; font-size: 12px; margin-bottom: 5px;">Enter Current Count (Cartons)</label>
-                                <input type="number" id="manual_input_${itemNum}" placeholder="Cartons" step="0.1" min="0" style="width: 100%; padding: 8px; border: 2px solid #2196F3; border-radius: 4px;">
-                                <button onclick="submitManualCount('${itemNum}', '${item['Item Name']}')" style="width: 100%; margin-top: 8px; padding: 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Confirm Manual Count</button>
+                                <button class="submit-btn" onclick="submitOrder('${itemNum}', '${itemName}')">Submit Order</button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        function toggleManualCount(itemNum) {
-            const manualDiv = document.getElementById('manual_' + itemNum);
-            manualDiv.style.display = manualDiv.style.display === 'none' ? 'block' : 'none';
         }
 
         function submitOrder(itemNum, itemName) {
@@ -458,18 +405,6 @@
                 .catch(err => showStatus('Error submitting order: ' + err, 'error'));
         }
 
-        function submitManualCount(itemNum, itemName) {
-            const qty = parseFloat(document.getElementById('manual_input_' + itemNum).value);
-            if (isNaN(qty) || qty < 0) {
-                showStatus('Invalid count quantity', 'error');
-                return;
-            }
-
-            document.getElementById('order_' + itemNum).value = qty.toFixed(1);
-            document.getElementById('manual_' + itemNum).style.display = 'none';
-            showStatus(`✓ Manual count recorded: ${itemName} - ${qty} cartons`, 'success');
-        }
-
         function sendOrdersViaWhatsApp() {
             let totalQty = 0;
             let itemsCount = 0;
@@ -480,13 +415,13 @@
 
             const items = [];
             for (let i = 0; i < allItems.length; i++) {
-                const itemNum = allItems[i]['Item Number'];
+                const itemNum = allItems[i]['itemNumber'];
                 const orderQtyInput = document.getElementById('order_' + itemNum);
                 if (orderQtyInput) {
                     const qty = parseFloat(orderQtyInput.value) || 0;
                     if (qty > 0) {
                         items.push({
-                            name: allItems[i]['Item Name'],
+                            name: allItems[i]['itemName'],
                             number: itemNum,
                             qty: qty
                         });
