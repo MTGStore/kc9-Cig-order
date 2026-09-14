@@ -223,19 +223,6 @@
         .manual-count-btn:hover {
             background: #0b7dda;
         }
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #4caf50;
-            transition: width 0.3s;
-        }
         .status-message {
             padding: 12px;
             border-radius: 6px;
@@ -278,7 +265,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/13/2026 at 8:30 PM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 12:00 AM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -317,7 +304,8 @@
 
             fetch(DEPLOYED_URL, {
                 method: 'POST',
-                body: new URLSearchParams({
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
                     action: 'validatePassword',
                     password: password
                 })
@@ -373,7 +361,7 @@
                 const mustHave = item['Must Have Qty'] || 0;
                 const salesBased = calc['Sales Based'] || 0;
                 const fourWeekAvg = calc['4 Week Avg'] || 0;
-                const onHand = mustHave - salesBased; // Calculate On Hand from the formula
+                const onHand = mustHave - salesBased;
                 const isUnverified = item['Status'] === 'Pending' || item['Status'] === 'UNVERIFIED';
 
                 return `
@@ -442,7 +430,8 @@
 
             fetch(DEPLOYED_URL, {
                 method: 'POST',
-                body: new URLSearchParams({
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
                     action: 'saveSmartOrder',
                     password: userPassword,
                     itemNumber: itemNum,
@@ -468,7 +457,6 @@
                 return;
             }
 
-            // Update the order input with the manual count
             document.getElementById('order_' + itemNum).value = qty.toFixed(1);
             document.getElementById('manual_' + itemNum).style.display = 'none';
             showStatus(`✓ Manual count recorded: ${itemName} - ${qty} cartons`, 'success');
@@ -489,7 +477,6 @@
             setTimeout(() => el.classList.remove('show'), 5000);
         }
 
-        // Load on startup
         window.addEventListener('load', () => {
             document.getElementById('passwordInput').focus();
         });
