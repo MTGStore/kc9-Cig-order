@@ -200,7 +200,7 @@
     <div class="container">
         <div class="header">
             <h1>📤 KC9 Sales Uploader</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 11:00 PM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 11:15 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -275,7 +275,10 @@
                         document.getElementById('passwordInput').value = '';
                     }
                 })
-                .catch(err => showStatus('Error validating password: ' + err, 'error'));
+                .catch(err => {
+                    console.log('Login error:', err);
+                    showStatus('Error validating password: ' + err, 'error');
+                });
         }
 
         function handleDragOver(e) {
@@ -299,46 +302,73 @@
         }
 
         function processFiles(files) {
-    console.log('processFiles called with', files.length, 'files');
-    fileData = [];
-    if (files.length === 0) {
-        console.log('No files');
-        return;
-    }
+            console.log('processFiles called with', files.length, 'files');
+            fileData = [];
+            if (files.length === 0) {
+                console.log('No files');
+                return;
+            }
 
-    const reader = new FileReader();
-            reader.onload = function(e) {
-    const csv = e.target.result;
-    console.log('CSV loaded, length:', csv.length);
-    const lines = csv.split('\n');
-    console.log('Total lines:', lines.length);
-    console.log('First line:', lines[0]);
-    console.log('Second line:', lines[1]);
-                const salesDate = document.getElementById('salesDate').value;
-
-                for (let i = 1; i < lines.length; i++) {
-                    if (lines[i].trim() === '') continue;
-                    const fields = lines[i].split('\t');
-                    if (fields.length < 3) continue;
-
-                    const packsSold = parseFloat(fields[2]) || 0;
-                    const cartonsQty = (packsSold / 10).toFixed(2);
-
-                    fileData.push({
-                        upc: String(fields[0]).trim(),
-                        itemName: String(fields[1]).trim(),
-                        packs: packsSold,
-                        cartons: cartonsQty,
-                        salesDate: salesDate
-                    });
-                }
-
-                displayPreview();
+            const reader = new FileReader();
+            
+            reader.onerror = function() {
+                console.log('FileReader error');
+                showStatus('Error reading file', 'error');
             };
+
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    console.log('CSV loaded, length:', csv.length);
+                    const lines = csv.split('\n');
+                    console.log('Total lines:', lines.length);
+                    console.log('First line:', lines[0]);
+                    console.log('Second line:', lines[1]);
+                    
+                    const salesDate = document.getElementById('salesDate').value;
+                    console.log('Sales date:', salesDate);
+
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim() === '') {
+                            console.log('Line', i, '- empty, skipping');
+                            continue;
+                        }
+                        
+                        const fields = lines[i].split('\t');
+                        console.log('Line', i, '- fields count:', fields.length, '- fields:', fields);
+                        
+                        if (fields.length < 3) {
+                            console.log('Line', i, '- not enough fields, skipping');
+                            continue;
+                        }
+
+                        const packsSold = parseFloat(fields[2]) || 0;
+                        const cartonsQty = (packsSold / 10).toFixed(2);
+
+                        fileData.push({
+                            upc: String(fields[0]).trim(),
+                            itemName: String(fields[1]).trim(),
+                            packs: packsSold,
+                            cartons: cartonsQty,
+                            salesDate: salesDate
+                        });
+                        
+                        console.log('Added row:', fileData[fileData.length - 1]);
+                    }
+
+                    console.log('Total fileData rows:', fileData.length);
+                    displayPreview();
+                } catch (err) {
+                    console.log('Error processing CSV:', err);
+                    showStatus('Error processing file: ' + err, 'error');
+                }
+            };
+            
             reader.readAsText(files[0]);
         }
 
         function displayPreview() {
+            console.log('displayPreview called with', fileData.length, 'rows');
             const previewBody = document.getElementById('previewBody');
             previewBody.innerHTML = '';
 
@@ -356,6 +386,7 @@
 
             document.getElementById('previewSection').style.display = 'block';
             document.getElementById('buttonGroup').style.display = 'flex';
+            console.log('Preview displayed');
         }
 
         function uploadData() {
