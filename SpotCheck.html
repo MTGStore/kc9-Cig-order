@@ -377,9 +377,9 @@
             }
 
             const filtered = allItems.filter(item => 
-                item.itemName.toLowerCase().includes(search) || 
-                item.itemNumber.toLowerCase().includes(search)
-            );
+    item.itemName.toLowerCase().includes(search) || 
+    String(item.itemNumber).toLowerCase().includes(search)
+);
 
             if (filtered.length === 0) {
                 dropdown.innerHTML = '<div class="dropdown-item">No items found</div>';
