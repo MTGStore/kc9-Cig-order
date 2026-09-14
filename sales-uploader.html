@@ -299,10 +299,14 @@
         }
 
         function processFiles(files) {
-            fileData = [];
-            if (files.length === 0) return;
+    console.log('processFiles called with', files.length, 'files');
+    fileData = [];
+    if (files.length === 0) {
+        console.log('No files');
+        return;
+    }
 
-            const reader = new FileReader();
+    const reader = new FileReader();
             reader.onload = function(e) {
                 const csv = e.target.result;
                 const lines = csv.split('\n');
