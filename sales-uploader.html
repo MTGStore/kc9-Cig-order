@@ -74,7 +74,6 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 8px;
-            font-size: 14px;
         }
         .form-group input[type="date"] {
             width: 100%;
@@ -95,7 +94,6 @@
             margin-bottom: 20px;
             cursor: pointer;
             transition: all 0.3s;
-            background: white;
         }
         .upload-area:hover {
             background: #f0f4ff;
@@ -112,7 +110,6 @@
             color: #666;
             font-size: 16px;
             margin: 0;
-            pointer-events: none;
         }
         .preview-section {
             background: #f9f9f9;
@@ -120,6 +117,8 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+            max-height: 400px;
+            overflow-y: auto;
         }
         .preview-section h3 {
             margin-bottom: 15px;
@@ -135,7 +134,6 @@
             color: white;
             padding: 10px;
             text-align: left;
-            font-weight: 600;
         }
         .preview-table td {
             padding: 10px;
@@ -157,7 +155,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
         .upload-btn {
             background: #4caf50;
@@ -197,23 +194,13 @@
             color: #c62828;
             border-left: 4px solid #f44336;
         }
-        .row-count {
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        @media (max-width: 600px) {
-            .container { padding: 15px; }
-            .header h1 { font-size: 22px; }
-            .button-group { flex-direction: column; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📤 KC9 Sales Uploader</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 10:45 PM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 11:00 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -225,15 +212,15 @@
             <div class="status-message" id="statusMessage"></div>
 
             <div class="form-group">
-                <label for="salesDate">📅 What date is this sales data for?</label>
+                <label for="salesDate">Sales Date:</label>
                 <input type="date" id="salesDate" />
             </div>
 
             <div class="form-group">
-                <label>📁 Upload CSV File</label>
+                <label>Upload CSV File</label>
                 <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
                     <input type="file" id="fileInput" accept=".csv,.txt" onchange="handleFileSelect(event)">
-                    <p>📁 Click here or drag CSV file</p>
+                    <p>📁 Drag and drop CSV file here or click to select</p>
                 </div>
             </div>
 
@@ -244,12 +231,12 @@
                         <tr>
                             <th>UPC</th>
                             <th>Item Name</th>
-                            <th>Qty</th>
+                            <th>Packs Sold</th>
+                            <th>Cartons</th>
                         </tr>
                     </thead>
                     <tbody id="previewBody"></tbody>
                 </table>
-                <div class="row-count" id="rowCount"></div>
             </div>
 
             <div class="button-group" id="buttonGroup" style="display: none;">
@@ -279,7 +266,6 @@
                         document.getElementById('loginSection').style.display = 'none';
                         document.getElementById('uploadSection').style.display = 'block';
                         
-                        // Set today's date as default
                         const today = new Date().toISOString().split('T')[0];
                         document.getElementById('salesDate').value = today;
                         
@@ -294,22 +280,18 @@
 
         function handleDragOver(e) {
             e.preventDefault();
-            e.stopPropagation();
             document.getElementById('uploadArea').classList.add('dragging');
         }
 
         function handleDragLeave(e) {
             e.preventDefault();
-            e.stopPropagation();
             document.getElementById('uploadArea').classList.remove('dragging');
         }
 
         function handleDrop(e) {
             e.preventDefault();
-            e.stopPropagation();
             document.getElementById('uploadArea').classList.remove('dragging');
-            const files = e.dataTransfer.files;
-            processFiles(files);
+            processFiles(e.dataTransfer.files);
         }
 
         function handleFileSelect(e) {
@@ -318,35 +300,34 @@
 
         function processFiles(files) {
             fileData = [];
-            let filesProcessed = 0;
+            if (files.length === 0) return;
 
-            for (let file of files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const csv = e.target.result;
-                    const lines = csv.split('\n');
-                    const salesDate = document.getElementById('salesDate').value;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                const lines = csv.split('\n');
+                const salesDate = document.getElementById('salesDate').value;
 
-                    for (let i = 1; i < lines.length; i++) {
-                        if (lines[i].trim() === '') continue;
-                        const fields = lines[i].split('\t');
-                        if (fields.length < 3) continue;
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    const fields = lines[i].split('\t');
+                    if (fields.length < 3) continue;
 
-                        fileData.push({
-                            upc: String(fields[0]).trim(),
-                            itemName: String(fields[1]).trim(),
-                            qty: String(fields[2]).trim(),
-                            salesDate: salesDate
-                        });
-                    }
+                    const packsSold = parseFloat(fields[2]) || 0;
+                    const cartonsQty = (packsSold / 10).toFixed(2);
 
-                    filesProcessed++;
-                    if (filesProcessed === files.length) {
-                        displayPreview();
-                    }
-                };
-                reader.readAsText(file);
-            }
+                    fileData.push({
+                        upc: String(fields[0]).trim(),
+                        itemName: String(fields[1]).trim(),
+                        packs: packsSold,
+                        cartons: cartonsQty,
+                        salesDate: salesDate
+                    });
+                }
+
+                displayPreview();
+            };
+            reader.readAsText(files[0]);
         }
 
         function displayPreview() {
@@ -359,12 +340,12 @@
                 tr.innerHTML = `
                     <td>${row.upc}</td>
                     <td>${row.itemName}</td>
-                    <td>${row.qty}</td>
+                    <td>${row.packs}</td>
+                    <td>${row.cartons}</td>
                 `;
                 previewBody.appendChild(tr);
             }
 
-            document.getElementById('rowCount').textContent = `Total rows: ${fileData.length}`;
             document.getElementById('previewSection').style.display = 'block';
             document.getElementById('buttonGroup').style.display = 'flex';
         }
