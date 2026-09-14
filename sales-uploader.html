@@ -308,8 +308,12 @@
 
     const reader = new FileReader();
             reader.onload = function(e) {
-                const csv = e.target.result;
-                const lines = csv.split('\n');
+    const csv = e.target.result;
+    console.log('CSV loaded, length:', csv.length);
+    const lines = csv.split('\n');
+    console.log('Total lines:', lines.length);
+    console.log('First line:', lines[0]);
+    console.log('Second line:', lines[1]);
                 const salesDate = document.getElementById('salesDate').value;
 
                 for (let i = 1; i < lines.length; i++) {
