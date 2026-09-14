@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KC9 Spot Check Counter</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .timestamp {
+            color: #888;
+            font-size: 13px;
+        }
+        .login-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .login-section input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        .login-section button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-section button:hover {
+            background: #764ba2;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .toolbar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .toolbar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .toolbar button {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .toolbar button:hover {
+            background: #764ba2;
+        }
+        .dropdown-container {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .dropdown-list.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f0f4ff;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .spot-check-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .spot-check-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #ddd;
+        }
+        .spot-check-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .spot-check-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .spot-check-table tr:hover {
+            background: #f9f9f9;
+        }
+        .item-cell {
+            font-weight: 500;
+            color: #333;
+        }
+        .number-cell {
+            text-align: center;
+            color: #666;
+        }
+        .input-cell input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .input-cell input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .variance-cell {
+            text-align: center;
+            font-weight: 600;
+        }
+        .variance-positive {
+            color: #4caf50;
+        }
+        .variance-negative {
+            color: #e74c3c;
+        }
+        .variance-zero {
+            color: #999;
+        }
+        .remove-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: #999;
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .remove-btn:hover {
+            color: #e74c3c;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-group button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .save-btn {
+            background: #4caf50;
+            color: white;
+        }
+        .save-btn:hover {
+            background: #45a049;
+        }
+        .cancel-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+        .cancel-btn:hover {
+            background: #e0e0e0;
+        }
+        .status-message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 600;
+        }
+        .status-message.show {
+            display: block;
+        }
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 22px; }
+            .toolbar { flex-direction: column; }
+            .toolbar input { min-width: unset; }
+            .spot-check-table { font-size: 12px; }
+            .spot-check-table th, .spot-check-table td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 KC9 Spot Check Counter</h1>
+            <p class="timestamp">Updated: 09/14/2026 at 11:58 PM EST</p>
+        </div>
+
+        <div class="login-section" id="loginSection">
+            <input type="password" id="passwordInput" placeholder="Enter Manager Password" />
+            <button onclick="validateLogin()">Login</button>
+        </div>
+
+        <div id="contentArea" style="display: none;">
+            <div class="status-message" id="statusMessage"></div>
+
+            <div class="info-box">
+                📋 Search for items, enter what you physically counted, and save. Inventory Baseline updates automatically. Use this anytime to verify stock accuracy.
+            </div>
+
+            <div class="toolbar">
+                <div class="dropdown-container">
+                    <input type="text" id="searchInput" placeholder="🔍 Search by item name or number..." onkeyup="filterDropdown()" onfocus="showDropdown()">
+                    <div class="dropdown-list" id="dropdownList"></div>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="spot-check-table" id="spotCheckTable">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align: center;">Item #</th>
+                            <th style="text-align: center;">Expected on hand</th>
+                            <th style="text-align: center;">You counted</th>
+                            <th style="text-align: center;">Variance</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spotCheckBody">
+                        <tr><td colspan="6" class="empty-state">No items added yet. Search and select items above.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="button-group">
+                <button class="save-btn" onclick="saveAllSpotChecks()">Save Spot Checks</button>
+                <button class="cancel-btn" onclick="clearAllSpotChecks()">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
+        let userPassword = null;
+        let allItems = [];
+        let selectedItems = [];
+
+        function validateLogin() {
+            const password = document.getElementById('passwordInput').value;
+            if (!password) {
+                showStatus('Please enter a password', 'error');
+                return;
+            }
+
+            fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(password))
+                .then(r => r.json())
+                .then(result => {
+                    if (result.valid) {
+                        userPassword = password;
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('contentArea').style.display = 'block';
+                        loadItems();
+                    } else {
+                        showStatus('Invalid password', 'error');
+                        document.getElementById('passwordInput').value = '';
+                    }
+                })
+                .catch(err => showStatus('Error validating password: ' + err, 'error'));
+        }
+
+        function loadItems() {
+            fetch(DEPLOYED_URL + '?action=getSpotCheckItems')
+                .then(r => r.json())
+                .then(items => {
+                    if (Array.isArray(items)) {
+                        allItems = items;
+                    } else {
+                        showStatus('Error: Invalid data format', 'error');
+                    }
+                })
+                .catch(err => showStatus('Error loading items: ' + err, 'error'));
+        }
+
+        function filterDropdown() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const dropdown = document.getElementById('dropdownList');
+            
+            if (!search) {
+                dropdown.classList.remove('show');
+                return;
+            }
+
+            const filtered = allItems.filter(item => 
+                item.itemName.toLowerCase().includes(search) || 
+                item.itemNumber.toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-item">No items found</div>';
+                dropdown.classList.add('show');
+                return;
+            }
+
+            dropdown.innerHTML = filtered.map(item => 
+                `<div class="dropdown-item" onclick="addItemToCheck('${item.itemNumber}', '${item.itemName}', ${item.expectedOnHand})">${item.itemName} (#${item.itemNumber})</div>`
+            ).join('');
+            dropdown.classList.add('show');
+        }
+
+        function showDropdown() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            if (search) {
+                filterDropdown();
+            }
+        }
+
+        function addItemToCheck(itemNumber, itemName, expectedOnHand) {
+            const existingIndex = selectedItems.findIndex(item => item.itemNumber === itemNumber);
+            
+            if (existingIndex === -1) {
+                selectedItems.push({
+                    itemNumber: itemNumber,
+                    itemName: itemName,
+                    expectedOnHand: expectedOnHand,
+                    physicalCount: expectedOnHand
+                });
+            }
+
+            renderSpotCheckTable();
+            document.getElementById('searchInput').value = '';
+            document.getElementById('dropdownList').classList.remove('show');
+        }
+
+        function removeItemFromCheck(itemNumber) {
+            selectedItems = selectedItems.filter(item => item.itemNumber !== itemNumber);
+            renderSpotCheckTable();
+        }
+
+        function renderSpotCheckTable() {
+            const tbody = document.getElementById('spotCheckBody');
+            
+            if (selectedItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No items added yet. Search and select items above.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = selectedItems.map((item, idx) => {
+                const variance = item.physicalCount - item.expectedOnHand;
+                const varianceClass = variance > 0 ? 'variance-positive' : variance < 0 ? 'variance-negative' : 'variance-zero';
+                const varianceSign = variance >= 0 ? '+' : '';
+
+                return `
+                    <tr>
+                        <td class="item-cell">${item.itemName}</td>
+                        <td class="number-cell">#${item.itemNumber}</td>
+                        <td class="number-cell">${item.expectedOnHand.toFixed(1)}</td>
+                        <td class="input-cell">
+                            <input type="number" value="${item.physicalCount}" step="0.1" min="0" onchange="updatePhysicalCount('${item.itemNumber}', this.value)">
+                        </td>
+                        <td class="variance-cell ${varianceClass}">${varianceSign}${variance.toFixed(1)}</td>
+                        <td class="number-cell">
+                            <button class="remove-btn" onclick="removeItemFromCheck('${item.itemNumber}')">×</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updatePhysicalCount(itemNumber, value) {
+            const item = selectedItems.find(i => i.itemNumber === itemNumber);
+            if (item) {
+                item.physicalCount = parseFloat(value) || 0;
+                renderSpotCheckTable();
+            }
+        }
+
+        function saveAllSpotChecks() {
+            if (selectedItems.length === 0) {
+                showStatus('No items to save', 'error');
+                return;
+            }
+
+            let saved = 0;
+            let failed = 0;
+
+            selectedItems.forEach(item => {
+                const params = new URLSearchParams();
+                params.append('action', 'saveSpotCheck');
+                params.append('password', userPassword);
+                params.append('itemNumber', item.itemNumber);
+                params.append('itemName', item.itemName);
+                params.append('physicalCount', item.physicalCount);
+                params.append('expectedOnHand', item.expectedOnHand);
+
+                fetch(DEPLOYED_URL, {
+                    method: 'POST',
+                    body: params
+                })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        saved++;
+                    } else {
+                        failed++;
+                    }
+                    
+                    if (saved + failed === selectedItems.length) {
+                        if (failed === 0) {
+                            showStatus(`✓ Saved ${saved} spot checks. Inventory Baseline updated.`, 'success');
+                            selectedItems = [];
+                            renderSpotCheckTable();
+                        } else {
+                            showStatus(`Saved ${saved}, Failed ${failed}`, 'error');
+                        }
+                    }
+                })
+                .catch(err => {
+                    failed++;
+                    if (saved + failed === selectedItems.length) {
+                        showStatus(`Error: ${err}`, 'error');
+                    }
+                });
+            });
+        }
+
+        function clearAllSpotChecks() {
+            selectedItems = [];
+            renderSpotCheckTable();
+            document.getElementById('searchInput').value = '';
+            showStatus('Cleared all items', 'success');
+        }
+
+        function showStatus(message, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `status-message show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('passwordInput').focus();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-container')) {
+                document.getElementById('dropdownList').classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
