@@ -3,1205 +3,496 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KC9 Smart Order - v3</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>KC9 Smart Ordering - Phase 3</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
+            padding: 20px;
         }
-
-        .login-container {
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            padding: 30px 20px;
-            width: 100%;
-            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
         }
-
-        .login-header {
+        .header {
             text-align: center;
             margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
         }
-
-        .login-header h1 {
+        .header h1 {
             color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 5px;
         }
-
-        .login-header p {
-            color: #999;
-            font-size: 14px;
+        .timestamp {
+            color: #888;
+            font-size: 13px;
         }
-
-        .form-group {
+        .login-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
-        }
-
-        #errorMsg {
-            display: none;
-            background: #fee;
-            color: #c00;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
             text-align: center;
         }
-
-        #loginScreen {
-            display: flex;
+        .login-section input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            width: 200px;
+            margin-right: 10px;
         }
-
-        #appScreen {
-            display: none;
-            width: 100%;
-        }
-
-        .app-container {
-            width: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            max-height: 100vh;
-        }
-
-        .app-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .login-section button {
+            padding: 10px 20px;
+            background: #667eea;
             color: white;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
-
-        .header-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .login-section button:hover {
+            background: #764ba2;
         }
-
-        .header-info {
-            font-size: 11px;
-            opacity: 0.9;
+        .search-bar {
             display: flex;
             gap: 10px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            line-height: 1.4;
         }
-
-        .header-info span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .app-content {
+        .search-bar input {
             flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .controls-section {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
             border-radius: 6px;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 16px;
         }
-
-        .search-box:focus {
+        .search-bar input:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-
-        .filter-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .filter-btn {
-            padding: 7px 12px;
-            background: #e0e0e0;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s;
-            color: #333;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .filter-btn:active {
-            background: #667eea;
-            color: white;
-        }
-
-        .cache-status {
-            background: #e8f4f8;
-            border-left: 4px solid #00bcd4;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: #00695c;
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
-        .cache-status a {
-            color: #00695c;
-            text-decoration: underline;
-        }
-
-        #content {
+        .items-container {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
             margin-bottom: 20px;
         }
-
-        @media (min-width: 640px) {
-            #content {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (min-width: 1024px) {
-            #content {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .card {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        .item-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f9f9f9;
             transition: all 0.3s;
-            position: relative;
-            display: flex;
-            flex-direction: column;
         }
-
-        .card:active {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .item-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
             transform: translateY(-2px);
         }
-
-        .card.gray {
-            border-left: 4px solid #999;
+        .item-card.unverified {
+            border-color: #ffa726;
+            background: #fff8f0;
         }
-
-        .card.blue {
-            border-left: 4px solid #2196f3;
-        }
-
-        .card.green {
-            border-left: 4px solid #4caf50;
-        }
-
-        .card.stockout {
-            border: 2px solid #dc3545;
-            background: #fff5f5;
-        }
-
-        .stockout-alert {
-            background: #dc3545;
-            color: white;
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .card-header {
+        .item-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-            gap: 10px;
+            align-items: start;
+            margin-bottom: 15px;
         }
-
-        .card-title {
-            font-size: 13px;
-            font-weight: 700;
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
             color: #333;
-            line-height: 1.3;
         }
-
-        .card-header > div:first-child > div:last-child {
-            font-size: 10px;
+        .item-number {
+            font-size: 12px;
             color: #999;
             margin-top: 3px;
         }
-
-        .card-status {
-            font-size: 9px;
-            font-weight: 700;
-            padding: 3px 6px;
-            border-radius: 12px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .status-gray {
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        .status-blue {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .status-green {
-            background: #e8f5e9;
-            color: #388e3c;
-        }
-
-        .card-info {
-            background: #f9f9f9;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 3px 0;
-        }
-
-        .info-label {
-            color: #666;
-            font-weight: 600;
-        }
-
-        .info-value {
-            color: #333;
-            font-weight: 700;
-        }
-
-        .manual-count-section {
-            background: #f0f7ff;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            border: 1px solid #e0e7ff;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
-            user-select: none;
-            margin-bottom: 8px;
-        }
-
-        .checkbox-label input {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
-        }
-
-        .location-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-
-        .location-inputs input {
-            padding: 6px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .location-inputs input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .order-display {
-            background: #fafafa;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            border: 1px solid #efefef;
-            font-size: 12px;
-        }
-
-        .order-line {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            align-items: center;
-        }
-
-        .order-label {
-            color: #666;
-            font-weight: 600;
-        }
-
-        .order-value {
-            color: #333;
-            font-weight: 700;
-        }
-
-        .order-result {
-            background: #f5f5f5;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .order-result.green {
-            background: #e8f5e9;
-            border-color: #4caf50;
-        }
-
-        .order-result input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .order-result input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .move-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-top: 10px;
-        }
-
-        .move-btn {
-            padding: 8px;
-            border: 1px solid #ddd;
-            background: #f9f9f9;
-            border-radius: 4px;
-            cursor: pointer;
+        .verification-badge {
             font-size: 11px;
-            font-weight: 600;
-            transition: all 0.2s;
-            color: #333;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #c8e6c9;
+            color: #2e7d32;
         }
-
-        .move-btn:active {
-            background: #efefef;
-            border-color: #999;
+        .verification-badge.unverified {
+            background: #ffe0b2;
+            color: #e65100;
         }
-
-        .move-btn.up {
-            border-left: 3px solid #4caf50;
-        }
-
-        .move-btn.down {
-            border-left: 3px solid #ff9800;
-        }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            padding: 12px;
-            background: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
-        }
-
-        @media (min-width: 640px) {
-            .action-buttons {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .action-buttons {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        .btn {
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .calc-row {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
-            white-space: nowrap;
-            min-height: 44px;
-        }
-
-        .btn i {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
             font-size: 14px;
         }
-
-        .btn-save {
+        .calc-row:last-child {
+            border-bottom: none;
+        }
+        .calc-label {
+            color: #666;
+            font-weight: 500;
+        }
+        .calc-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .calc-section {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .breakdown-section {
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            border-left: 4px solid #667eea;
+        }
+        .breakdown-section .calc-row {
+            border-bottom-color: rgba(102, 126, 234, 0.2);
+        }
+        .order-input-section {
+            border-top: 2px solid #e0e0e0;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        .order-input-section label {
+            display: block;
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .order-input-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .order-input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .button-group button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .submit-btn {
             background: #4caf50;
             color: white;
         }
-
-        .btn-save:active {
+        .submit-btn:hover {
             background: #45a049;
-            transform: translateY(-2px);
         }
-
-        .btn-whatsapp {
-            background: #25d366;
+        .manual-count-btn {
+            background: #2196F3;
             color: white;
         }
-
-        .btn-whatsapp:active {
-            background: #20ba5a;
-            transform: translateY(-2px);
+        .manual-count-btn:hover {
+            background: #0b7dda;
         }
-
-        .btn-stockout {
-            background: #ff9800;
-            color: white;
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
         }
-
-        .btn-stockout:active {
-            background: #f57c00;
-            transform: translateY(-2px);
+        .progress-fill {
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.3s;
         }
-
-        .btn-logout {
-            background: #f44336;
-            color: white;
-        }
-
-        .btn-logout:active {
-            background: #da190b;
-            transform: translateY(-2px);
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
             font-size: 14px;
+            display: none;
         }
-
-        .last-modified {
+        .status-message.show {
+            display: block;
+        }
+        .status-message.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        .status-message.error {
+            background: #ffcdd2;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+        .empty-state {
             text-align: center;
-            padding: 10px;
-            font-size: 10px;
+            padding: 40px;
             color: #999;
-            background: #fafafa;
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
         }
-
-        .hidden {
-            display: none !important;
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 10px;
         }
-
-        /* Touch-friendly adjustments */
-        @media (max-width: 640px) {
-            body {
-                padding: 0;
-            }
-
-            .login-container {
-                border-radius: 0;
-                padding: 20px 15px;
-                max-width: 100%;
-                height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-
-            .app-header {
-                padding: 12px;
-            }
-
-            .header-title {
-                font-size: 18px;
-            }
-
-            .app-content {
-                padding: 12px;
-            }
-
-            .controls-section {
-                padding: 12px;
-            }
-
-            .card {
-                padding: 10px;
-            }
-
-            .card-title {
-                font-size: 12px;
-            }
-
-            .btn {
-                padding: 11px;
-                font-size: 12px;
-            }
-
-            .filter-btn {
-                padding: 6px 10px;
-                font-size: 11px;
-            }
-        }
-
-        /* iPad adjustments */
-        @media (min-width: 640px) and (max-width: 1024px) {
-            .app-header {
-                padding: 12px 15px;
-            }
-
-            .header-title {
-                font-size: 22px;
-            }
-
-            #content {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .items-container { grid-template-columns: 1fr; }
+            .header h1 { font-size: 22px; }
+            .search-bar { flex-direction: column; }
+            .search-bar input { min-width: unset; }
         }
     </style>
 </head>
 <body>
-    <div id="loginScreen" class="login-container">
-        <div class="login-header">
-            <h1>🔒 KC9 Smart Order</h1>
-            <p>Secure Access Required</p>
+    <div class="container">
+        <div class="header">
+            <h1>📦 KC9 Cigarette Smart Order</h1>
+            <p class="timestamp">Updated: 09/13/2026 at 8:30 PM EST</p>
         </div>
-        <div id="errorMsg"></div>
-        <div class="form-group">
-            <label for="passwordInput">Password</label>
-            <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter') authenticate()">
+
+        <div class="login-section" id="loginSection">
+            <input type="password" id="passwordInput" placeholder="Enter Manager Password" />
+            <button onclick="validateLogin()">Login</button>
         </div>
-        <button class="login-btn" onclick="authenticate()">
-            <i class="fas fa-lock"></i> Unlock
-        </button>
-    </div>
 
-    <div id="appScreen">
-        <div class="app-container">
-            <div class="app-header">
-                <div class="header-title">
-                    <i class="fas fa-clipboard-list"></i> KC9 Smart Order
-                </div>
-                <div class="header-info">
-                    <span><i class="fas fa-calendar"></i> Sep 15-16</span>
-                    <span id="lastModifiedHeader"><i class="fas fa-clock"></i> --</span>
-                </div>
+        <div id="contentArea" style="display: none;">
+            <div class="status-message" id="statusMessage"></div>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Search by item name or number..." onkeyup="filterItems()">
+                <button onclick="location.reload()" style="padding: 12px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Refresh Data</button>
             </div>
 
-            <div class="app-content">
-                <div class="controls-section">
-                    <div id="cacheStatus" class="cache-status"></div>
-
-                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search items..." onkeyup="filterItems()">
-
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" onclick="filterByStatus('all')">
-                            <i class="fas fa-th"></i> All
-                        </button>
-                        <button class="filter-btn" onclick="filterByStatus('green')">
-                            <i class="fas fa-check"></i> Manual
-                        </button>
-                        <button class="filter-btn" onclick="filterByStatus('blue')">
-                            <i class="fas fa-calculator"></i> Auto
-                        </button>
-                        <button class="filter-btn" onclick="filterByStatus('stockout')">
-                            <i class="fas fa-warning"></i> Out
-                        </button>
-                    </div>
+            <div class="items-container" id="itemsContainer">
+                <div class="empty-state">
+                    <p>Loading items...</p>
                 </div>
-
-                <div id="content" class="loading">Loading items...</div>
             </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-save" onclick="saveToSheets()">
-                    <i class="fas fa-save"></i> Save
-                </button>
-                <button class="btn btn-whatsapp" onclick="sendWhatsApp()">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                </button>
-                <button class="btn btn-stockout" onclick="openStockoutLogger()">
-                    <i class="fas fa-check"></i> Stockout
-                </button>
-                <button class="btn btn-logout" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-
-            <div id="lastModified" class="last-modified"></div>
         </div>
     </div>
 
     <script>
-async function authenticate() {
-    const password = document.getElementById('passwordInput').value;
-    
-    if (!password) {
-        document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('errorMsg').textContent = 'Please enter a password';
-        return;
-    }
+        const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
+        let userPassword = null;
+        let allItems = [];
+        let orderData = {};
 
-    try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec', {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'validatePassword',
-                password: password
+        function validateLogin() {
+            const password = document.getElementById('passwordInput').value;
+            if (!password) {
+                showStatus('Please enter a password', 'error');
+                return;
+            }
+
+            fetch(DEPLOYED_URL, {
+                method: 'POST',
+                body: new URLSearchParams({
+                    action: 'validatePassword',
+                    password: password
+                })
             })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            localStorage.setItem('authenticated', 'true');
-            localStorage.setItem('userPassword', password);
-            initPage();
-        } else {
-            document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').textContent = 'Incorrect password';
-            document.getElementById('passwordInput').value = '';
-        }
-    } catch (error) {
-        console.error('Auth error:', error);
-        document.getElementById('errorMsg').style.display = 'block';
-        document.getElementById('errorMsg').textContent = 'Error connecting to server';
-    }
-}
-
-function logout() {
-    localStorage.removeItem('authenticated');
-    localStorage.removeItem('userPassword');
-    document.getElementById('appScreen').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('passwordInput').value = '';
-    document.getElementById('errorMsg').style.display = 'none';
-}
-
-window.addEventListener('load', () => {
-    if (localStorage.getItem('authenticated') === 'true') {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'block';
-        initPage();
-    }
-});
-
-const SHEET_ID = '1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTd_bxsSBdp3hm_FgByFlxVUsRnFSDQtaJorcORmi5QzqmsbWRZEbZ3reIDjpjXr4ouQ/exec';
-
-let allItems = [];
-let allItemsData = {};
-let filteredItems = [];
-let currentFilter = 'all';
-let orderData = {};
-let stockoutLog = [];
-
-function updateTimestamp() {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const year = now.getFullYear();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-    
-    const formatted = `${month}/${day}/${year} ${hours}:${minutes} ${ampm} EST`;
-    document.getElementById('lastModified').textContent = 'Last modified: ' + formatted;
-    document.getElementById('lastModifiedHeader').textContent = formatted;
-}
-
-async function initPage() {
-    updateTimestamp();
-    await loadAllItems();
-    await loadOrderDataFromCache();
-    await loadStockoutLog();
-    displayItems();
-    updateCacheStatus();
-}
-
-async function loadAllItems() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL + '?action=getAllItems');
-        const data = await response.json();
-        allItemsData = data;
-        allItems = Object.values(data).filter(item => item && item.number && item.name);
-        filteredItems = [...allItems];
-        console.log('✓ Loaded ' + allItems.length + ' items');
-    } catch (error) {
-        console.error('Error loading items:', error);
-        document.getElementById('content').innerHTML = '<div class="loading">Failed to load items</div>';
-    }
-}
-
-async function loadOrderDataFromCache() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL + '?action=getOrderCalculationFromCache');
-        const data = await response.json();
-        if (data && typeof data === 'object') {
-            orderData = data;
-            console.log('✓ Loaded order data from cache');
-        }
-    } catch (error) {
-        console.error('Error loading order data:', error);
-        orderData = {};
-    }
-}
-
-async function loadStockoutLog() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL + '?action=getStockouts');
-        const data = await response.json();
-        if (Array.isArray(data)) {
-            stockoutLog = data.filter(s => s && s.status === 'Active');
-        }
-    } catch (error) {
-        console.error('Error loading stockout log:', error);
-        stockoutLog = [];
-    }
-}
-
-function updateCacheStatus() {
-    const statusDiv = document.getElementById('cacheStatus');
-    const itemCount = Object.keys(orderData).length;
-    const stockoutCount = stockoutLog.length;
-    if (itemCount > 0) {
-        const now = new Date();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const timeStr = `${month}/${day} ${hours}:${minutes}`;
-        const stockoutMsg = stockoutCount > 0 ? ` | ${stockoutCount} out of stock` : '';
-        statusDiv.innerHTML = '✓ ' + itemCount + ' items | ' + timeStr + stockoutMsg;
-    }
-}
-
-function smartRound(num) {
-    const decimal = num - Math.floor(num);
-    if (decimal < 0.4) return Math.floor(num);
-    if (decimal >= 0.5) return Math.ceil(num);
-    return Math.round(num);
-}
-
-function displayItems() {
-    const grid = document.getElementById('content');
-    grid.innerHTML = '';
-
-    if (!filteredItems || filteredItems.length === 0) {
-        grid.innerHTML = '<div class="loading">No items to display</div>';
-        return;
-    }
-
-    filteredItems.forEach((item, index) => {
-        const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
-        const status = getItemStatus(item.number);
-        const card = createCard(item, order, status, index);
-        grid.appendChild(card);
-    });
-}
-
-function isItemInStockout(itemNumber) {
-    return stockoutLog.some(s => s && s.itemNumber == itemNumber);
-}
-
-function getStockoutInfo(itemNumber) {
-    return stockoutLog.find(s => s && s.itemNumber == itemNumber);
-}
-
-function createCard(item, order, status, index) {
-    const card = document.createElement('div');
-    const isStockout = isItemInStockout(item.number);
-    card.className = `card ${isStockout ? 'stockout' : status}`;
-    card.id = `card-${item.number}`;
-
-    const statusBadge = status === 'gray' ? 'Unverified' : status === 'blue' ? 'Auto' : 'Manual';
-    const statusClass = `status-${status}`;
-
-    let stockoutAlert = '';
-    if (isStockout) {
-        const info = getStockoutInfo(item.number);
-        stockoutAlert = `
-            <div class="stockout-alert">
-                <i class="fas fa-exclamation-circle"></i>
-                OUT: ${info.dateRanOut}
-            </div>
-        `;
-    }
-
-    let manualCountHtml = `
-        <div class="manual-count-section">
-            <label class="checkbox-label">
-                <input type="checkbox" id="manual-${item.number}" onchange="updateCardStatus('${item.number}')">
-                Manual Count
-            </label>
-            <div class="location-inputs" id="locations-${item.number}" style="display: none;">
-                <input type="number" placeholder="L1" step="0.1" id="loc1-${item.number}" oninput="calculateOrderQty('${item.number}')">
-                <input type="number" placeholder="L2" step="0.1" id="loc2-${item.number}" oninput="calculateOrderQty('${item.number}')">
-            </div>
-        </div>
-    `;
-
-    let orderDisplay = `
-        <div class="order-display">
-            <div class="order-line">
-                <span class="order-label">Sales:</span>
-                <span class="order-value">${(order.sales_based || 0).toFixed(2)}</span>
-            </div>
-            <div class="order-line">
-                <span class="order-label">4-Wk:</span>
-                <span class="order-value">${(order.four_week_avg || 0).toFixed(2)}</span>
-            </div>
-        </div>
-    `;
-
-    const defaultQty = smartRound(order.sales_based || 0);
-    let orderResult = `
-        <div class="order-result" id="result-${item.number}">
-            <label style="display: block; color: #666; font-size: 10px; margin-bottom: 4px;">Order (Cartons):</label>
-            <input type="number" id="orderqty-${item.number}" value="${defaultQty}" />
-        </div>
-    `;
-
-    card.innerHTML = `
-        ${stockoutAlert}
-        <div class="card-header">
-            <div>
-                <div class="card-title">${item.name}</div>
-                <div>#${item.number}</div>
-            </div>
-            <span class="card-status ${statusClass}">${statusBadge}</span>
-        </div>
-
-        <div class="card-info">
-            <div class="info-row">
-                <span class="info-label">Must:</span>
-                <span class="info-value">${item.must_have || 0}</span>
-            </div>
-        </div>
-
-        ${manualCountHtml}
-        ${orderDisplay}
-        ${orderResult}
-
-        <div class="move-buttons">
-            <button class="move-btn up" onclick="moveCard('${item.number}', 'up')">↑</button>
-            <button class="move-btn down" onclick="moveCard('${item.number}', 'down')">↓</button>
-        </div>
-    `;
-
-    return card;
-}
-
-function updateCardStatus(itemNumber) {
-    const checkbox = document.getElementById(`manual-${itemNumber}`);
-    const locationsDiv = document.getElementById(`locations-${itemNumber}`);
-    
-    if (checkbox.checked) {
-        locationsDiv.style.display = 'grid';
-    } else {
-        locationsDiv.style.display = 'none';
-        document.getElementById(`loc1-${itemNumber}`).value = '';
-        document.getElementById(`loc2-${itemNumber}`).value = '';
-        calculateOrderQty(itemNumber);
-    }
-}
-
-function calculateOrderQty(itemNumber) {
-    const item = allItems.find(i => i.number == itemNumber);
-    if (!item) return;
-    
-    const checkbox = document.getElementById(`manual-${itemNumber}`);
-    const loc1Input = document.getElementById(`loc1-${itemNumber}`);
-    const loc2Input = document.getElementById(`loc2-${itemNumber}`);
-    const orderQtyInput = document.getElementById(`orderqty-${itemNumber}`);
-    
-    if (!orderQtyInput) return;
-    
-    const loc1 = loc1Input ? parseFloat(loc1Input.value) || 0 : 0;
-    const loc2 = loc2Input ? parseFloat(loc2Input.value) || 0 : 0;
-    const order = orderData[itemNumber] || {};
-    const mustHave = item.must_have || 0;
-
-    let orderQty;
-    if (checkbox && checkbox.checked) {
-        const totalStock = loc1 + loc2;
-        orderQty = Math.max(0, mustHave - totalStock);
-    } else {
-        orderQty = order.sales_based || 0;
-    }
-
-    const roundedQty = smartRound(orderQty);
-    orderQtyInput.value = roundedQty;
-    
-    const resultDiv = document.getElementById(`result-${itemNumber}`);
-    if (resultDiv) {
-        resultDiv.className = checkbox && checkbox.checked ? 'order-result green' : 'order-result';
-    }
-}
-
-function getItemStatus(itemNumber) {
-    const checkbox = document.getElementById(`manual-${itemNumber}`);
-    if (!checkbox) return 'gray';
-    return checkbox.checked ? 'green' : 'blue';
-}
-
-function filterItems() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    filteredItems = allItems.filter(item => 
-        item.name.toLowerCase().includes(search) || 
-        item.number.toString().includes(search)
-    );
-    applyStatusFilter();
-}
-
-function filterByStatus(status) {
-    currentFilter = status;
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    applyStatusFilter();
-}
-
-function applyStatusFilter() {
-    if (currentFilter === 'all') {
-        displayItems();
-        return;
-    }
-
-    if (currentFilter === 'stockout') {
-        const filtered = filteredItems.filter(item => isItemInStockout(item.number));
-        const grid = document.getElementById('content');
-        grid.innerHTML = '';
-        if (filtered.length === 0) {
-            grid.innerHTML = '<div class="loading">No items in stockout</div>';
-            return;
-        }
-        filtered.forEach((item, index) => {
-            const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
-            const status = getItemStatus(item.number);
-            grid.appendChild(createCard(item, order, status, index));
-        });
-        return;
-    }
-
-    const grid = document.getElementById('content');
-    grid.innerHTML = '';
-    
-    filteredItems.forEach((item, index) => {
-        const order = orderData[item.number] || { sales_based: 0, four_week_avg: 0 };
-        const status = getItemStatus(item.number);
-        grid.appendChild(createCard(item, order, status, index));
-    });
-}
-
-function moveCard(itemNumber, direction) {
-    const grid = document.getElementById('content');
-    const card = document.getElementById(`card-${itemNumber}`);
-    if (!card) return;
-
-    if (direction === 'up' && card.previousElementSibling) {
-        grid.insertBefore(card, card.previousElementSibling);
-    } else if (direction === 'down' && card.nextElementSibling) {
-        grid.insertBefore(card.nextElementSibling, card);
-    }
-}
-
-async function saveToSheets() {
-    const dataToSave = collectOrderData();
-    if (dataToSave.length === 0) {
-        alert('No items to save');
-        return;
-    }
-
-    const password = localStorage.getItem('userPassword');
-    
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'saveSmartOrder',
-                data: dataToSave,
-                password: password
+            .then(r => r.json())
+            .then(result => {
+                if (result.valid) {
+                    userPassword = password;
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('contentArea').style.display = 'block';
+                    loadItems();
+                } else {
+                    showStatus('Invalid password', 'error');
+                    document.getElementById('passwordInput').value = '';
+                }
             })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('✓ Order saved to Google Sheets!');
-        } else {
-            alert('Error: ' + result.error);
+            .catch(err => showStatus('Error validating password: ' + err, 'error'));
         }
-    } catch (error) {
-        console.error('Error saving:', error);
-        alert('Error saving to sheets');
-    }
-}
 
-function collectOrderData() {
-    const data = [];
-    allItems.forEach(item => {
-        const checkbox = document.getElementById(`manual-${item.number}`);
-        const orderQtyInput = document.getElementById(`orderqty-${item.number}`);
-        
-        const orderQty = orderQtyInput ? parseFloat(orderQtyInput.value) || 0 : 0;
-        
-        if (orderQty > 0) {
-            data.push({
-                week: getWeekNumber(new Date()),
-                itemName: item.name,
-                itemNumber: item.number,
-                orderQty: orderQty
+        function loadItems() {
+            fetch(DEPLOYED_URL + '?action=getAllItems')
+                .then(r => r.json())
+                .then(items => {
+                    allItems = items;
+                    loadCalculations();
+                })
+                .catch(err => showStatus('Error loading items: ' + err, 'error'));
+        }
+
+        function loadCalculations() {
+            fetch(DEPLOYED_URL + '?action=getOrderCalculationFromCache')
+                .then(r => r.json())
+                .then(calculations => {
+                    const calcMap = {};
+                    calculations.forEach(row => {
+                        calcMap[row['Item Number']] = row;
+                    });
+                    renderItems(calcMap);
+                })
+                .catch(err => showStatus('Error loading calculations: ' + err, 'error'));
+        }
+
+        function renderItems(calcMap) {
+            const container = document.getElementById('itemsContainer');
+            if (allItems.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No items found</p></div>';
+                return;
+            }
+
+            container.innerHTML = allItems.map(item => {
+                const itemNum = item['Item Number'];
+                const calc = calcMap[itemNum] || {};
+                const mustHave = item['Must Have Qty'] || 0;
+                const salesBased = calc['Sales Based'] || 0;
+                const fourWeekAvg = calc['4 Week Avg'] || 0;
+                const onHand = mustHave - salesBased; // Calculate On Hand from the formula
+                const isUnverified = item['Status'] === 'Pending' || item['Status'] === 'UNVERIFIED';
+
+                return `
+                    <div class="item-card ${isUnverified ? 'unverified' : ''}">
+                        <div class="item-header">
+                            <div>
+                                <div class="item-name">${item['Item Name']}</div>
+                                <div class="item-number">#${itemNum}</div>
+                            </div>
+                            <div class="verification-badge ${isUnverified ? 'unverified' : ''}">
+                                ${isUnverified ? 'UNVERIFIED' : 'VERIFIED'}
+                            </div>
+                        </div>
+
+                        <div class="calc-section">
+                            <div class="breakdown-section">
+                                <div class="calc-row">
+                                    <span class="calc-label">Must Have:</span>
+                                    <span class="calc-value">${mustHave.toFixed(1)}</span>
+                                </div>
+                                <div class="calc-row">
+                                    <span class="calc-label">- On Hand:</span>
+                                    <span class="calc-value">${onHand.toFixed(1)}</span>
+                                </div>
+                                <div class="calc-row" style="border-top: 1px solid rgba(102, 126, 234, 0.3); padding-top: 8px; margin-top: 8px;">
+                                    <span class="calc-label" style="font-weight: 700;">= Order Qty:</span>
+                                    <span class="calc-value" style="color: #667eea; font-size: 16px;">${salesBased.toFixed(1)}</span>
+                                </div>
+                            </div>
+
+                            <div class="calc-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                                <span class="calc-label">4-Week Avg:</span>
+                                <span class="calc-value">${fourWeekAvg.toFixed(1)}</span>
+                            </div>
+                        </div>
+
+                        <div class="order-input-section">
+                            <label>Order (Cartons)</label>
+                            <input type="number" id="order_${itemNum}" value="${salesBased.toFixed(1)}" step="0.1" min="0">
+                            <div class="button-group">
+                                <button class="submit-btn" onclick="submitOrder('${itemNum}', '${item['Item Name']}')">Submit Order</button>
+                                <button class="manual-count-btn" onclick="toggleManualCount('${itemNum}')">Manual Count</button>
+                            </div>
+                            <div id="manual_${itemNum}" style="display: none; margin-top: 10px;">
+                                <label style="display: block; font-size: 12px; margin-bottom: 5px;">Enter Current Count (Cartons)</label>
+                                <input type="number" id="manual_input_${itemNum}" placeholder="Cartons" step="0.1" min="0" style="width: 100%; padding: 8px; border: 2px solid #2196F3; border-radius: 4px;">
+                                <button onclick="submitManualCount('${itemNum}', '${item['Item Name']}')" style="width: 100%; margin-top: 8px; padding: 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Confirm Manual Count</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleManualCount(itemNum) {
+            const manualDiv = document.getElementById('manual_' + itemNum);
+            manualDiv.style.display = manualDiv.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function submitOrder(itemNum, itemName) {
+            const qty = parseFloat(document.getElementById('order_' + itemNum).value);
+            if (isNaN(qty) || qty < 0) {
+                showStatus('Invalid order quantity', 'error');
+                return;
+            }
+
+            fetch(DEPLOYED_URL, {
+                method: 'POST',
+                body: new URLSearchParams({
+                    action: 'saveSmartOrder',
+                    password: userPassword,
+                    itemNumber: itemNum,
+                    itemName: itemName,
+                    qty: qty
+                })
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
+                } else {
+                    showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(err => showStatus('Error submitting order: ' + err, 'error'));
+        }
+
+        function submitManualCount(itemNum, itemName) {
+            const qty = parseFloat(document.getElementById('manual_input_' + itemNum).value);
+            if (isNaN(qty) || qty < 0) {
+                showStatus('Invalid count quantity', 'error');
+                return;
+            }
+
+            // Update the order input with the manual count
+            document.getElementById('order_' + itemNum).value = qty.toFixed(1);
+            document.getElementById('manual_' + itemNum).style.display = 'none';
+            showStatus(`✓ Manual count recorded: ${itemName} - ${qty} cartons`, 'success');
+        }
+
+        function filterItems() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.item-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(search) ? '' : 'none';
             });
         }
-    });
-    return data;
-}
 
-function getWeekNumber(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
+        function showStatus(message, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `status-message show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
 
-function sendWhatsApp() {
-    const data = collectOrderData();
-    if (data.length === 0) {
-        alert('No items to send');
-        return;
-    }
-
-    let message = 'KC9 Smart Order - ' + new Date().toLocaleDateString() + '\n\n';
-    data.forEach(item => {
-        message += `${item.itemName} (#${item.itemNumber}): ${item.orderQty} cartons\n`;
-    });
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-function openStockoutLogger() {
-    window.location.href = 'stockout-logger.html';
-}
+        // Load on startup
+        window.addEventListener('load', () => {
+            document.getElementById('passwordInput').focus();
+        });
     </script>
 </body>
 </html>
