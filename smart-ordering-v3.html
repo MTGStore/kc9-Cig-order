@@ -318,15 +318,20 @@
                 .catch(err => showStatus('Error validating password: ' + err, 'error'));
         }
 
-        function loadItems() {
-            fetch(DEPLOYED_URL + '?action=getSmartOrderData')
-                .then(r => r.json())
-                .then(items => {
-                    allItems = items;
-                    renderItems(items);
-                })
-                .catch(err => showStatus('Error loading items: ' + err, 'error'));
-        }
+       function loadItems() {
+    fetch(DEPLOYED_URL + '?action=getSmartOrderData')
+        .then(r => r.json())
+        .then(items => {
+            if (Array.isArray(items)) {
+                allItems = items;
+                renderItems(items);
+            } else {
+                showStatus('Error: Invalid data format', 'error');
+                console.log('Received:', items);
+            }
+        })
+        .catch(err => showStatus('Error loading items: ' + err, 'error'));
+}
 
         function renderItems(items) {
             const container = document.getElementById('itemsContainer');
