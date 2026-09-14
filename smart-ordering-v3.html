@@ -387,24 +387,34 @@
             }).join('');
         }
 
-        function submitOrder(itemNum, itemName) {
-            const qty = parseFloat(document.getElementById('order_' + itemNum).value);
-            if (isNaN(qty) || qty < 0) {
-                showStatus('Invalid order quantity', 'error');
-                return;
-            }
+      function submitOrder(itemNum, itemName) {
+    const qty = parseFloat(document.getElementById('order_' + itemNum).value);
+    if (isNaN(qty) || qty < 0) {
+        showStatus('Invalid order quantity', 'error');
+        return;
+    }
 
-            fetch(DEPLOYED_URL + '?action=saveSmartOrder&password=' + encodeURIComponent(userPassword) + '&itemNumber=' + itemNum + '&itemName=' + encodeURIComponent(itemName) + '&qty=' + qty)
-                .then(r => r.json())
-                .then(result => {
-                    if (result.success) {
-                        showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
-                    } else {
-                        showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
-                    }
-                })
-                .catch(err => showStatus('Error submitting order: ' + err, 'error'));
+    const params = new URLSearchParams();
+    params.append('action', 'saveSmartOrder');
+    params.append('password', userPassword);
+    params.append('itemNumber', itemNum);
+    params.append('itemName', itemName);
+    params.append('qty', qty);
+
+    fetch(DEPLOYED_URL, {
+        method: 'POST',
+        body: params
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) {
+            showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
+        } else {
+            showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
         }
+    })
+    .catch(err => showStatus('Error submitting order: ' + err, 'error'));
+}
 
         function sendOrdersViaWhatsApp() {
             let totalQty = 0;
