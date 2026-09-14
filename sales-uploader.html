@@ -235,7 +235,7 @@
     <div class="container">
         <div class="header">
             <h1>📤 KC9 Sales Uploader</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 11:35 PM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 11:50 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -321,18 +321,34 @@
         function loadUPCMapping() {
             fetch(DEPLOYED_URL + '?action=getUPCMapping')
                 .then(r => r.json())
-                .then(data => {
+                .then(result => {
+                    console.log('Raw result from Apps Script:', result);
                     upcMapping = {};
+                    
+                    let data = result;
+                    if (result && typeof result === 'object' && result.result) {
+                        data = result.result;
+                    }
+                    
+                    if (!Array.isArray(data)) {
+                        console.log('UPC data is not array:', data);
+                        showStatus('Error: UPC data format invalid', 'error');
+                        return;
+                    }
+                    
                     data.forEach(row => {
-                        const upc = String(row['CSV UPC Code']).trim();
+                        const upc = String(row['CSV UPC Code'] || row[0]).trim();
                         upcMapping[upc] = {
-                            itemNumber: String(row['Item Number']).trim(),
-                            itemName: String(row['Item Name']).trim()
+                            itemNumber: String(row['Item Number'] || row[1]).trim(),
+                            itemName: String(row['Item Name'] || row[2]).trim()
                         };
                     });
                     console.log('UPC Mapping loaded:', Object.keys(upcMapping).length, 'entries');
                 })
-                .catch(err => console.log('Error loading UPC mapping:', err));
+                .catch(err => {
+                    console.log('Error loading UPC mapping:', err);
+                    showStatus('Error loading UPC mapping: ' + err, 'error');
+                });
         }
 
         function handleDragOver(e) {
