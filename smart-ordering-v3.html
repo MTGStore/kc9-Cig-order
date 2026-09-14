@@ -265,7 +265,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 12:00 AM EST</p>
+            <p class="timestamp">Updated: 09/14/2026 at 7:00 AM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -302,27 +302,20 @@
                 return;
             }
 
-            fetch(DEPLOYED_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    action: 'validatePassword',
-                    password: password
+            fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(password))
+                .then(r => r.json())
+                .then(result => {
+                    if (result.valid) {
+                        userPassword = password;
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('contentArea').style.display = 'block';
+                        loadItems();
+                    } else {
+                        showStatus('Invalid password', 'error');
+                        document.getElementById('passwordInput').value = '';
+                    }
                 })
-            })
-            .then(r => r.json())
-            .then(result => {
-                if (result.valid) {
-                    userPassword = password;
-                    document.getElementById('loginSection').style.display = 'none';
-                    document.getElementById('contentArea').style.display = 'block';
-                    loadItems();
-                } else {
-                    showStatus('Invalid password', 'error');
-                    document.getElementById('passwordInput').value = '';
-                }
-            })
-            .catch(err => showStatus('Error validating password: ' + err, 'error'));
+                .catch(err => showStatus('Error validating password: ' + err, 'error'));
         }
 
         function loadItems() {
@@ -428,26 +421,16 @@
                 return;
             }
 
-            fetch(DEPLOYED_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    action: 'saveSmartOrder',
-                    password: userPassword,
-                    itemNumber: itemNum,
-                    itemName: itemName,
-                    qty: qty
+            fetch(DEPLOYED_URL + '?action=saveSmartOrder&password=' + encodeURIComponent(userPassword) + '&itemNumber=' + itemNum + '&itemName=' + encodeURIComponent(itemName) + '&qty=' + qty)
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
+                    } else {
+                        showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
+                    }
                 })
-            })
-            .then(r => r.json())
-            .then(result => {
-                if (result.success) {
-                    showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
-                } else {
-                    showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
-                }
-            })
-            .catch(err => showStatus('Error submitting order: ' + err, 'error'));
+                .catch(err => showStatus('Error submitting order: ' + err, 'error'));
         }
 
         function submitManualCount(itemNum, itemName) {
