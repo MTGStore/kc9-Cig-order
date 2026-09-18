@@ -235,7 +235,7 @@
     <div class="container">
         <div class="header">
             <h1>📤 KC9 Sales Uploader</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 11:50 PM EST</p>
+            <p class="timestamp">Updated: 09/18/2026 at 12:53 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -485,15 +485,31 @@
             uploadBtn.disabled = true;
             uploadBtn.textContent = 'Uploading...';
 
+            const uploadDate = new Date().toISOString().split('T')[0];
+            const salesDate = document.getElementById('salesDate').value;
+
+            const salesData = fileData.map(item => ({
+                upc: item.upc,
+                description: item.itemName,
+                qty: item.packs
+            }));
+
+            const params = new URLSearchParams();
+            params.append('action', 'uploadSalesHistory');
+            params.append('password', userPassword);
+            params.append('uploadDate', uploadDate);
+            params.append('salesStartDate', salesDate);
+            params.append('salesEndDate', salesDate);
+            params.append('salesData', JSON.stringify(salesData));
+
             fetch(DEPLOYED_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'action=uploadSalesHistory&password=' + encodeURIComponent(userPassword) + '&csvData=' + encodeURIComponent(JSON.stringify(fileData))
+                body: params
             })
             .then(r => r.json())
             .then(result => {
                 if (result.success) {
-                    showStatus(`✓ Uploaded ${result.rowsAdded} rows successfully!`, 'success');
+                    showStatus(`✓ Uploaded ${fileData.length} rows successfully!`, 'success');
                     resetForm();
                 } else {
                     showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
