@@ -51,7 +51,37 @@
             font-weight: 600;
         }
 
-        /* ── BARCODE SCANNER SECTION ── */
+        /* ── LOGIN ── */
+        .login-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        .login-section p { color: #666; margin-bottom: 12px; font-size: 14px; }
+        .login-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .login-section input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            width: 220px;
+        }
+        .login-section button {
+            padding: 10px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .login-section button:hover { background: #764ba2; }
+
+        /* ── BARCODE SCANNER ── */
         .scanner-section {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 10px;
@@ -60,24 +90,14 @@
             color: white;
         }
         .scanner-section h3 {
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 12px;
             color: #a0aec0;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        .scanner-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .scanner-input-wrap {
-            flex: 1;
-            min-width: 200px;
-            position: relative;
-        }
-        .scanner-input-wrap .scan-icon {
+        .scanner-input-wrap { position: relative; }
+        .scan-icon {
             position: absolute;
             left: 12px;
             top: 50%;
@@ -95,11 +115,7 @@
             color: #68d391;
             letter-spacing: 2px;
         }
-        #barcodeInput:focus {
-            outline: none;
-            border-color: #68d391;
-            background: #1a202c;
-        }
+        #barcodeInput:focus { outline: none; border-color: #68d391; background: #1a202c; }
         #barcodeInput::placeholder { color: #4a5568; letter-spacing: 0; font-size: 14px; }
         .scan-result {
             margin-top: 12px;
@@ -109,42 +125,15 @@
             font-weight: 600;
             display: none;
         }
-        .scan-result.found {
-            background: rgba(104, 211, 145, 0.15);
-            border: 1px solid #68d391;
-            color: #68d391;
-            display: block;
-        }
-        .scan-result.not-found {
-            background: rgba(252, 129, 74, 0.15);
-            border: 1px solid #fc814a;
-            color: #fc814a;
-            display: block;
-        }
-        .scan-result.new-upc {
-            background: rgba(246, 224, 94, 0.15);
-            border: 1px solid #f6e05e;
-            color: #f6e05e;
-            display: block;
-        }
-        .upc-stats {
-            display: flex;
-            gap: 15px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-        .upc-stat {
-            font-size: 12px;
-            color: #718096;
-        }
+        .scan-result.found    { background: rgba(104,211,145,0.15); border: 1px solid #68d391; color: #68d391; display: block; }
+        .scan-result.not-found { background: rgba(252,129,74,0.15); border: 1px solid #fc814a; color: #fc814a; display: block; }
+        .scan-result.new-upc  { background: rgba(246,224,94,0.15); border: 1px solid #f6e05e; color: #f6e05e; display: block; }
+        .upc-stats { display: flex; gap: 15px; margin-top: 12px; flex-wrap: wrap; }
+        .upc-stat { font-size: 12px; color: #718096; }
         .upc-stat span { color: #a0aec0; font-weight: 700; }
 
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+        /* ── TOOLBAR ── */
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .toolbar button {
             padding: 10px 20px;
             border: none;
@@ -154,11 +143,11 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-load { background: #667eea; color: white; }
+        .btn-load   { background: #667eea; color: white; }
         .btn-load:hover { background: #764ba2; }
-        .btn-print { background: #4caf50; color: white; }
+        .btn-print  { background: #4caf50; color: white; }
         .btn-print:hover { background: #45a049; }
-        .btn-clear { background: #e74c3c; color: white; }
+        .btn-clear  { background: #e74c3c; color: white; }
         .btn-clear:hover { background: #c0392b; }
         .search-box {
             flex: 1;
@@ -168,30 +157,53 @@
             border-radius: 6px;
             font-size: 14px;
         }
-        .summary-bar {
-            display: flex;
-            gap: 15px;
+
+        /* ── SAVE ALL BUTTON ── */
+        .save-all-section {
+            background: linear-gradient(135deg, #1b4332, #2d6a4f);
+            border-radius: 10px;
+            padding: 20px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 15px;
         }
+        .save-all-section .save-info { color: #b7e4c7; font-size: 14px; }
+        .save-all-section .save-info strong { color: white; font-size: 16px; display: block; margin-bottom: 4px; }
+        .btn-save-all {
+            padding: 14px 30px;
+            background: #52b788;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-save-all:hover { background: #40916c; transform: scale(1.02); }
+        .btn-save-all:disabled { background: #555; cursor: not-allowed; transform: none; }
+
+        /* ── SUMMARY BAR ── */
+        .summary-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .summary-chip {
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
         }
-        .chip-total { background: #e8eaf6; color: #3949ab; }
+        .chip-total   { background: #e8eaf6; color: #3949ab; }
         .chip-counted { background: #e8f5e9; color: #2e7d32; }
         .chip-remaining { background: #fff3e0; color: #e65100; }
-        .chip-newupc { background: #fff8e1; color: #f57f17; }
+        .chip-newupc  { background: #fff8e1; color: #f57f17; }
+
+        /* ── TABLE ── */
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         thead tr { background: #667eea; color: white; }
-        thead th {
-            padding: 12px 10px;
-            text-align: left;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        thead th { padding: 12px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
         tbody tr { border-bottom: 1px solid #eee; transition: background 0.2s; }
         tbody tr:nth-child(even) { background: #f8f9ff; }
         tbody tr:hover { background: #f0f4ff; }
@@ -202,13 +214,13 @@
             animation: pulse 0.5s ease-in-out;
         }
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.01); }
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.01); }
             100% { transform: scale(1); }
         }
         tbody td { padding: 10px; vertical-align: middle; }
         .item-name { font-weight: 600; color: #333; }
-        .item-num { color: #999; font-size: 12px; }
+        .item-num  { color: #999; font-size: 12px; }
         .upc-badge {
             display: inline-block;
             background: #e8eaf6;
@@ -219,11 +231,7 @@
             margin-top: 3px;
             font-weight: 600;
         }
-        .must-have {
-            text-align: center;
-            font-weight: 700;
-            color: #667eea;
-        }
+        .must-have { text-align: center; font-weight: 700; color: #667eea; }
         .count-input {
             width: 80px;
             padding: 6px 8px;
@@ -254,30 +262,38 @@
             margin-right: 6px;
         }
         .status-dot.done { background: #4caf50; }
-        .loading { text-align: center; padding: 40px; color: #999; font-size: 16px; }
-        .error-msg {
-            background: #fdecea;
-            color: #c62828;
-            padding: 12px;
+
+        /* ── STATUS MESSAGES ── */
+        .status-message {
+            padding: 15px;
             border-radius: 6px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: 600;
             display: none;
         }
+        .status-message.show { display: block; }
+        .status-message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-message.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status-message.info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
 
+        .loading { text-align: center; padding: 40px; color: #999; font-size: 16px; }
+        .error-msg { background: #fdecea; color: #c62828; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: none; }
+
+        /* ── PRINT ── */
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; padding: 15px; }
-            .toolbar, .search-box, .scanner-section { display: none !important; }
-            .count-input { border: 1px solid #999; background: white; -webkit-print-color-adjust: exact; }
-            .notes-input { border: 1px solid #999; }
-            thead tr { background: #667eea !important; -webkit-print-color-adjust: exact; }
+            .toolbar, .scanner-section, .save-all-section, .login-section { display: none !important; }
+            .count-input  { border: 1px solid #999; background: white; -webkit-print-color-adjust: exact; }
+            .notes-input  { border: 1px solid #999; }
+            thead tr      { background: #667eea !important; -webkit-print-color-adjust: exact; }
             tbody tr:nth-child(even) { background: #f8f9ff !important; -webkit-print-color-adjust: exact; }
-            .summary-bar { display: none; }
-            table { font-size: 12px; }
+            .summary-bar  { display: none; }
+            table         { font-size: 12px; }
             thead th, tbody td { padding: 7px 8px; }
-            .meta-field input { border: 1px solid #999; }
-            @page { margin: 1cm; }
+            @page         { margin: 1cm; }
         }
+
         @media (max-width: 600px) {
             .container { padding: 15px; }
             table { font-size: 13px; }
@@ -294,6 +310,19 @@
         <p>Upload today's sales CSV first — then count. Scan barcode or search by name.</p>
     </div>
 
+    <!-- LOGIN -->
+    <div class="login-section" id="loginSection">
+        <p>Enter manager password to enable saving counts to Google Sheets</p>
+        <div class="login-row">
+            <input type="password" id="passwordInput" placeholder="Manager Password">
+            <button onclick="validateLogin()">Unlock</button>
+        </div>
+    </div>
+
+    <div class="status-message" id="statusMessage"></div>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- META -->
     <div class="meta-row">
         <div class="meta-field">
             <label>Count Date</label>
@@ -315,19 +344,17 @@
 
     <!-- BARCODE SCANNER -->
     <div class="scanner-section">
-        <h3>📷 Barcode Scanner</h3>
-        <div class="scanner-row">
-            <div class="scanner-input-wrap">
-                <span class="scan-icon">🔍</span>
-                <input
-                    type="text"
-                    id="barcodeInput"
-                    placeholder="Scan barcode or type UPC here..."
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                >
-            </div>
+        <h3>📷 Barcode Scanner — Scan a pack to jump to its row</h3>
+        <div class="scanner-input-wrap">
+            <span class="scan-icon">🔍</span>
+            <input
+                type="text"
+                id="barcodeInput"
+                placeholder="Scan barcode or type UPC here and press Enter..."
+                autocomplete="off"
+                autocorrect="off"
+                spellcheck="false"
+            >
         </div>
         <div class="scan-result" id="scanResult"></div>
         <div class="upc-stats">
@@ -336,8 +363,7 @@
         </div>
     </div>
 
-    <div class="error-msg" id="errorMsg"></div>
-
+    <!-- TOOLBAR -->
     <div class="toolbar">
         <button class="btn-load" onclick="loadItems()">🔄 Load Items</button>
         <button class="btn-print" onclick="window.print()">🖨️ Print Sheet</button>
@@ -345,6 +371,7 @@
         <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search item name or number..." oninput="filterTable()">
     </div>
 
+    <!-- SUMMARY BAR -->
     <div class="summary-bar" id="summaryBar" style="display:none;">
         <span class="summary-chip chip-total">📦 Total: <span id="totalCount">0</span></span>
         <span class="summary-chip chip-counted">✅ Counted: <span id="doneCount">0</span></span>
@@ -352,22 +379,35 @@
         <span class="summary-chip chip-newupc">🆕 New UPCs: <span id="newUpcSummary">0</span></span>
     </div>
 
+    <!-- SAVE ALL SECTION -->
+    <div class="save-all-section" id="saveAllSection" style="display:none;">
+        <div class="save-info">
+            <strong>💾 Save All Counts to Google Sheets</strong>
+            Only items with a count entered will be saved. Items left blank are skipped.
+        </div>
+        <button class="btn-save-all" id="saveAllBtn" onclick="saveAllCounts()">
+            💾 Save All Counts
+        </button>
+    </div>
+
+    <!-- TABLE -->
     <div id="tableArea">
-        <div class="loading">Click "Load Items" to pull your live item list</div>
+        <div class="loading">Click "Load Items" to pull your live item list from Google Sheets</div>
     </div>
 
 </div>
 
 <script>
     const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
-    let allItems    = [];
-    let upcMap      = {};   // { normalizedUPC: itemNumber }
-    let itemByNum   = {};   // { itemNumber: item }
-    let newUPCs     = [];   // UPCs scanned that aren't in mapping yet
-    let newUpcCount = 0;
+    let allItems     = [];
+    let upcMap       = {};   // { normalizedUPC: itemNumber }
+    let itemByNum    = {};   // { itemNumber: item }
+    let newUPCs      = [];
+    let newUpcCount  = 0;
+    let userPassword = null;
+    let isLoggedIn   = false;
 
-    // ── NORMALIZE UPC ────────────────────────────────────────────────────
-    // Strips leading zeros so 02838423 matches 2838423
+    // ── NORMALIZE UPC (strip leading zeros) ──────────────────────────────
     function normalizeUPC(upc) {
         return String(upc || '').trim().replace(/^0+/, '') || '0';
     }
@@ -385,40 +425,54 @@
         const ampm = h >= 12 ? 'PM' : 'AM';
         document.getElementById('timeStarted').value = (h % 12 || 12) + ':' + mins + ' ' + ampm;
 
-        // Keep barcode field focused at all times
-        keepScannerFocused();
+        document.getElementById('passwordInput').focus();
     });
 
-    function keepScannerFocused() {
-        const scanner = document.getElementById('barcodeInput');
-        document.addEventListener('click', (e) => {
-            // Refocus scanner unless user clicked a count/notes input
-            const tag = e.target.tagName;
-            const cls = e.target.className || '';
-            if (tag !== 'INPUT' || (!cls.includes('count-input') && !cls.includes('notes-input') && !cls.includes('search-box') && !cls.includes('meta-field'))) {
-                setTimeout(() => scanner.focus(), 100);
-            }
-        });
+    // ── LOGIN ─────────────────────────────────────────────────────────────
+    function validateLogin() {
+        const password = document.getElementById('passwordInput').value.trim();
+        if (!password) { showStatus('Enter password first', 'error'); return; }
+
+        fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(password))
+            .then(r => r.json())
+            .then(result => {
+                if (result.valid) {
+                    userPassword = password;
+                    isLoggedIn   = true;
+                    document.getElementById('loginSection').innerHTML =
+                        '<p style="color:#2e7d32;font-weight:700;">🔓 Unlocked — counts will save to Google Sheets</p>';
+                    document.getElementById('saveAllSection').style.display = 'flex';
+                    showStatus('Password accepted — you can now save counts', 'success');
+                    document.getElementById('barcodeInput').focus();
+                } else {
+                    showStatus('Wrong password', 'error');
+                    document.getElementById('passwordInput').value = '';
+                }
+            })
+            .catch(err => showStatus('Connection error: ' + err, 'error'));
     }
+
+    // Allow Enter key on password field
+    document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') validateLogin();
+    });
 
     // ── LOAD ITEMS + UPC MAP ──────────────────────────────────────────────
     function loadItems() {
-        document.getElementById('tableArea').innerHTML = '<div class="loading">⏳ Loading items...</div>';
+        document.getElementById('tableArea').innerHTML = '<div class="loading">⏳ Loading items from Google Sheets...</div>';
         document.getElementById('summaryBar').style.display = 'none';
         document.getElementById('errorMsg').style.display   = 'none';
 
-        // Load items and UPC mapping in parallel
         Promise.all([
             fetch(DEPLOYED_URL + '?action=getSmartOrderData').then(r => r.json()),
             fetch(DEPLOYED_URL + '?action=getUPCMapping').then(r => r.json())
         ])
         .then(([items, upcRaw]) => {
             if (!Array.isArray(items) || items.length === 0) {
-                showError('No items returned. Check your connection.');
+                showError('No items returned. Check connection.');
                 return;
             }
 
-            // Build UPC map — normalize to handle short barcodes
             upcMap    = {};
             itemByNum = {};
             let mappedTotal = 0;
@@ -435,7 +489,6 @@
             }
             document.getElementById('mappedCount').textContent = mappedTotal;
 
-            // Sort A-Z
             allItems = items.sort((a, b) => (a.itemName || '').localeCompare(b.itemName || ''));
             allItems.forEach(item => {
                 itemByNum[String(item.itemNumber || '').trim()] = item;
@@ -449,73 +502,51 @@
         .catch(err => showError('Error loading: ' + err));
     }
 
-    // ── BARCODE SCAN HANDLER ──────────────────────────────────────────────
+    // ── BARCODE SCANNER ───────────────────────────────────────────────────
     document.getElementById('barcodeInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             const raw        = this.value.trim();
             const normalized = normalizeUPC(raw);
             this.value = '';
-
             if (!raw) return;
 
             const resultEl = document.getElementById('scanResult');
-
-            // Look up in UPC map
-            const itemNum = upcMap[normalized];
+            const itemNum  = upcMap[normalized];
 
             if (itemNum) {
-                // Found in UPC mapping
                 const item = itemByNum[itemNum];
                 if (item) {
                     highlightRow(itemNum);
-                    resultEl.className = 'scan-result found';
+                    resultEl.className   = 'scan-result found';
                     resultEl.textContent = '✅ Found: ' + item.itemName + '  (#' + itemNum + ')  →  Enter count below';
                 } else {
-                    resultEl.className = 'scan-result not-found';
-                    resultEl.textContent = '⚠️ UPC mapped to item ' + itemNum + ' but item not in list';
+                    resultEl.className   = 'scan-result not-found';
+                    resultEl.textContent = '⚠️ UPC mapped to ' + itemNum + ' but not in list';
                 }
             } else {
-                // Not in UPC mapping — new UPC
                 newUpcCount++;
-                newUPCs.push({ upc: raw, normalized: normalized, scannedAt: new Date().toISOString() });
-                document.getElementById('newUpcCount').textContent  = newUpcCount;
+                newUPCs.push({ upc: raw, normalized, scannedAt: new Date().toISOString() });
+                document.getElementById('newUpcCount').textContent   = newUpcCount;
                 document.getElementById('newUpcSummary').textContent = newUpcCount;
-
-                resultEl.className = 'scan-result new-upc';
-                resultEl.innerHTML = '🆕 New UPC: <strong>' + raw + '</strong> — not in UPC Mapping yet.<br>' +
-                    '<small>Note the item name manually and add to UPC Mapping sheet later.</small>';
+                resultEl.className   = 'scan-result new-upc';
+                resultEl.innerHTML   = '🆕 New UPC: <strong>' + raw + '</strong> — not in UPC Mapping yet.<br>' +
+                    '<small>Write it down and add to UPC Mapping sheet after counting.</small>';
             }
-
-            // Clear result after 4 seconds
             setTimeout(() => { resultEl.className = 'scan-result'; }, 4000);
         }
     });
 
-    // ── HIGHLIGHT ROW & SCROLL TO IT ──────────────────────────────────────
+    // ── HIGHLIGHT ROW ─────────────────────────────────────────────────────
     function highlightRow(itemNum) {
-        // Remove previous highlight
         document.querySelectorAll('tbody tr.highlighted').forEach(r => r.classList.remove('highlighted'));
-
-        const row      = document.getElementById('row_' + itemNum);
+        const row        = document.getElementById('row_' + itemNum);
         const countInput = document.getElementById('cnt_' + itemNum);
-
         if (row) {
-            // Make sure row is visible (in case filtered)
             row.style.display = '';
-
             row.classList.add('highlighted');
             row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Focus the count input for that item
-            if (countInput) {
-                setTimeout(() => {
-                    countInput.focus();
-                    countInput.select();
-                }, 300);
-            }
-
-            // Remove highlight after 3 seconds
+            if (countInput) setTimeout(() => { countInput.focus(); countInput.select(); }, 300);
             setTimeout(() => row.classList.remove('highlighted'), 3000);
         }
     }
@@ -547,12 +578,10 @@
             const itemName = item.itemName || '';
             const mustHave = (item.mustHave || 0).toFixed(1);
 
-            // Find UPCs for this item to display
-            const itemUPCs = Object.entries(upcMap)
+            const itemUPCs   = Object.entries(upcMap)
                 .filter(([upc, num]) => num === itemNum)
                 .map(([upc]) => upc)
-                .slice(0, 2); // show max 2
-
+                .slice(0, 2);
             const upcBadges = itemUPCs.map(u => `<span class="upc-badge">${u}</span>`).join(' ');
 
             html += `
@@ -589,7 +618,7 @@
         document.getElementById('tableArea').innerHTML = html;
     }
 
-    // ── COUNT INPUT HANDLER ───────────────────────────────────────────────
+    // ── COUNT INPUT ───────────────────────────────────────────────────────
     function onCountEntered(itemNum) {
         const input = document.getElementById('cnt_' + itemNum);
         const dot   = document.getElementById('dot_' + itemNum);
@@ -607,17 +636,80 @@
         }
         updateSummary();
 
-        // After entering count — return focus to scanner
-        // Small delay so user can tab to notes if needed
         setTimeout(() => {
-            const scanner = document.getElementById('barcodeInput');
             if (document.activeElement !== document.getElementById('note_' + itemNum)) {
-                scanner.focus();
+                document.getElementById('barcodeInput').focus();
             }
         }, 500);
     }
 
-    // ── SUMMARY BAR ───────────────────────────────────────────────────────
+    // ── SAVE ALL COUNTS ───────────────────────────────────────────────────
+    function saveAllCounts() {
+        if (!isLoggedIn) {
+            showStatus('Enter password first to save counts', 'error');
+            return;
+        }
+
+        const countedBy = document.getElementById('countedBy').value.trim() || 'Harry';
+
+        // Collect all items with a count entered
+        const counts = [];
+        for (const item of allItems) {
+            const itemNum  = String(item.itemNumber || '').trim();
+            const input    = document.getElementById('cnt_' + itemNum);
+            if (!input) continue;
+            const val = input.value.trim();
+            if (val === '' || isNaN(parseFloat(val))) continue;
+
+            counts.push({
+                itemNumber:    itemNum,
+                itemName:      item.itemName || '',
+                physicalCount: parseFloat(val),
+                expectedOnHand: item.onHand !== undefined ? item.onHand : 0
+            });
+        }
+
+        if (counts.length === 0) {
+            showStatus('No counts entered yet — enter at least one count first', 'error');
+            return;
+        }
+
+        if (!confirm(`Save ${counts.length} counts to Google Sheets?\n\nThis will update the baseline for all ${counts.length} items counted.`)) {
+            return;
+        }
+
+        // Disable button while saving
+        const btn = document.getElementById('saveAllBtn');
+        btn.disabled    = true;
+        btn.textContent = '⏳ Saving ' + counts.length + ' items...';
+        showStatus('Saving ' + counts.length + ' counts to Google Sheets — please wait...', 'info');
+
+        const params = new URLSearchParams();
+        params.append('action',     'saveBulkSpotCheck');
+        params.append('password',   userPassword);
+        params.append('counts',     JSON.stringify(counts));
+        params.append('countedBy',  countedBy);
+
+        fetch(DEPLOYED_URL, { method: 'POST', body: params })
+            .then(r => r.json())
+            .then(result => {
+                btn.disabled    = false;
+                btn.textContent = '💾 Save All Counts';
+
+                if (result.success) {
+                    showStatus('✅ ' + result.message + ' — Google Sheets updated! Refresh smart-ordering to see new On Hand values.', 'success');
+                } else {
+                    showStatus('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(err => {
+                btn.disabled    = false;
+                btn.textContent = '💾 Save All Counts';
+                showStatus('❌ Connection error: ' + err, 'error');
+            });
+    }
+
+    // ── SUMMARY ───────────────────────────────────────────────────────────
     function updateSummary() {
         const total   = allItems.length;
         const counted = document.querySelectorAll('.count-input.has-value').length;
@@ -644,17 +736,24 @@
         document.querySelectorAll('.notes-input').forEach(i => i.value = '');
         document.querySelectorAll('.status-dot').forEach(d => d.classList.remove('done'));
         document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('counted'));
-        newUpcCount = 0;
-        newUPCs     = [];
+        newUpcCount = 0; newUPCs = [];
         document.getElementById('newUpcCount').textContent   = 0;
         document.getElementById('newUpcSummary').textContent = 0;
         updateSummary();
     }
 
+    // ── STATUS & ERROR ────────────────────────────────────────────────────
+    function showStatus(message, type) {
+        const el = document.getElementById('statusMessage');
+        el.textContent = message;
+        el.className   = 'status-message show ' + type;
+        if (type !== 'info') setTimeout(() => el.classList.remove('show'), 6000);
+    }
+
     function showError(msg) {
         const el = document.getElementById('errorMsg');
-        el.textContent    = msg;
-        el.style.display  = 'block';
+        el.textContent   = msg;
+        el.style.display = 'block';
         document.getElementById('tableArea').innerHTML = '';
     }
 </script>
