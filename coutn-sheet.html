@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KC9 Full Inventory Count Sheet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+        .header h1 { color: #333; font-size: 26px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 14px; }
+        .meta-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-field {
+            flex: 1;
+            min-width: 180px;
+        }
+        .meta-field label {
+            display: block;
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .meta-field input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-load { background: #667eea; color: white; }
+        .btn-load:hover { background: #764ba2; }
+        .btn-print { background: #4caf50; color: white; }
+        .btn-print:hover { background: #45a049; }
+        .btn-clear { background: #e74c3c; color: white; }
+        .btn-clear:hover { background: #c0392b; }
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .summary-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .summary-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .chip-total { background: #e8eaf6; color: #3949ab; }
+        .chip-counted { background: #e8f5e9; color: #2e7d32; }
+        .chip-remaining { background: #fff3e0; color: #e65100; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        thead tr {
+            background: #667eea;
+            color: white;
+        }
+        thead th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        tbody tr:nth-child(even) { background: #f8f9ff; }
+        tbody tr:hover { background: #f0f4ff; }
+        tbody tr.counted { background: #f0fff4 !important; }
+        tbody td {
+            padding: 10px;
+            vertical-align: middle;
+        }
+        .item-name { font-weight: 600; color: #333; }
+        .item-num { color: #999; font-size: 12px; }
+        .must-have {
+            text-align: center;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .count-input {
+            width: 80px;
+            padding: 6px 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            color: #333;
+        }
+        .count-input:focus {
+            outline: none;
+            border-color: #4caf50;
+            background: #f0fff4;
+        }
+        .count-input.has-value {
+            border-color: #4caf50;
+            background: #f0fff4;
+            color: #2e7d32;
+        }
+        .notes-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #555;
+        }
+        .notes-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .status-dot.done { background: #4caf50; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+        .error-msg {
+            background: #fdecea;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        /* ── PRINT STYLES ── */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 15px; }
+            .toolbar, .search-box, .btn-print, .btn-load, .btn-clear { display: none !important; }
+            .count-input {
+                border: 1px solid #999;
+                background: white;
+                -webkit-print-color-adjust: exact;
+            }
+            .notes-input { border: 1px solid #999; }
+            thead tr { background: #667eea !important; -webkit-print-color-adjust: exact; }
+            tbody tr:nth-child(even) { background: #f8f9ff !important; -webkit-print-color-adjust: exact; }
+            .summary-bar { display: none; }
+            table { font-size: 12px; }
+            thead th, tbody td { padding: 7px 8px; }
+            .meta-field input { border: 1px solid #999; }
+            @page { margin: 1cm; }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            table { font-size: 13px; }
+            .count-input { width: 65px; }
+            thead th:last-child, tbody td:last-child { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <h1>📋 KC9 Full Inventory Count Sheet</h1>
+        <p>Complete this after uploading today's sales CSV. Count shelf + back stock together.</p>
+    </div>
+
+    <div class="meta-row">
+        <div class="meta-field">
+            <label>Count Date</label>
+            <input type="text" id="countDate" placeholder="e.g. 09/18/2026">
+        </div>
+        <div class="meta-field">
+            <label>Counted By</label>
+            <input type="text" id="countedBy" placeholder="e.g. Harry">
+        </div>
+        <div class="meta-field">
+            <label>Store</label>
+            <input type="text" id="storeName" value="KC9" readonly>
+        </div>
+        <div class="meta-field">
+            <label>Time Started</label>
+            <input type="text" id="timeStarted" placeholder="e.g. 10:00 PM">
+        </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="toolbar">
+        <button class="btn-load" onclick="loadItems()">🔄 Load Items</button>
+        <button class="btn-print" onclick="window.print()">🖨️ Print Sheet</button>
+        <button class="btn-clear" onclick="clearCounts()">🗑️ Clear All Counts</button>
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search item name or number..." oninput="filterTable()">
+    </div>
+
+    <div class="summary-bar" id="summaryBar" style="display:none;">
+        <span class="summary-chip chip-total">📦 Total Items: <span id="totalCount">0</span></span>
+        <span class="summary-chip chip-counted">✅ Counted: <span id="doneCount">0</span></span>
+        <span class="summary-chip chip-remaining">⏳ Remaining: <span id="remainCount">0</span></span>
+    </div>
+
+    <div id="tableArea">
+        <div class="loading">Click "Load Items" to pull your item list from Google Sheets</div>
+    </div>
+
+</div>
+
+<script>
+    const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
+    let allItems = [];
+
+    // Auto-fill today's date
+    window.addEventListener('load', () => {
+        const today = new Date();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        document.getElementById('countDate').value = mm + '/' + dd + '/' + yyyy;
+
+        const hours = today.getHours();
+        const mins = String(today.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const h12 = hours % 12 || 12;
+        document.getElementById('timeStarted').value = h12 + ':' + mins + ' ' + ampm;
+    });
+
+    function loadItems() {
+        document.getElementById('tableArea').innerHTML = '<div class="loading">⏳ Loading items from Google Sheets...</div>';
+        document.getElementById('summaryBar').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'none';
+
+        fetch(DEPLOYED_URL + '?action=getSmartOrderData')
+            .then(r => r.json())
+            .then(items => {
+                if (!Array.isArray(items) || items.length === 0) {
+                    showError('No items returned from server. Check your connection.');
+                    return;
+                }
+                // Sort alphabetically by item name
+                allItems = items.sort((a, b) => (a.itemName || '').localeCompare(b.itemName || ''));
+                renderTable(allItems);
+                document.getElementById('summaryBar').style.display = 'flex';
+                updateSummary();
+            })
+            .catch(err => showError('Error loading items: ' + err));
+    }
+
+    function renderTable(items) {
+        if (!items || items.length === 0) {
+            document.getElementById('tableArea').innerHTML = '<div class="loading">No items match your search.</div>';
+            return;
+        }
+
+        let html = `
+            <table id="countTable">
+                <thead>
+                    <tr>
+                        <th width="30">#</th>
+                        <th>Item Name</th>
+                        <th width="90">Item #</th>
+                        <th width="80" style="text-align:center;">Must Have</th>
+                        <th width="100" style="text-align:center;">Your Count</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        items.forEach((item, index) => {
+            const itemNum  = item.itemNumber || '';
+            const itemName = item.itemName || '';
+            const mustHave = (item.mustHave || 0).toFixed(1);
+            html += `
+                <tr id="row_${itemNum}" data-name="${itemName.toLowerCase()}" data-num="${itemNum}">
+                    <td style="color:#bbb; font-size:12px;">${index + 1}</td>
+                    <td>
+                        <div class="item-name">
+                            <span class="status-dot" id="dot_${itemNum}"></span>${itemName}
+                        </div>
+                    </td>
+                    <td><span class="item-num">${itemNum}</span></td>
+                    <td class="must-have">${mustHave}</td>
+                    <td style="text-align:center;">
+                        <input
+                            type="number"
+                            class="count-input"
+                            id="cnt_${itemNum}"
+                            placeholder="0.0"
+                            step="0.1"
+                            min="0"
+                            onchange="onCountEntered('${itemNum}')"
+                            oninput="onCountEntered('${itemNum}')"
+                        >
+                    </td>
+                    <td>
+                        <input type="text" class="notes-input" id="note_${itemNum}" placeholder="e.g. low stock, damaged">
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('tableArea').innerHTML = html;
+    }
+
+    function onCountEntered(itemNum) {
+        const input = document.getElementById('cnt_' + itemNum);
+        const dot   = document.getElementById('dot_' + itemNum);
+        const row   = document.getElementById('row_' + itemNum);
+        const val   = input.value.trim();
+
+        if (val !== '' && !isNaN(parseFloat(val))) {
+            input.classList.add('has-value');
+            dot.classList.add('done');
+            row.classList.add('counted');
+        } else {
+            input.classList.remove('has-value');
+            dot.classList.remove('done');
+            row.classList.remove('counted');
+        }
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const total   = allItems.length;
+        const counted = document.querySelectorAll('.count-input.has-value').length;
+        document.getElementById('totalCount').textContent   = total;
+        document.getElementById('doneCount').textContent    = counted;
+        document.getElementById('remainCount').textContent  = total - counted;
+    }
+
+    function filterTable() {
+        const search = document.getElementById('searchBox').value.toLowerCase().trim();
+        const rows   = document.querySelectorAll('#countTable tbody tr');
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const num  = row.getAttribute('data-num') || '';
+            row.style.display = (name.includes(search) || num.includes(search)) ? '' : 'none';
+        });
+    }
+
+    function clearCounts() {
+        if (!confirm('Clear all counts entered so far?')) return;
+        document.querySelectorAll('.count-input').forEach(input => {
+            input.value = '';
+            input.classList.remove('has-value');
+        });
+        document.querySelectorAll('.notes-input').forEach(input => input.value = '');
+        document.querySelectorAll('.status-dot').forEach(dot => dot.classList.remove('done'));
+        document.querySelectorAll('tbody tr').forEach(row => row.classList.remove('counted'));
+        updateSummary();
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('tableArea').innerHTML = '';
+    }
+</script>
+</body>
+</html>
