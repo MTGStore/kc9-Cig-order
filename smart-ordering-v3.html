@@ -60,9 +60,7 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-        .login-section button:hover {
-            background: #764ba2;
-        }
+        .login-section button:hover { background: #764ba2; }
         .toolbar {
             display: flex;
             gap: 10px;
@@ -91,9 +89,7 @@
             font-weight: 600;
             transition: background 0.3s;
         }
-        .toolbar button:hover {
-            background: #764ba2;
-        }
+        .toolbar button:hover { background: #764ba2; }
         .whatsapp-btn {
             background: #25D366 !important;
             padding: 12px 20px;
@@ -101,9 +97,7 @@
             align-items: center;
             gap: 8px;
         }
-        .whatsapp-btn:hover {
-            background: #20ba5a !important;
-        }
+        .whatsapp-btn:hover { background: #20ba5a !important; }
         .items-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -146,9 +140,7 @@
             border-bottom: 1px solid #e0e0e0;
             font-size: 14px;
         }
-        .calc-row:last-child {
-            border-bottom: none;
-        }
+        .calc-row:last-child { border-bottom: none; }
         .calc-label {
             color: #666;
             font-weight: 500;
@@ -220,9 +212,7 @@
             background: #4caf50;
             color: white;
         }
-        .submit-btn:hover {
-            background: #45a049;
-        }
+        .submit-btn:hover { background: #45a049; }
         .status-message {
             padding: 15px;
             border-radius: 6px;
@@ -230,9 +220,7 @@
             display: none;
             font-weight: 600;
         }
-        .status-message.show {
-            display: block;
-        }
+        .status-message.show { display: block; }
         .status-message.success {
             background: #d4edda;
             color: #155724;
@@ -261,7 +249,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/14/2026 at 11:58 PM EST</p>
+            <p class="timestamp">Updated: 09/18/2026 at 08:23 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -297,7 +285,6 @@
                 showStatus('Please enter a password', 'error');
                 return;
             }
-
             fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(password))
                 .then(r => r.json())
                 .then(result => {
@@ -314,20 +301,20 @@
                 .catch(err => showStatus('Error validating password: ' + err, 'error'));
         }
 
-       function loadItems() {
-    fetch(DEPLOYED_URL + '?action=getSmartOrderData')
-        .then(r => r.json())
-        .then(items => {
-            if (Array.isArray(items)) {
-                allItems = items;
-                renderItems(items);
-            } else {
-                showStatus('Error: Invalid data format', 'error');
-                console.log('Received:', items);
-            }
-        })
-        .catch(err => showStatus('Error loading items: ' + err, 'error'));
-}
+        function loadItems() {
+            fetch(DEPLOYED_URL + '?action=getSmartOrderData')
+                .then(r => r.json())
+                .then(items => {
+                    if (Array.isArray(items)) {
+                        allItems = items;
+                        renderItems(items);
+                    } else {
+                        showStatus('Error: Invalid data format', 'error');
+                        console.log('Received:', items);
+                    }
+                })
+                .catch(err => showStatus('Error loading items: ' + err, 'error'));
+        }
 
         function renderItems(items) {
             const container = document.getElementById('itemsContainer');
@@ -337,12 +324,12 @@
             }
 
             container.innerHTML = items.map(item => {
-                const itemNum = item['itemNumber'];
-                const itemName = item['itemName'];
-                const mustHave = item['mustHave'] || 0;
-                const orderQty = item['orderQty'] || 0;
+                const itemNum    = item['itemNumber'];
+                const itemName   = item['itemName'];
+                const mustHave   = item['mustHave'] || 0;
+                const orderQty   = item['orderQty'] || 0;
                 const fourWeekAvg = item['fourWeekAvg'] || 0;
-                const onHand = mustHave - orderQty;
+                const onHand     = item['onHand'] !== undefined ? item['onHand'] : (mustHave - orderQty); // ← FIXED
 
                 return `
                     <div class="item-card">
@@ -387,34 +374,30 @@
             }).join('');
         }
 
-      function submitOrder(itemNum, itemName) {
-    const qty = parseFloat(document.getElementById('order_' + itemNum).value);
-    if (isNaN(qty) || qty < 0) {
-        showStatus('Invalid order quantity', 'error');
-        return;
-    }
+        function submitOrder(itemNum, itemName) {
+            const qty = parseFloat(document.getElementById('order_' + itemNum).value);
+            if (isNaN(qty) || qty < 0) {
+                showStatus('Invalid order quantity', 'error');
+                return;
+            }
+            const params = new URLSearchParams();
+            params.append('action', 'saveSmartOrder');
+            params.append('password', userPassword);
+            params.append('itemNumber', itemNum);
+            params.append('itemName', itemName);
+            params.append('qty', qty);
 
-    const params = new URLSearchParams();
-    params.append('action', 'saveSmartOrder');
-    params.append('password', userPassword);
-    params.append('itemNumber', itemNum);
-    params.append('itemName', itemName);
-    params.append('qty', qty);
-
-    fetch(DEPLOYED_URL, {
-        method: 'POST',
-        body: params
-    })
-    .then(r => r.json())
-    .then(result => {
-        if (result.success) {
-            showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
-        } else {
-            showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
+            fetch(DEPLOYED_URL, { method: 'POST', body: params })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
+                    } else {
+                        showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(err => showStatus('Error submitting order: ' + err, 'error'));
         }
-    })
-    .catch(err => showStatus('Error submitting order: ' + err, 'error'));
-}
 
         function sendOrdersViaWhatsApp() {
             let totalQty = 0;
@@ -458,9 +441,7 @@
             message += 'ITEMS NEEDING ORDER: ' + itemsCount;
 
             const encodedMessage = encodeURIComponent(message);
-            const whatsappUrl = 'https://wa.me/14046689091?text=' + encodedMessage;
-            
-            window.open(whatsappUrl, '_blank');
+            window.open('https://wa.me/14046689091?text=' + encodedMessage, '_blank');
         }
 
         function filterItems() {
