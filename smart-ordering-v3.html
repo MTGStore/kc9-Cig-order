@@ -98,6 +98,10 @@
             gap: 8px;
         }
         .whatsapp-btn:hover { background: #20ba5a !important; }
+        .sort-btn {
+            background: #f39c12 !important;
+        }
+        .sort-btn:hover { background: #d68910 !important; }
         .items-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -249,7 +253,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/18/2026 at 08:23 PM EST</p>
+            <p class="timestamp">Updated: 09/18/2026 at 08:31 PM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -263,6 +267,7 @@
             <div class="toolbar">
                 <input type="text" id="searchInput" placeholder="🔍 Search by item name or number..." onkeyup="filterItems()">
                 <button onclick="location.reload()">Refresh Data</button>
+                <button class="sort-btn" onclick="sortItems()" id="sortBtn">📊 Sort: 4-Wk Avg ↓</button>
                 <button class="whatsapp-btn" onclick="sendOrdersViaWhatsApp()">📱 WhatsApp Orders</button>
             </div>
 
@@ -278,6 +283,7 @@
         const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
         let userPassword = null;
         let allItems = [];
+        let sortMode = 'avg'; // 'avg' or 'orderqty'
 
         function validateLogin() {
             const password = document.getElementById('passwordInput').value;
@@ -307,13 +313,32 @@
                 .then(items => {
                     if (Array.isArray(items)) {
                         allItems = items;
-                        renderItems(items);
+                        sortAndRender();
                     } else {
                         showStatus('Error: Invalid data format', 'error');
                         console.log('Received:', items);
                     }
                 })
                 .catch(err => showStatus('Error loading items: ' + err, 'error'));
+        }
+
+        function sortItems() {
+            sortMode = (sortMode === 'avg') ? 'orderqty' : 'avg';
+            document.getElementById('sortBtn').textContent = sortMode === 'avg'
+                ? '📊 Sort: 4-Wk Avg ↓'
+                : '📦 Sort: Order Qty ↓';
+            sortAndRender();
+        }
+
+        function sortAndRender() {
+            const sorted = [...allItems].sort((a, b) => {
+                if (sortMode === 'avg') {
+                    return (b['fourWeekAvg'] || 0) - (a['fourWeekAvg'] || 0);
+                } else {
+                    return (b['orderQty'] || 0) - (a['orderQty'] || 0);
+                }
+            });
+            renderItems(sorted);
         }
 
         function renderItems(items) {
@@ -324,12 +349,12 @@
             }
 
             container.innerHTML = items.map(item => {
-                const itemNum    = item['itemNumber'];
-                const itemName   = item['itemName'];
-                const mustHave   = item['mustHave'] || 0;
-                const orderQty   = item['orderQty'] || 0;
+                const itemNum     = item['itemNumber'];
+                const itemName    = item['itemName'];
+                const mustHave    = item['mustHave'] || 0;
+                const orderQty    = item['orderQty'] || 0;
                 const fourWeekAvg = item['fourWeekAvg'] || 0;
-                const onHand     = item['onHand'] !== undefined ? item['onHand'] : (mustHave - orderQty); // ← FIXED
+                const onHand      = item['onHand'] !== undefined ? item['onHand'] : (mustHave - orderQty);
 
                 return `
                     <div class="item-card">
