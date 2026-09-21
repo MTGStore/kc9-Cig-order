@@ -26,15 +26,8 @@
             border-bottom: 3px solid #667eea;
             padding-bottom: 20px;
         }
-        .header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        .timestamp {
-            color: #888;
-            font-size: 13px;
-        }
+        .header h1 { color: #333; font-size: 28px; margin-bottom: 5px; }
+        .timestamp { color: #888; font-size: 13px; }
         .login-section {
             background: #f8f9fa;
             padding: 20px;
@@ -75,10 +68,7 @@
             border-radius: 6px;
             font-size: 16px;
         }
-        .toolbar input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        .toolbar input:focus { outline: none; border-color: #667eea; }
         .toolbar button {
             padding: 12px 20px;
             background: #667eea;
@@ -98,9 +88,7 @@
             gap: 8px;
         }
         .whatsapp-btn:hover { background: #20ba5a !important; }
-        .sort-btn {
-            background: #f39c12 !important;
-        }
+        .sort-btn { background: #f39c12 !important; }
         .sort-btn:hover { background: #d68910 !important; }
         .items-container {
             display: grid;
@@ -120,22 +108,19 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
             transform: translateY(-2px);
         }
+        .item-card.order-submitted {
+            border-color: #4caf50 !important;
+            background: #f0fff4 !important;
+            transform: none !important;
+        }
         .item-header {
             display: flex;
             justify-content: space-between;
             align-items: start;
             margin-bottom: 15px;
         }
-        .item-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-        }
-        .item-number {
-            font-size: 12px;
-            color: #999;
-            margin-top: 3px;
-        }
+        .item-name { font-size: 18px; font-weight: 600; color: #333; }
+        .item-number { font-size: 12px; color: #999; margin-top: 3px; }
         .calc-row {
             display: flex;
             justify-content: space-between;
@@ -145,15 +130,8 @@
             font-size: 14px;
         }
         .calc-row:last-child { border-bottom: none; }
-        .calc-label {
-            color: #666;
-            font-weight: 500;
-        }
-        .calc-value {
-            color: #333;
-            font-weight: 600;
-            font-size: 15px;
-        }
+        .calc-label { color: #666; font-weight: 500; }
+        .calc-value { color: #333; font-weight: 600; font-size: 15px; }
         .calc-section {
             background: white;
             padding: 15px;
@@ -167,9 +145,7 @@
             margin: 12px 0;
             border-left: 4px solid #667eea;
         }
-        .breakdown-section .calc-row {
-            border-bottom-color: rgba(102, 126, 234, 0.2);
-        }
+        .breakdown-section .calc-row { border-bottom-color: rgba(102, 126, 234, 0.2); }
         .order-input-section {
             border-top: 2px solid #e0e0e0;
             padding-top: 15px;
@@ -197,6 +173,12 @@
             border-color: #667eea;
             background: #f0f4ff;
         }
+        .order-input-section input:disabled {
+            background: #f0fff4;
+            border-color: #4caf50;
+            color: #2e7d32;
+            cursor: not-allowed;
+        }
         .button-group {
             display: flex;
             gap: 8px;
@@ -217,6 +199,33 @@
             color: white;
         }
         .submit-btn:hover { background: #45a049; }
+        .submit-btn:disabled {
+            background: #a5d6a7;
+            cursor: not-allowed;
+        }
+        /* ── ORDER CONFIRMED BANNER ── */
+        .order-confirmed-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-top: 12px;
+            color: #2e7d32;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .order-confirmed-banner .check-icon {
+            font-size: 18px;
+        }
+        .order-confirmed-banner .order-time {
+            font-size: 11px;
+            color: #4caf50;
+            font-weight: 400;
+            margin-left: auto;
+        }
         .status-message {
             padding: 15px;
             border-radius: 6px;
@@ -235,11 +244,7 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
         @media (max-width: 768px) {
             .container { padding: 15px; }
             .items-container { grid-template-columns: 1fr; }
@@ -253,7 +258,7 @@
     <div class="container">
         <div class="header">
             <h1>📦 KC9 Cigarette Smart Order</h1>
-            <p class="timestamp">Updated: 09/18/2026 at 08:31 PM EST</p>
+            <p class="timestamp">Updated: 09/21/2026 at 11:42 AM EST</p>
         </div>
 
         <div class="login-section" id="loginSection">
@@ -272,9 +277,7 @@
             </div>
 
             <div class="items-container" id="itemsContainer">
-                <div class="empty-state">
-                    <p>Loading items...</p>
-                </div>
+                <div class="empty-state"><p>Loading items...</p></div>
             </div>
         </div>
     </div>
@@ -283,14 +286,11 @@
         const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
         let userPassword = null;
         let allItems = [];
-        let sortMode = 'avg'; // 'avg' or 'orderqty'
+        let sortMode = 'avg';
 
         function validateLogin() {
             const password = document.getElementById('passwordInput').value;
-            if (!password) {
-                showStatus('Please enter a password', 'error');
-                return;
-            }
+            if (!password) { showStatus('Please enter a password', 'error'); return; }
             fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(password))
                 .then(r => r.json())
                 .then(result => {
@@ -316,7 +316,6 @@
                         sortAndRender();
                     } else {
                         showStatus('Error: Invalid data format', 'error');
-                        console.log('Received:', items);
                     }
                 })
                 .catch(err => showStatus('Error loading items: ' + err, 'error'));
@@ -332,11 +331,8 @@
 
         function sortAndRender() {
             const sorted = [...allItems].sort((a, b) => {
-                if (sortMode === 'avg') {
-                    return (b['fourWeekAvg'] || 0) - (a['fourWeekAvg'] || 0);
-                } else {
-                    return (b['orderQty'] || 0) - (a['orderQty'] || 0);
-                }
+                if (sortMode === 'avg') return (b['fourWeekAvg'] || 0) - (a['fourWeekAvg'] || 0);
+                return (b['orderQty'] || 0) - (a['orderQty'] || 0);
             });
             renderItems(sorted);
         }
@@ -357,7 +353,7 @@
                 const onHand      = item['onHand'] !== undefined ? item['onHand'] : (mustHave - orderQty);
 
                 return `
-                    <div class="item-card">
+                    <div class="item-card" id="card_${itemNum}">
                         <div class="item-header">
                             <div>
                                 <div class="item-name">${itemName}</div>
@@ -375,23 +371,23 @@
                                     <span class="calc-label">- On Hand:</span>
                                     <span class="calc-value">${onHand.toFixed(1)}</span>
                                 </div>
-                                <div class="calc-row" style="border-top: 1px solid rgba(102, 126, 234, 0.3); padding-top: 8px; margin-top: 8px;">
-                                    <span class="calc-label" style="font-weight: 700;">= Order Qty:</span>
-                                    <span class="calc-value" style="color: #667eea; font-size: 16px;">${orderQty.toFixed(1)}</span>
+                                <div class="calc-row" style="border-top: 1px solid rgba(102,126,234,0.3); padding-top: 8px; margin-top: 8px;">
+                                    <span class="calc-label" style="font-weight:700;">= Order Qty:</span>
+                                    <span class="calc-value" style="color:#667eea;font-size:16px;">${orderQty.toFixed(1)}</span>
                                 </div>
                             </div>
 
-                            <div class="calc-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                            <div class="calc-row" style="margin-top:12px;padding-top:12px;border-top:1px solid #e0e0e0;">
                                 <span class="calc-label">4-Week Avg:</span>
                                 <span class="calc-value">${fourWeekAvg.toFixed(1)}</span>
                             </div>
                         </div>
 
-                        <div class="order-input-section">
+                        <div class="order-input-section" id="inputSection_${itemNum}">
                             <label>Order (Cartons)</label>
                             <input type="number" id="order_${itemNum}" value="${orderQty.toFixed(1)}" step="0.1" min="0">
                             <div class="button-group">
-                                <button class="submit-btn" onclick="submitOrder('${itemNum}', '${itemName}')">Submit Order</button>
+                                <button class="submit-btn" id="btn_${itemNum}" onclick="submitOrder('${itemNum}', '${itemName}')">Submit Order</button>
                             </div>
                         </div>
                     </div>
@@ -400,11 +396,20 @@
         }
 
         function submitOrder(itemNum, itemName) {
-            const qty = parseFloat(document.getElementById('order_' + itemNum).value);
+            const btn = document.getElementById('btn_' + itemNum);
+            const input = document.getElementById('order_' + itemNum);
+            const card = document.getElementById('card_' + itemNum);
+
+            const qty = parseFloat(input.value);
             if (isNaN(qty) || qty < 0) {
                 showStatus('Invalid order quantity', 'error');
                 return;
             }
+
+            // Disable button immediately to prevent double-click
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
             const params = new URLSearchParams();
             params.append('action', 'saveSmartOrder');
             params.append('password', userPassword);
@@ -416,19 +421,43 @@
                 .then(r => r.json())
                 .then(result => {
                     if (result.success) {
-                        showStatus(`✓ Order saved: ${itemName} - ${qty} cartons`, 'success');
+                        // Gray out the card and show confirmation
+                        card.classList.add('order-submitted');
+                        input.disabled = true;
+                        btn.disabled = true;
+                        btn.textContent = '✓ Submitted';
+                        btn.style.background = '#4caf50';
+
+                        // Add confirmation banner above button
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                        const banner = document.createElement('div');
+                        banner.className = 'order-confirmed-banner';
+                        banner.innerHTML = `
+                            <span class="check-icon">✅</span>
+                            <span>Order saved — ${qty.toFixed(1)} cartons</span>
+                            <span class="order-time">${timeStr}</span>
+                        `;
+                        document.getElementById('inputSection_' + itemNum).appendChild(banner);
+
                     } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Submit Order';
                         showStatus('Error: ' + (result.error || 'Unknown error'), 'error');
                     }
                 })
-                .catch(err => showStatus('Error submitting order: ' + err, 'error'));
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Order';
+                    showStatus('Error submitting order: ' + err, 'error');
+                });
         }
 
         function sendOrdersViaWhatsApp() {
             let totalQty = 0;
             let itemsCount = 0;
             let message = 'KC9 CIGARETTE ORDER\n';
-            message += 'Date: ' + new Date().toLocaleDateString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'}) + '\n';
+            message += 'Date: ' + new Date().toLocaleDateString('en-US', {year:'numeric',month:'2-digit',day:'2-digit'}) + '\n';
             message += 'Counted by: Harry\n';
             message += '════════════════════════════\n\n';
 
@@ -439,21 +468,14 @@
                 if (orderQtyInput) {
                     const qty = parseFloat(orderQtyInput.value) || 0;
                     if (qty > 0) {
-                        items.push({
-                            name: allItems[i]['itemName'],
-                            number: itemNum,
-                            qty: qty
-                        });
+                        items.push({ name: allItems[i]['itemName'], number: itemNum, qty: qty });
                         totalQty += qty;
                         itemsCount++;
                     }
                 }
             }
 
-            if (items.length === 0) {
-                showStatus('No items to order', 'error');
-                return;
-            }
+            if (items.length === 0) { showStatus('No items to order', 'error'); return; }
 
             items.forEach(item => {
                 message += 'Item Name: ' + item.name + '\n';
@@ -465,15 +487,13 @@
             message += 'TOTAL CARTONS TO ORDER: ' + totalQty.toFixed(2) + '\n';
             message += 'ITEMS NEEDING ORDER: ' + itemsCount;
 
-            const encodedMessage = encodeURIComponent(message);
-            window.open('https://wa.me/14046689091?text=' + encodedMessage, '_blank');
+            window.open('https://wa.me/14046689091?text=' + encodeURIComponent(message), '_blank');
         }
 
         function filterItems() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             document.querySelectorAll('.item-card').forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(search) ? '' : 'none';
+                card.style.display = card.textContent.toLowerCase().includes(search) ? '' : 'none';
             });
         }
 
