@@ -12,33 +12,16 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+        .container { max-width: 900px; margin: 0 auto; }
         .header {
             text-align: center;
             padding: 40px 20px 30px;
             color: white;
         }
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-        }
-        .header p {
-            font-size: 14px;
-            color: rgba(255,255,255,0.6);
-            margin-bottom: 4px;
-        }
-        .last-updated {
-            font-size: 12px;
-            color: rgba(255,255,255,0.4);
-            margin-top: 8px;
-        }
+        .header h1 { font-size: 32px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+        .header p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+        .last-updated { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px; }
 
-        /* SECTION HEADERS */
         .section-label {
             display: flex;
             align-items: center;
@@ -57,7 +40,6 @@
             background: rgba(255,255,255,0.15);
         }
 
-        /* TOOL CARDS */
         .tool-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -77,36 +59,13 @@
             cursor: pointer;
             border: 2px solid transparent;
         }
-        .tool-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-        .tool-card.cig {
-            border-left: 4px solid #667eea;
-        }
-        .tool-card.cig:hover {
-            border-color: #667eea;
-        }
-        .tool-card.dip {
-            border-left: 4px solid #27ae60;
-        }
-        .tool-card.dip:hover {
-            border-color: #27ae60;
-        }
-        .tool-card.ref {
-            border-left: 4px solid #e67e22;
-        }
-        .tool-card.ref:hover {
-            border-color: #e67e22;
-        }
-        .tool-card.coming-soon {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .tool-card.coming-soon:hover {
-            transform: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
+        .tool-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .tool-card.cig { border-left: 4px solid #667eea; }
+        .tool-card.cig:hover { border-color: #667eea; }
+        .tool-card.dip { border-left: 4px solid #27ae60; }
+        .tool-card.dip:hover { border-color: #27ae60; }
+        .tool-card.ref { border-left: 4px solid #e67e22; }
+        .tool-card.ref:hover { border-color: #e67e22; }
 
         .icon-wrap {
             width: 46px;
@@ -122,18 +81,8 @@
         .icon-dip { background: #eafaf1; }
         .icon-ref { background: #fef5e7; }
 
-        .tool-info h3 {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 4px;
-            line-height: 1.3;
-        }
-        .tool-info p {
-            font-size: 12px;
-            color: #888;
-            line-height: 1.5;
-        }
+        .tool-info h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; line-height: 1.3; }
+        .tool-info p { font-size: 12px; color: #888; line-height: 1.5; }
         .badge {
             display: inline-block;
             font-size: 10px;
@@ -145,9 +94,7 @@
             letter-spacing: 0.5px;
         }
         .badge-live { background: #d4edda; color: #155724; }
-        .badge-soon { background: #fff3cd; color: #856404; }
 
-        /* STATUS BAR */
         .status-bar {
             background: rgba(255,255,255,0.07);
             border-radius: 10px;
@@ -158,28 +105,11 @@
             flex-wrap: wrap;
             align-items: center;
         }
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 12px;
-            color: rgba(255,255,255,0.7);
-        }
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
+        .status-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.7); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
         .dot-green { background: #27ae60; }
-        .dot-yellow { background: #f39c12; }
-        .dot-gray { background: #888; }
 
-        .footer {
-            text-align: center;
-            padding: 30px 20px 20px;
-            color: rgba(255,255,255,0.35);
-            font-size: 12px;
-        }
+        .footer { text-align: center; padding: 30px 20px 20px; color: rgba(255,255,255,0.35); font-size: 12px; }
 
         @media (max-width: 600px) {
             .header h1 { font-size: 24px; }
@@ -253,21 +183,21 @@
             </div>
         </a>
 
-        <a class="tool-card dip coming-soon" href="#">
+        <a class="tool-card dip" href="dip-sales-uploader.html">
             <div class="icon-wrap icon-dip">📤</div>
             <div class="tool-info">
                 <h3>Dip Sales Uploader</h3>
                 <p>Upload POS CSV for dip sales. Auto-converts can UPCs to rolls.</p>
-                <span class="badge badge-soon">Coming Soon</span>
+                <span class="badge badge-live">Live</span>
             </div>
         </a>
 
-        <a class="tool-card dip coming-soon" href="#">
+        <a class="tool-card dip" href="dip-count-sheet.html">
             <div class="icon-wrap icon-dip">🔢</div>
             <div class="tool-info">
                 <h3>Dip Count Sheet</h3>
                 <p>Full barcode-scan count for all dip items. Sets new baseline in rolls.</p>
-                <span class="badge badge-soon">Coming Soon</span>
+                <span class="badge badge-live">Live</span>
             </div>
         </a>
 
@@ -293,7 +223,7 @@
         <div class="status-item"><div class="dot dot-green"></div> 164 Cigarette SKUs</div>
         <div class="status-item"><div class="dot dot-green"></div> 43 Dip SKUs</div>
         <div class="status-item"><div class="dot dot-green"></div> Apps Script v75</div>
-        <div class="status-item"><div class="dot dot-yellow"></div> Dip uploaders: in progress</div>
+        <div class="status-item"><div class="dot dot-green"></div> 7 tools live</div>
     </div>
 
     <div class="footer">
