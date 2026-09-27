@@ -3,313 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KC9 Cigarette Order System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>KC9 Store - Inventory Management</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
-        .container { max-width: 1200px; margin: 0 auto; }
-        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
         .header {
             text-align: center;
+            padding: 40px 20px 30px;
             color: white;
-            margin-bottom: 40px;
-            padding: 30px 0;
         }
-        
         .header h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
         }
-        
         .header p {
-            font-size: 16px;
-            opacity: 0.9;
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
         }
-        
-        .update-info {
-            background: rgba(255,255,255,0.2);
-            padding: 10px 20px;
-            border-radius: 6px;
-            margin-top: 15px;
+        .last-updated {
             font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 8px;
         }
-        
-        .tools-grid {
+
+        /* SECTION HEADERS */
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0 14px;
+            color: rgba(255,255,255,0.9);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* TOOL CARDS */
+        .tool-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
         }
-        
         .tool-card {
             background: white;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-        
-        .tool-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.15);
-        }
-        
-        .tool-card.primary {
-            border-top: 4px solid #667eea;
-        }
-        
-        .tool-card.success {
-            border-top: 4px solid #28a745;
-        }
-        
-        .tool-card.warning {
-            border-top: 4px solid #ff6c00;
-        }
-        
-        .tool-card.info {
-            border-top: 4px solid #17a2b8;
-        }
-        
-        .tool-card.danger {
-            border-top: 4px solid #dc3545;
-        }
-        
-        .tool-icon {
-            font-size: 36px;
-            margin-bottom: 12px;
-            display: inline-block;
-            width: 60px;
-            height: 60px;
-            line-height: 60px;
-            text-align: center;
-            border-radius: 8px;
-            color: white;
-        }
-        
-        .tool-card.primary .tool-icon { background: #667eea; }
-        .tool-card.success .tool-icon { background: #28a745; }
-        .tool-card.warning .tool-icon { background: #ff6c00; }
-        .tool-card.info .tool-icon { background: #17a2b8; }
-        .tool-card.danger .tool-icon { background: #dc3545; }
-        
-        .tool-name {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .tool-desc {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-        
-        .tool-link {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: opacity 0.2s;
+            color: #333;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            border: 2px solid transparent;
         }
-        
-        .tool-link:hover {
-            opacity: 0.9;
+        .tool-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
-        
-        .section-title {
-            color: white;
-            font-size: 24px;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255,255,255,0.3);
+        .tool-card.cig {
+            border-left: 4px solid #667eea;
         }
-        
-        .status-badge {
+        .tool-card.cig:hover {
+            border-color: #667eea;
+        }
+        .tool-card.dip {
+            border-left: 4px solid #27ae60;
+        }
+        .tool-card.dip:hover {
+            border-color: #27ae60;
+        }
+        .tool-card.ref {
+            border-left: 4px solid #e67e22;
+        }
+        .tool-card.ref:hover {
+            border-color: #e67e22;
+        }
+        .tool-card.coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .tool-card.coming-soon:hover {
+            transform: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .icon-wrap {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .icon-cig { background: #eef0ff; }
+        .icon-dip { background: #eafaf1; }
+        .icon-ref { background: #fef5e7; }
+
+        .tool-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        .tool-info p {
+            font-size: 12px;
+            color: #888;
+            line-height: 1.5;
+        }
+        .badge {
             display: inline-block;
-            padding: 4px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
             border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 10px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        
-        .status-active { background: #d4edda; color: #155724; }
-        .status-beta { background: #fff3cd; color: #856404; }
-        .status-dev { background: #f8d7da; color: #721c24; }
+        .badge-live { background: #d4edda; color: #155724; }
+        .badge-soon { background: #fff3cd; color: #856404; }
+
+        /* STATUS BAR */
+        .status-bar {
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 30px;
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .dot-green { background: #27ae60; }
+        .dot-yellow { background: #f39c12; }
+        .dot-gray { background: #888; }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px 20px;
+            color: rgba(255,255,255,0.35);
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 24px; }
+            .tool-grid { grid-template-columns: 1fr; }
+            .status-bar { gap: 14px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-warehouse"></i> KC9 Cigarette Order System</h1>
-            <p>MTG Store - Inventory Management & Smart Ordering</p>
-            <div class="update-info">
-                📊 Last deployed: <strong>09/08/2026 at 5:45 PM</strong>
-            </div>
-        </div>
+<div class="container">
 
-        <!-- CORE TOOLS -->
-        <h2 class="section-title"><i class="fas fa-tools"></i> Core Tools</h2>
-        <div class="tools-grid">
-            
-            <!-- Inventory Baseline Scanner -->
-            <div class="tool-card primary">
-                <div class="tool-icon"><i class="fas fa-barcode"></i></div>
-                <div class="tool-name">Inventory Baseline Scanner</div>
-                <div class="tool-desc">Scan all 160 items today. Build UPC mapping. Establish baseline inventory for accurate forecasting.</div>
-                <a href="inventory-baseline-scanner.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Start Scanning
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Smart Ordering v3 -->
-            <div class="tool-card success">
-                <div class="tool-icon"><i class="fas fa-shopping-cart"></i></div>
-                <div class="tool-name">Smart Ordering v3</div>
-                <div class="tool-desc">Sales-based + 4-week average ordering. Auto-calculates order quantities. Avoids stockouts & overstock.</div>
-                <a href="smart-ordering-v3.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Place Order
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Stockout Logger -->
-            <div class="tool-card warning">
-                <div class="tool-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="tool-name">Stockout Logger</div>
-                <div class="tool-desc">Log items that ran out. Track when & why. Identify demand spikes and ordering patterns.</div>
-                <a href="stockout-logger.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Log Stockout
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Analytics Dashboard -->
-            <div class="tool-card info">
-                <div class="tool-icon"><i class="fas fa-chart-bar"></i></div>
-                <div class="tool-name">Analytics Dashboard</div>
-                <div class="tool-desc">Sales trends, stockout heatmap, weekly summary. Spot patterns and optimize inventory.</div>
-                <a href="analytics-dashboard.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> View Analytics
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-        </div>
-
-        <!-- DATA ENTRY TOOLS -->
-        <h2 class="section-title"><i class="fas fa-database"></i> Data Entry</h2>
-        <div class="tools-grid">
-
-            <!-- Sales Uploader -->
-            <div class="tool-card primary">
-                <div class="tool-icon"><i class="fas fa-upload"></i></div>
-                <div class="tool-name">Sales History Uploader</div>
-                <div class="tool-desc">Import POS CSV files. Auto-map UPCs. Build sales history for forecasting accuracy.</div>
-                <a href="sales-uploader.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Upload Sales
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Inventory Counter -->
-            <div class="tool-card success">
-                <div class="tool-icon"><i class="fas fa-list-check"></i></div>
-                <div class="tool-name">Weekly Inventory Counter</div>
-                <div class="tool-desc">Count on-hand stock weekly. Compare to orders. Identify theft, errors, or scanning issues.</div>
-                <a href="kc9-inventory-counter.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Start Count
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- POS Import -->
-            <div class="tool-card info">
-                <div class="tool-icon"><i class="fas fa-file-csv"></i></div>
-                <div class="tool-name">POS Sales Import</div>
-                <div class="tool-desc">Direct POS integration. Import daily closings. Auto-validate UPC mapping.</div>
-                <a href="sales-import.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Import Data
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Smart Ordering (Phase 2) -->
-            <div class="tool-card warning">
-                <div class="tool-icon"><i class="fas fa-history"></i></div>
-                <div class="tool-name">Smart Ordering Phase 2</div>
-                <div class="tool-desc">Legacy ordering tool. View order history and lookup past orders.</div>
-                <a href="smart-ordering-with-current-stock.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Legacy Tool
-                </a>
-                <span class="status-badge status-beta">Beta</span>
-            </div>
-
-        </div>
-
-        <!-- REFERENCE TOOLS -->
-        <h2 class="section-title"><i class="fas fa-book"></i> Reference & Guides</h2>
-        <div class="tools-grid">
-
-            <!-- Order History Guide -->
-            <div class="tool-card primary">
-                <div class="tool-icon"><i class="fas fa-search"></i></div>
-                <div class="tool-name">Order History Lookup</div>
-                <div class="tool-desc">Search past orders by date. View order details and delivery confirmations.</div>
-                <a href="smart-ordering-guide.html" class="tool-link">
-                    <i class="fas fa-arrow-right"></i> Search Orders
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Google Sheet -->
-            <div class="tool-card success">
-                <div class="tool-icon"><i class="fas fa-table"></i></div>
-                <div class="tool-name">Master Data Sheet</div>
-                <div class="tool-desc">Main cigarette list, pricing, UPC mapping, sales history, all raw data in one place.</div>
-                <a href="https://docs.google.com/spreadsheets/d/1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk/edit" class="tool-link" target="_blank">
-                    <i class="fas fa-arrow-right"></i> Open Sheet
-                </a>
-                <span class="status-badge status-active">Active</span>
-            </div>
-
-            <!-- Backup Sheet -->
-            <div class="tool-card info">
-                <div class="tool-icon"><i class="fas fa-copy"></i></div>
-                <div class="tool-name">Backup Master Sheet</div>
-                <div class="tool-desc">Archived backup of all data. Use only if primary sheet is corrupted.</div>
-                <a href="https://docs.google.com/spreadsheets/d/1GJKCn2BrhgLS6otqtZtIR3CoMLM_N0FkY55ieHlD1rk/edit" class="tool-link" target="_blank">
-                    <i class="fas fa-arrow-right"></i> Open Backup
-                </a>
-                <span class="status-badge status-beta">Backup</span>
-            </div>
-
-        </div>
-
-        <!-- SYSTEM INFO -->
-        <div style="background: rgba(255,255,255,0.1); color: white; padding: 20px; border-radius: 8px; margin-top: 40px; font-size: 13px;">
-            <p><strong>System Status:</strong> All tools operational ✓</p>
-            <p><strong>Items in System:</strong> 160 cigarette SKUs</p>
-            <p><strong>Deployment Version:</strong> 09/08/2026 5:45 PM</p>
-            <p style="margin-top: 10px; opacity: 0.8;">💡 Pro tip: Use Inventory Baseline Scanner first to establish baseline, then use Smart Ordering v3 for daily orders.</p>
-        </div>
+    <div class="header">
+        <h1>🏪 KC9 Store System</h1>
+        <p>MTG Store · Simpsonville, SC</p>
+        <p>Inventory Management & Smart Ordering</p>
+        <p class="last-updated">Last Updated: 09/26/2026</p>
     </div>
+
+    <!-- CIGARETTES -->
+    <div class="section-label">🚬 Cigarettes</div>
+    <div class="tool-grid">
+
+        <a class="tool-card cig" href="smart-ordering-v3.html">
+            <div class="icon-wrap icon-cig">📦</div>
+            <div class="tool-info">
+                <h3>Smart Order</h3>
+                <p>Sales-based order calculation with on-hand tracking. Submit your weekly cig order.</p>
+                <span class="badge badge-live">Live</span>
+            </div>
+        </a>
+
+        <a class="tool-card cig" href="sales-uploader.html">
+            <div class="icon-wrap icon-cig">📤</div>
+            <div class="tool-info">
+                <h3>Sales Uploader</h3>
+                <p>Upload daily POS sales CSV to update inventory calculations.</p>
+                <span class="badge badge-live">Live</span>
+            </div>
+        </a>
+
+        <a class="tool-card cig" href="count-sheet.html">
+            <div class="icon-wrap icon-cig">🔢</div>
+            <div class="tool-info">
+                <h3>Full Count Sheet</h3>
+                <p>Barcode scan all 164 items and bulk-save to Google Sheets as new baseline.</p>
+                <span class="badge badge-live">Live</span>
+            </div>
+        </a>
+
+        <a class="tool-card cig" href="SpotCheck.html">
+            <div class="icon-wrap icon-cig">🔍</div>
+            <div class="tool-info">
+                <h3>Spot Check</h3>
+                <p>Audit a single item. Scan barcode, enter physical count, save variance log.</p>
+                <span class="badge badge-live">Live</span>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- DIP -->
+    <div class="section-label">🟢 Dip / Smokeless</div>
+    <div class="tool-grid">
+
+        <a class="tool-card dip" href="dip-ordering.html">
+            <div class="icon-wrap icon-dip">📦</div>
+            <div class="tool-info">
+                <h3>Dip Smart Order</h3>
+                <p>Sales-based order for 43 dip SKUs. Tracked in rolls (1 roll = 5 cans).</p>
+                <span class="badge badge-live">Live</span>
+            </div>
+        </a>
+
+        <a class="tool-card dip coming-soon" href="#">
+            <div class="icon-wrap icon-dip">📤</div>
+            <div class="tool-info">
+                <h3>Dip Sales Uploader</h3>
+                <p>Upload POS CSV for dip sales. Auto-converts can UPCs to rolls.</p>
+                <span class="badge badge-soon">Coming Soon</span>
+            </div>
+        </a>
+
+        <a class="tool-card dip coming-soon" href="#">
+            <div class="icon-wrap icon-dip">🔢</div>
+            <div class="tool-info">
+                <h3>Dip Count Sheet</h3>
+                <p>Full barcode-scan count for all dip items. Sets new baseline in rolls.</p>
+                <span class="badge badge-soon">Coming Soon</span>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- REFERENCE -->
+    <div class="section-label">📋 Reference</div>
+    <div class="tool-grid">
+
+        <a class="tool-card ref" href="https://docs.google.com/spreadsheets/d/1uVfo5LtFLbiYoIXz4B70ZkPOHEBIPek9e0y2XKv4HZk/edit" target="_blank">
+            <div class="icon-wrap icon-ref">📊</div>
+            <div class="tool-info">
+                <h3>Master Google Sheet</h3>
+                <p>All tabs: CIG List, Dip List, UPC Mappings, Sales History, Order Details, Baselines, Cached Calcs.</p>
+                <span class="badge badge-live">Open in Sheets</span>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+        <div class="status-item"><div class="dot dot-green"></div> 164 Cigarette SKUs</div>
+        <div class="status-item"><div class="dot dot-green"></div> 43 Dip SKUs</div>
+        <div class="status-item"><div class="dot dot-green"></div> Apps Script v75</div>
+        <div class="status-item"><div class="dot dot-yellow"></div> Dip uploaders: in progress</div>
+    </div>
+
+    <div class="footer">
+        KC9 · MTG Store · Built with Google Apps Script + GitHub Pages
+    </div>
+
+</div>
 </body>
 </html>
