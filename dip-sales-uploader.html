@@ -333,7 +333,14 @@
                     const upc = normalizeUPC(String(upcData[i][0] || ''));
                     const itemNum = String(upcData[i][1] || '').trim();
                     const type = String(upcData[i][2] || 'CAN').trim().toUpperCase();
-                    if (upc && itemNum) upcMap[upc] = { itemNumber: itemNum, type };
+                    if (upc && itemNum) {
+                        upcMap[upc] = { itemNumber: itemNum, type };
+                        // POS strips the last check digit — also index without it
+                        if (upc.length > 1) {
+                            const noCheck = upc.slice(0, -1);
+                            if (!upcMap[noCheck]) upcMap[noCheck] = { itemNumber: itemNum, type };
+                        }
+                    }
                 }
             }
             // Store item list for dropdown
