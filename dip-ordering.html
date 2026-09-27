@@ -219,7 +219,7 @@
             <div class="toolbar">
                 <input type="text" id="searchInput" placeholder="🔍 Search by item name or number..." onkeyup="filterItems()">
                 <button onclick="location.reload()">Refresh Data</button>
-                <button class="sort-btn" onclick="sortItems()" id="sortBtn">📊 Sort: 4-Wk Avg ↓</button>
+                <button class="sort-btn" onclick="sortItems()" id="sortBtn">🔤 Sort: A–Z</button>
                 <button class="whatsapp-btn" onclick="sendOrdersViaWhatsApp()">📱 WhatsApp Orders</button>
             </div>
 
@@ -233,7 +233,7 @@
         const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
         let userPassword = null;
         let allItems = [];
-        let sortMode = 'avg';
+        let sortMode = 'alpha'; // default: alphabetical
 
         function validateLogin() {
             const password = document.getElementById('passwordInput').value;
@@ -269,17 +269,35 @@
         }
 
         function sortItems() {
-            sortMode = (sortMode === 'avg') ? 'orderqty' : 'avg';
-            document.getElementById('sortBtn').textContent = sortMode === 'avg' ? '📊 Sort: 4-Wk Avg ↓' : '📦 Sort: Order Qty ↓';
+            // Cycle: alpha → avg → orderqty → alpha
+            if (sortMode === 'alpha')    sortMode = 'avg';
+            else if (sortMode === 'avg') sortMode = 'orderqty';
+            else                         sortMode = 'alpha';
+
+            const labels = {
+                alpha:    '🔤 Sort: A–Z',
+                avg:      '📊 Sort: 4-Wk Avg ↓',
+                orderqty: '📦 Sort: Order Qty ↓'
+            };
+            document.getElementById('sortBtn').textContent = labels[sortMode];
             sortAndRender();
         }
 
         function sortAndRender() {
-            const sorted = [...allItems].sort((a, b) =>
-                sortMode === 'avg'
-                    ? (b.fourWeekAvg || 0) - (a.fourWeekAvg || 0)
-                    : (b.orderQty || 0) - (a.orderQty || 0)
-            );
+            let sorted;
+            if (sortMode === 'alpha') {
+                sorted = [...allItems].sort((a, b) =>
+                    (a.itemName || '').localeCompare(b.itemName || '')
+                );
+            } else if (sortMode === 'avg') {
+                sorted = [...allItems].sort((a, b) =>
+                    (b.fourWeekAvg || 0) - (a.fourWeekAvg || 0)
+                );
+            } else {
+                sorted = [...allItems].sort((a, b) =>
+                    (b.orderQty || 0) - (a.orderQty || 0)
+                );
+            }
             renderItems(sorted);
         }
 
