@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC9 — PDI Sales Converter</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #1a2a4a 0%, #2563eb 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+  padding: 32px;
+}
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+  border-bottom: 3px solid #2563eb;
+  padding-bottom: 18px;
+}
+.header h1 { color: #1a2a4a; font-size: 24px; margin-bottom: 4px; }
+.header p { color: #666; font-size: 13px; }
+
+/* DROP ZONE */
+.drop-zone {
+  border: 3px dashed #2563eb;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f0f6ff;
+  margin-bottom: 24px;
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+}
+.drop-zone input[type=file] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.drop-icon { font-size: 48px; margin-bottom: 12px; }
+.drop-zone h3 { color: #1a2a4a; font-size: 18px; margin-bottom: 6px; }
+.drop-zone p { color: #666; font-size: 13px; }
+.drop-zone .file-types {
+  display: inline-block;
+  background: #2563eb;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* STATUS */
+.status {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  display: none;
+}
+.status.show { display: block; }
+.status.success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.status.error   { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+.status.info    { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+
+/* DATE ROW */
+.date-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.date-row label { font-weight: 700; font-size: 13px; color: #374151; white-space: nowrap; }
+.date-row input[type=date] {
+  padding: 8px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111;
+}
+.date-row input[type=date]:focus { outline: none; border-color: #2563eb; }
+
+/* SUMMARY CARDS */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+.card .val { font-size: 26px; font-weight: 800; color: #2563eb; }
+.card .lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+/* PREVIEW TABLE */
+.preview-wrap {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  display: none;
+}
+.preview-wrap.show { display: block; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: #1a2a4a;
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+tbody tr:hover { background: #f0f6ff; }
+tbody tr:last-child { border-bottom: none; }
+td { padding: 9px 12px; color: #1e293b; }
+td:nth-child(3) { font-weight: 700; color: #2563eb; text-align: center; }
+
+/* ACTION BUTTONS */
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn {
+  flex: 1;
+  min-width: 160px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn:active { transform: scale(0.98); }
+.btn-download {
+  background: #2563eb;
+  color: white;
+}
+.btn-download:hover { background: #1d4ed8; }
+.btn-download:disabled { background: #93c5fd; cursor: not-allowed; }
+.btn-reset {
+  background: #f1f5f9;
+  color: #374151;
+}
+.btn-reset:hover { background: #e2e8f0; }
+
+/* HOW TO USE */
+.how-to {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: #78350f;
+}
+.how-to strong { display: block; margin-bottom: 6px; font-size: 14px; }
+.how-to ol { padding-left: 18px; line-height: 1.8; }
+
+@media (max-width: 580px) {
+  .container { padding: 18px; }
+  .header h1 { font-size: 19px; }
+  .drop-zone { padding: 32px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>📊 PDI Sales Converter — KC9</h1>
+    <p>Drop your PDI Item Sales CSV · Get clean TXT in one click</p>
+  </div>
+
+  <div class="how-to">
+    <strong>⚡ How to use:</strong>
+    <ol>
+      <li>In PDI → Report Center → Item Sales Report → Filter: Cigarette PK → Export to Excel (CSV)</li>
+      <li>Drop that CSV file below</li>
+      <li>Confirm the date, preview the data</li>
+      <li>Click <strong>Download TXT</strong> — done ✓</li>
+    </ol>
+  </div>
+
+  <div class="status" id="statusMsg"></div>
+
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".csv,.txt,.xls,.xlsx" />
+    <div class="drop-icon">📂</div>
+    <h3>Drop PDI CSV here</h3>
+    <p>or click to browse your files</p>
+    <span class="file-types">CSV · TXT · XLS</span>
+  </div>
+
+  <div id="resultsArea" style="display:none;">
+    <div class="date-row">
+      <label>📅 Sales Date:</label>
+      <input type="date" id="salesDate" />
+      <span style="font-size:13px; color:#64748b;">(used in filename)</span>
+    </div>
+
+    <div class="summary-cards" id="summaryCards"></div>
+
+    <div class="preview-wrap show" id="previewWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Scan Code</th>
+            <th>Description</th>
+            <th>Qty Sold</th>
+          </tr>
+        </thead>
+        <tbody id="previewBody"></tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-download" id="downloadBtn" onclick="downloadTXT()">
+        ⬇️ Download TXT
+      </button>
+      <button class="btn btn-reset" onclick="resetAll()">
+        🔄 Load Another File
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let parsedRows = [];
+
+  // ── Drag & Drop ──
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) processFile(e.target.files[0]);
+  });
+
+  function processFile(file) {
+    showStatus('Reading file...', 'info');
+    const reader = new FileReader();
+    reader.onload = ev => parseCSV(ev.target.result, file.name);
+    reader.readAsText(file);
+  }
+
+  function parseCSV(text, fileName) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    parsedRows = [];
+
+    // Find the header row (contains "Scan Code" or "Description")
+    let headerIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const lower = lines[i].toLowerCase();
+      if (lower.includes('scan code') || lower.includes('description')) {
+        headerIdx = i;
+        break;
+      }
+    }
+
+    if (headerIdx === -1) {
+      showStatus('❌ Could not find data in this file. Make sure it is the PDI Item Sales CSV export.', 'error');
+      return;
+    }
+
+    // Parse header to find column indexes
+    const headers = splitCSVLine(lines[headerIdx]).map(h => h.toLowerCase().trim());
+    const colScan  = headers.findIndex(h => h.includes('scan'));
+    const colDesc  = headers.findIndex(h => h.includes('description'));
+    const colQty   = headers.findIndex(h => h.includes('qty sold') || h === 'qty sold');
+
+    if (colScan === -1 || colDesc === -1 || colQty === -1) {
+      showStatus('❌ Missing expected columns (Scan Code, Description, Qty Sold). Check the file format.', 'error');
+      return;
+    }
+
+    // Try to extract date from file
+    let detectedDate = '';
+    for (let i = 0; i < headerIdx; i++) {
+      const d = lines[i].match(/(\d{4}-\d{2}-\d{2})/);
+      if (d) { detectedDate = d[1]; break; }
+      // Also check MM/DD/YYYY
+      const d2 = lines[i].match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (d2) { detectedDate = d2[3] + '-' + d2[1].padStart(2,'0') + '-' + d2[2].padStart(2,'0'); break; }
+    }
+    // Also try filename
+    if (!detectedDate) {
+      const m = fileName.match(/(\d{4}-\d{2}-\d{2})/);
+      if (m) detectedDate = m[1];
+    }
+    if (detectedDate) document.getElementById('salesDate').value = detectedDate;
+
+    // Parse data rows
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const cols = splitCSVLine(lines[i]);
+      if (!cols.length) continue;
+
+      const scanRaw = (cols[colScan] || '').trim();
+      const desc    = (cols[colDesc] || '').trim();
+      const qtyRaw  = (cols[colQty]  || '').trim();
+
+      // Skip total/summary rows
+      if (!scanRaw || scanRaw.toLowerCase().startsWith('total')) continue;
+      if (!desc || desc.toLowerCase() === 'description') continue;
+
+      // Strip leading zeros from scan code
+      const scan = scanRaw.replace(/^0+/, '') || '0';
+      const qty  = parseFloat(qtyRaw) || 0;
+
+      if (qty === 0) continue; // skip zero-sold items
+
+      parsedRows.push({ scan, desc, qty });
+    }
+
+    if (parsedRows.length === 0) {
+      showStatus('❌ No valid rows found. Check that the file has data rows.', 'error');
+      return;
+    }
+
+    renderResults();
+    showStatus('✅ ' + parsedRows.length + ' items loaded from PDI export. Ready to download.', 'success');
+  }
+
+  function splitCSVLine(line) {
+    // Handle quoted fields
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function renderResults() {
+    document.getElementById('dropZone').style.display = 'none';
+    document.getElementById('resultsArea').style.display = 'block';
+
+    // Summary
+    const totalQty   = parsedRows.reduce((s, r) => s + r.qty, 0);
+    document.getElementById('summaryCards').innerHTML = `
+      <div class="card"><div class="val">${parsedRows.length}</div><div class="lbl">SKUs Sold</div></div>
+      <div class="card"><div class="val">${totalQty}</div><div class="lbl">Total Packs</div></div>
+    `;
+
+    // Preview table
+    const tbody = document.getElementById('previewBody');
+    tbody.innerHTML = parsedRows.map((r, i) => `
+      <tr>
+        <td style="color:#aaa;font-size:12px;">${i+1}</td>
+        <td style="font-family:monospace;font-size:12px;">${r.scan}</td>
+        <td>${r.desc}</td>
+        <td>${r.qty}</td>
+      </tr>
+    `).join('');
+  }
+
+  function downloadTXT() {
+    if (!parsedRows.length) return;
+
+    // Build TXT: tab-separated, Scan Code / Description / Qty Sold
+    const header = 'Scan Code\tDescription\tQty Sold';
+    const rows   = parsedRows.map(r => `${r.scan}\t${r.desc}\t${r.qty}`);
+    const content = [header, ...rows].join('\n');
+
+    const date = document.getElementById('salesDate').value || 'unknown-date';
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'item-sales-' + date + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    showStatus('✅ Downloaded: item-sales-' + date + '.txt  (' + parsedRows.length + ' items)', 'success');
+  }
+
+  function resetAll() {
+    parsedRows = [];
+    document.getElementById('dropZone').style.display = 'block';
+    document.getElementById('resultsArea').style.display = 'none';
+    document.getElementById('fileInput').value = '';
+    document.getElementById('salesDate').value = '';
+    document.getElementById('previewBody').innerHTML = '';
+    document.getElementById('summaryCards').innerHTML = '';
+    showStatus('', '');
+  }
+
+  function showStatus(msg, type) {
+    const el = document.getElementById('statusMsg');
+    if (!msg) { el.className = 'status'; el.textContent = ''; return; }
+    el.className = 'status show ' + type;
+    el.textContent = msg;
+  }
+</script>
+</body>
+</html>
