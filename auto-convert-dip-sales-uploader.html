@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC9 — Auto-Convert Dip Sales Uploader</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+.header {
+  background: linear-gradient(90deg, #064e3b 0%, #059669 100%);
+  padding: 22px 32px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.header-icon { font-size: 36px; }
+.header h1 { color: #fff; font-size: 21px; margin-bottom: 2px; }
+.header p  { color: #6ee7b7; font-size: 12px; }
+
+.body { padding: 26px 32px; }
+
+/* STEPS */
+.steps {
+  display: flex;
+  margin-bottom: 24px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #d1fae5;
+}
+.step {
+  flex: 1; text-align: center; padding: 9px 6px;
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  background: #f8fafc; border-right: 1px solid #d1fae5;
+  transition: all 0.2s;
+}
+.step:last-child { border-right: none; }
+.step .num { display: block; font-size: 16px; margin-bottom: 2px; }
+.step.active { background: #059669; color: #fff; }
+.step.done   { background: #d1fae5; color: #065f46; }
+
+/* STATUS */
+.status {
+  padding: 11px 15px; border-radius: 8px; margin-bottom: 16px;
+  font-weight: 600; font-size: 13px; display: none;
+}
+.status.show    { display: block; }
+.status.success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.status.error   { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+.status.info    { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+.status.warn    { background: #fffbeb; color: #78350f; border: 1px solid #fcd34d; }
+
+/* CARDS */
+.card {
+  border: 1px solid #d1fae5; border-radius: 12px;
+  padding: 20px; margin-bottom: 18px;
+}
+.card-title {
+  font-size: 13px; font-weight: 800; color: #1e293b;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+
+/* LOGIN */
+.login-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.login-row input[type=password] {
+  flex: 1; min-width: 180px; padding: 10px 14px;
+  border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px;
+}
+.login-row input[type=password]:focus { outline: none; border-color: #059669; }
+
+/* DROP ZONE */
+.drop-zone {
+  border: 3px dashed #6ee7b7; border-radius: 10px; padding: 34px 20px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  background: #f0fdf4; position: relative;
+}
+.drop-zone:hover, .drop-zone.drag-over { background: #d1fae5; border-color: #059669; }
+.drop-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-zone .di { font-size: 38px; margin-bottom: 8px; }
+.drop-zone h3 {
+  color: #064e3b; font-size: 16px; margin-bottom: 4px;
+  font-weight: 700; text-transform: none; letter-spacing: normal; border: none;
+}
+.drop-zone p { color: #64748b; font-size: 12px; }
+
+.date-row {
+  display: flex; gap: 12px; align-items: center; margin-top: 14px; flex-wrap: wrap;
+}
+.date-row label { font-weight: 700; font-size: 13px; color: #374151; white-space: nowrap; }
+.date-row input[type=date] {
+  padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;
+}
+.date-row input[type=date]:focus { outline: none; border-color: #059669; }
+
+/* SUMMARY TILES */
+.tiles {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px; margin-bottom: 16px;
+}
+.tile {
+  background: #f0fdf4; border: 1px solid #d1fae5;
+  border-radius: 10px; padding: 11px; text-align: center;
+}
+.tile .v { font-size: 22px; font-weight: 800; color: #059669; }
+.tile .v.warn { color: #f97316; }
+.tile .v.blue { color: #1d4ed8; }
+.tile .l { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+
+/* UNMATCHED ALERT BANNER */
+.unmatch-banner {
+  display: none;
+  background: #fff7ed;
+  border: 2px solid #f97316;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.unmatch-banner.show { display: block; }
+.unmatch-banner h4 { color: #c2410c; font-size: 14px; margin-bottom: 6px; }
+.unmatch-banner p  { color: #9a3412; font-size: 13px; line-height: 1.5; }
+
+/* SECTION LABELS */
+.section-label {
+  font-size: 12px; font-weight: 800; color: #374151;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin: 14px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #d1fae5;
+}
+
+/* TABLE */
+.tbl-wrap {
+  overflow-x: auto; border: 1px solid #d1fae5; border-radius: 10px;
+  max-height: 360px; overflow-y: auto; margin-bottom: 14px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: #064e3b; color: #fff; padding: 9px 11px;
+  text-align: left; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.4px; position: sticky; top: 0; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+tbody tr:hover { background: #f8fafc; }
+tbody tr.unmatched-row { background: #fff7ed; }
+tbody tr.unmatched-row:hover { background: #ffedd5; }
+tbody tr.matched-row { background: #f0fdf4; }
+tbody tr:last-child { border-bottom: none; }
+td { padding: 8px 11px; color: #1e293b; vertical-align: middle; }
+td.mono { font-family: monospace; font-size: 12px; }
+td.qty  { font-weight: 700; color: #059669; text-align: right; }
+td.status-match { color: #059669; font-weight: 700; font-size: 12px; }
+td.status-no    { color: #f97316; font-weight: 700; font-size: 12px; }
+
+/* TYPE PILLS */
+.type-pill {
+  display: inline-block; font-size: 11px; font-weight: 800;
+  padding: 2px 9px; border-radius: 20px;
+}
+.type-can  { background: #fef3c7; color: #92400e; }
+.type-roll { background: #d1fae5; color: #065f46; }
+
+/* MANUAL MATCH CONTROLS */
+.match-select {
+  padding: 6px 8px; border: 2px solid #f97316; border-radius: 6px;
+  font-size: 12px; background: white; color: #333; min-width: 170px;
+}
+.match-select:focus { outline: none; border-color: #ea580c; }
+.type-select {
+  padding: 6px 8px; border: 2px solid #059669; border-radius: 6px;
+  font-size: 12px; background: white; color: #333; margin-left: 6px;
+}
+.save-cb { margin-left: 8px; cursor: pointer; transform: scale(1.2); }
+.save-label { font-size: 11px; color: #64748b; margin-left: 4px; cursor: pointer; }
+
+/* BUTTONS */
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.btn {
+  flex: 1; min-width: 130px; padding: 13px 16px; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-success  { background: #059669; color: #fff; }
+.btn-success:hover:not(:disabled) { background: #047857; }
+.btn-secondary { background: #f1f5f9; color: #374151; }
+.btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+.btn-primary  { background: #1d4ed8; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1e3a8a; }
+.btn-outline  { background: transparent; color: #059669; border: 2px solid #059669; }
+.btn-outline:hover:not(:disabled) { background: #f0fdf4; }
+
+/* UPLOAD RESULT */
+.upload-result {
+  display: none; background: #d1fae5; border: 2px solid #34d399;
+  border-radius: 10px; padding: 20px; text-align: center; margin-top: 14px;
+}
+.upload-result.show { display: block; }
+.upload-result .big { font-size: 44px; }
+.upload-result h3 { color: #065f46; font-size: 17px; margin: 6px 0 3px; }
+.upload-result p  { color: #047857; font-size: 13px; }
+
+.locked { opacity: 0.4; pointer-events: none; }
+
+@media (max-width: 600px) {
+  .body { padding: 16px; }
+  .header { padding: 16px; }
+  .match-select { min-width: 120px; font-size: 11px; }
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-icon">🌿</div>
+    <div>
+      <h1>KC9 — Auto-Convert Dip Sales Uploader</h1>
+      <p>PDI CSV → Auto Parse · CAN / ROLL Auto-Detect · UPC Match · Upload to Sheets</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="steps">
+      <div class="step active" id="step1"><span class="num">🔑</span>Login</div>
+      <div class="step"        id="step2"><span class="num">📂</span>Drop CSV</div>
+      <div class="step"        id="step3"><span class="num">🔍</span>UPC Check</div>
+      <div class="step"        id="step4"><span class="num">☁️</span>Upload</div>
+    </div>
+
+    <div class="status" id="statusMsg"></div>
+
+    <!-- STEP 1: LOGIN -->
+    <div class="card" id="cardLogin">
+      <div class="card-title">🔑 Manager Password</div>
+      <div class="login-row">
+        <input type="password" id="passwordInput" placeholder="Enter password…" />
+        <button class="btn btn-success" style="flex:0;min-width:110px;" onclick="doLogin()">Unlock →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: DROP CSV -->
+    <div class="card locked" id="cardDrop">
+      <div class="card-title">📂 Drop PDI Dip Item Sales CSV</div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".csv,.txt" />
+        <div class="di">📊</div>
+        <h3>Drop PDI Item Sales CSV here</h3>
+        <p>PDI → Report Center → Item Sales Report → Filter Dip → Export CSV<br>
+           Tool auto-detects CAN vs ROLL from the Department column</p>
+      </div>
+      <div class="date-row">
+        <label>📅 Sales Date:</label>
+        <input type="date" id="salesDate" />
+        <span style="font-size:11px;color:#94a3b8;">Auto-detected from file</span>
+      </div>
+    </div>
+
+    <!-- STEP 3 & 4: PREVIEW + UPLOAD -->
+    <div id="resultsArea" style="display:none;">
+      <div class="card">
+        <div class="card-title">🔍 UPC Check, CAN/ROLL Conversion &amp; Preview</div>
+
+        <!-- UNMATCHED BANNER -->
+        <div class="unmatch-banner" id="unmatchBanner">
+          <h4>⚠️ Unmatched UPCs — Manual Item Assignment Required</h4>
+          <p>The UPCs below were <strong>not found</strong> in your Dip UPC Mapping sheet.
+            Type is auto-detected from the PDI Department column (Dip Can / Dip Roll).
+            Select the matching item number from your dip item list for each, then upload.
+            Check <strong>"Save"</strong> to add the mapping permanently so it auto-matches next time.</p>
+        </div>
+
+        <div class="tiles" id="tilesWrap"></div>
+
+        <!-- UNMATCHED TABLE -->
+        <div id="unmatchedSection" style="display:none;">
+          <div class="section-label">⚠️ Unmatched — Select Item Number</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>UPC</th>
+                  <th>Description from PDI</th>
+                  <th>Qty In</th>
+                  <th>Type (from PDI)</th>
+                  <th>Cans</th>
+                  <th>Rolls</th>
+                  <th>Assign Item</th>
+                  <th>Save?</th>
+                </tr>
+              </thead>
+              <tbody id="unmatchedBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- MATCHED PREVIEW TABLE -->
+        <div id="matchedSection" style="display:none;">
+          <div class="section-label">✅ Auto-Matched Rows</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>UPC</th>
+                  <th>Description</th>
+                  <th style="text-align:right;">Qty In</th>
+                  <th>Type</th>
+                  <th style="text-align:right;">Cans</th>
+                  <th style="text-align:right;">Rolls</th>
+                  <th>Item #</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="previewBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-success" id="btnUpload" onclick="doUpload()">
+            ☁️ Upload to Google Sheets
+          </button>
+          <button class="btn btn-secondary" onclick="resetAll()">
+            🔄 New File
+          </button>
+        </div>
+
+        <div class="upload-result" id="uploadResult">
+          <div class="big">✅</div>
+          <h3>Uploaded Successfully!</h3>
+          <p id="uploadMsg"></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
+const CANS_PER_ROLL = 5;
+
+let userPassword = '';
+let parsedRows   = [];
+let upcMap       = {};  // normalizedUPC → { itemNumber, type }
+let dipItems     = [];  // [{ itemName, itemNumber }]
+
+function normalizeUPC(upc) {
+  return String(upc || '').trim().replace(/^0+/, '') || '0';
+}
+
+window.addEventListener('load', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('salesDate').value = today;
+  document.getElementById('passwordInput').focus();
+});
+
+// ── LOGIN ──────────────────────────────────────────────
+function doLogin() {
+  const pw = document.getElementById('passwordInput').value.trim();
+  if (!pw) { showStatus('Enter the manager password first.', 'warn'); return; }
+
+  showStatus('Verifying password…', 'info');
+  fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(pw))
+    .then(r => r.json())
+    .then(result => {
+      if (result.valid) {
+        userPassword = pw;
+        document.getElementById('cardLogin').style.display = 'none';
+        document.getElementById('cardDrop').classList.remove('locked');
+        setStep(2);
+        showStatus('✅ Logged in! Loading dip UPC mapping…', 'info');
+        loadMappings();
+      } else {
+        showStatus('❌ Invalid password. Try again.', 'error');
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+      }
+    })
+    .catch(err => showStatus('Login error: ' + err, 'error'));
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const ls = document.getElementById('cardLogin');
+    if (ls && ls.style.display !== 'none') doLogin();
+  }
+});
+
+// ── LOAD DIP UPC MAPPING + ITEM LIST ─────────────────
+function loadMappings() {
+  Promise.all([
+    fetch(DEPLOYED_URL + '?action=getDipUPCMapping').then(r => r.json()),
+    fetch(DEPLOYED_URL + '?action=getDipSpotCheckItems').then(r => r.json())
+  ]).then(([upcData, items]) => {
+    upcMap = {};
+    if (Array.isArray(upcData)) {
+      for (let i = 1; i < upcData.length; i++) {
+        const row     = upcData[i];
+        const upc     = normalizeUPC(String(row[0] || ''));
+        const itemNum = String(row[1] || '').trim();
+        const type    = String(row[2] || 'CAN').trim().toUpperCase();
+        if (upc && itemNum) {
+          upcMap[upc] = { itemNumber: itemNum, type };
+          // Also index without last check-digit in case POS strips it
+          if (upc.length > 1) {
+            const noCheck = upc.slice(0, -1);
+            if (!upcMap[noCheck]) upcMap[noCheck] = { itemNumber: itemNum, type };
+          }
+        }
+      }
+    }
+    dipItems = Array.isArray(items) ? items : [];
+    const count = Object.keys(upcMap).length;
+    showStatus('✅ ' + count + ' dip UPCs loaded · ' + dipItems.length + ' dip items loaded. Drop your PDI CSV below.', 'success');
+  }).catch(err => {
+    showStatus('⚠️ Could not load mappings: ' + err + ' — items may not match automatically.', 'warn');
+  });
+}
+
+// ── DRAG & DROP ────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+// ── PARSE PDI CSV ─────────────────────────────────────
+function processFile(file) {
+  showStatus('Reading file…', 'info');
+  const reader = new FileReader();
+  reader.onload = ev => parseCSV(ev.target.result, file.name);
+  reader.readAsText(file);
+}
+
+function parseCSV(text, fileName) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  parsedRows = [];
+
+  // Find header row
+  let headerIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const lower = lines[i].toLowerCase();
+    if (lower.includes('scan code') || lower.includes('scan_code')) { headerIdx = i; break; }
+    if (lower.includes('description') && lower.includes('qty')) { headerIdx = i; break; }
+  }
+  if (headerIdx === -1) {
+    showStatus('❌ Header row not found. Make sure this is a PDI Item Sales CSV.', 'error');
+    return;
+  }
+
+  const headers  = splitCSV(lines[headerIdx]).map(h => h.toLowerCase().trim());
+  const colScan  = headers.findIndex(h => h.includes('scan'));
+  const colDesc  = headers.findIndex(h => h.includes('description'));
+  const colDept  = headers.findIndex(h => h.includes('department') || h.includes('dept'));
+  const colQty   = headers.findIndex(h => h === 'qty sold' || h.includes('qty sold') || h === 'qtysold');
+
+  if (colScan < 0 || colDesc < 0 || colQty < 0) {
+    showStatus('❌ Missing required columns (Scan Code / Description / Qty Sold). Check your CSV export.', 'error');
+    return;
+  }
+
+  // Auto-detect date from file header rows or filename
+  let detectedDate = '';
+  for (let i = 0; i < headerIdx; i++) {
+    const m = lines[i].match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) { detectedDate = m[1]; break; }
+    const m2 = lines[i].match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m2) { detectedDate = m2[3] + '-' + m2[1].padStart(2,'0') + '-' + m2[2].padStart(2,'0'); break; }
+  }
+  if (!detectedDate) {
+    const m = fileName.match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) detectedDate = m[1];
+  }
+  if (detectedDate) document.getElementById('salesDate').value = detectedDate;
+
+  // Parse data rows
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const cols    = splitCSV(lines[i]);
+    const scanRaw = (cols[colScan] || '').trim();
+    const desc    = (cols[colDesc]  || '').trim();
+    const qtyRaw  = (cols[colQty]   || '').replace(/[$,]/g, '').trim();
+    const deptRaw = colDept >= 0 ? (cols[colDept] || '').trim() : '';
+
+    if (!scanRaw || scanRaw.toLowerCase().startsWith('total')) continue;
+    if (!desc || desc.toLowerCase() === 'description') continue;
+
+    const normUPC = normalizeUPC(scanRaw);
+    const qty     = parseFloat(qtyRaw) || 0;
+    if (qty === 0) continue;
+
+    // Detect type: primary = UPC mapping, fallback = Department column
+    const mapped      = upcMap[normUPC];
+    const pdpType     = deptRaw.toLowerCase().includes('roll') ? 'ROLL' : 'CAN';
+    const effectType  = mapped ? mapped.type : pdpType;
+    const autoMatched = !!mapped;
+
+    // Compute cans & rolls
+    const conv = computeConversion(qty, effectType);
+
+    parsedRows.push({
+      rawUPC:     scanRaw,
+      normUPC,
+      desc,
+      qtySold:    qty,
+      type:       effectType,
+      pdpType,             // from Department column — used as default for manual type select
+      cans:       conv.cans,
+      rolls:      conv.rolls,
+      itemNumber: mapped ? mapped.itemNumber : '',
+      autoMatched
+    });
+  }
+
+  if (!parsedRows.length) {
+    showStatus('❌ No dip items found in this file. Make sure you exported a Dip category filter.', 'error');
+    return;
+  }
+
+  renderResults();
+  setStep(3);
+}
+
+function splitCSV(line) {
+  const res = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { res.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  res.push(cur);
+  return res;
+}
+
+// ── CAN / ROLL CONVERSION ─────────────────────────────
+function computeConversion(qty, type) {
+  if (type === 'ROLL') {
+    return { cans: qty * CANS_PER_ROLL, rolls: qty };
+  } else {
+    return { cans: qty, rolls: qty / CANS_PER_ROLL };
+  }
+}
+
+// ── RENDER RESULTS ────────────────────────────────────
+function renderResults() {
+  document.getElementById('cardDrop').style.display = 'none';
+  document.getElementById('resultsArea').style.display = 'block';
+
+  const matched   = parsedRows.filter(r => r.autoMatched);
+  const unmatched = parsedRows.filter(r => !r.autoMatched);
+
+  const totalQty  = parsedRows.reduce((s,r) => s + r.qtySold, 0);
+  const totalCans = parsedRows.reduce((s,r) => s + r.cans, 0);
+  const totalRolls = parsedRows.reduce((s,r) => s + r.rolls, 0);
+
+  // Tiles
+  document.getElementById('tilesWrap').innerHTML = `
+    <div class="tile"><div class="v">${parsedRows.length}</div><div class="l">Total SKUs</div></div>
+    <div class="tile"><div class="v blue">${totalQty.toFixed(0)}</div><div class="l">Total Qty In</div></div>
+    <div class="tile"><div class="v">${matched.length}</div><div class="l">✅ Auto-Matched</div></div>
+    <div class="tile"><div class="v ${unmatched.length > 0 ? 'warn' : ''}">${unmatched.length}</div><div class="l">⚠️ Need Match</div></div>
+    <div class="tile"><div class="v">${Math.round(totalCans)}</div><div class="l">Total Cans</div></div>
+    <div class="tile"><div class="v">${totalRolls.toFixed(2)}</div><div class="l">Total Rolls</div></div>
+  `;
+
+  // Unmatched banner + table
+  if (unmatched.length > 0) {
+    document.getElementById('unmatchBanner').classList.add('show');
+    document.getElementById('unmatchedSection').style.display = 'block';
+    const tbody = document.getElementById('unmatchedBody');
+    tbody.innerHTML = '';
+    unmatched.forEach(row => {
+      const options = dipItems.map(i =>
+        `<option value="${escHtml(i.itemNumber)}">${escHtml(i.itemName)} (${escHtml(i.itemNumber)})</option>`
+      ).join('');
+      const tr = document.createElement('tr');
+      tr.className = 'unmatched-row';
+      tr.innerHTML = `
+        <td class="mono">${escHtml(row.rawUPC)}</td>
+        <td>${escHtml(row.desc)}</td>
+        <td class="qty">${row.qtySold}</td>
+        <td>
+          <select class="type-select" id="type_${row.normUPC}" onchange="refreshUnmatchedRow('${row.normUPC}')">
+            <option value="CAN"  ${row.pdpType === 'CAN'  ? 'selected' : ''}>CAN</option>
+            <option value="ROLL" ${row.pdpType === 'ROLL' ? 'selected' : ''}>ROLL</option>
+          </select>
+        </td>
+        <td id="cans_${row.normUPC}">${row.cans.toFixed(1)}</td>
+        <td id="rolls_${row.normUPC}">${row.rolls.toFixed(3)}</td>
+        <td>
+          <select class="match-select" id="item_${row.normUPC}">
+            <option value="">— Select Item —</option>
+            ${options}
+          </select>
+        </td>
+        <td>
+          <input type="checkbox" class="save-cb" id="save_${row.normUPC}" />
+          <label class="save-label" for="save_${row.normUPC}">Save</label>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    showStatus('⚠️ ' + unmatched.length + ' UPC(s) not in Dip UPC Mapping — assign each item below before uploading.', 'warn');
+  } else {
+    showStatus('✅ All ' + parsedRows.length + ' dip items matched. CAN/ROLL conversion applied. Ready to upload.', 'success');
+  }
+
+  // Matched preview table
+  if (matched.length > 0) {
+    document.getElementById('matchedSection').style.display = 'block';
+    const tbody = document.getElementById('previewBody');
+    tbody.innerHTML = '';
+    matched.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      tr.className = 'matched-row';
+      tr.innerHTML = `
+        <td style="color:#94a3b8;font-size:11px;">${i+1}</td>
+        <td class="mono">${escHtml(row.rawUPC)}</td>
+        <td>${escHtml(row.desc)}</td>
+        <td class="qty">${row.qtySold}</td>
+        <td><span class="type-pill ${row.type === 'ROLL' ? 'type-roll' : 'type-can'}">${row.type}</span></td>
+        <td style="text-align:right;font-weight:700;">${row.cans.toFixed(1)}</td>
+        <td style="text-align:right;font-weight:700;">${row.rolls.toFixed(3)}</td>
+        <td style="font-family:monospace;font-size:12px;">${escHtml(row.itemNumber)}</td>
+        <td class="status-match">✅ Auto</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+// Recalculate cans/rolls when user changes type on unmatched row
+function refreshUnmatchedRow(normUPC) {
+  const typeSel = document.getElementById('type_' + normUPC);
+  if (!typeSel) return;
+  const type = typeSel.value;
+  const row  = parsedRows.find(r => r.normUPC === normUPC);
+  if (!row) return;
+  const conv = computeConversion(row.qtySold, type);
+  const cansEl  = document.getElementById('cans_'  + normUPC);
+  const rollsEl = document.getElementById('rolls_' + normUPC);
+  if (cansEl)  cansEl.textContent  = conv.cans.toFixed(1);
+  if (rollsEl) rollsEl.textContent = conv.rolls.toFixed(3);
+}
+
+// ── UPLOAD ─────────────────────────────────────────────
+function doUpload() {
+  if (!parsedRows.length) return;
+  const salesDate = document.getElementById('salesDate').value;
+  if (!salesDate) { showStatus('⚠️ Set the Sales Date before uploading.', 'warn'); return; }
+
+  // Validate all unmatched have item selected
+  const unmatched = parsedRows.filter(r => !r.autoMatched);
+  const missing   = unmatched.filter(r => {
+    const sel = document.getElementById('item_' + r.normUPC);
+    return !sel || !sel.value;
+  });
+  if (missing.length > 0) {
+    showStatus('⚠️ ' + missing.length + ' unmatched UPC(s) still have no item selected. Assign all before uploading.', 'warn');
+    return;
+  }
+
+  setStep(4);
+  showStatus('⏳ Uploading to Google Sheets…', 'info');
+  document.getElementById('btnUpload').disabled = true;
+
+  const uploadDate = new Date().toISOString().split('T')[0];
+
+  // Build payload
+  const salesData = parsedRows.map(row => {
+    let itemNumber, type;
+    if (row.autoMatched) {
+      itemNumber = row.itemNumber;
+      type       = row.type;
+    } else {
+      const itemSel = document.getElementById('item_' + row.normUPC);
+      const typeSel = document.getElementById('type_' + row.normUPC);
+      itemNumber = itemSel ? itemSel.value : '';
+      type       = typeSel ? typeSel.value : row.pdpType;
+    }
+    const conv        = computeConversion(row.qtySold, type);
+    const saveMapping = !row.autoMatched && !!document.getElementById('save_' + row.normUPC)?.checked;
+    return {
+      upc:         row.rawUPC,
+      description: row.desc,
+      qtySold:     row.qtySold,
+      cans:        Math.round(conv.cans  * 100) / 100,
+      rolls:       Math.round(conv.rolls * 1000) / 1000,
+      itemNumber,
+      type,
+      saveMapping
+    };
+  }).filter(r => r.itemNumber);
+
+  const params = new URLSearchParams();
+  params.append('action',         'uploadDipSalesHistory');
+  params.append('password',       userPassword);
+  params.append('uploadDate',     uploadDate);
+  params.append('salesStartDate', salesDate);
+  params.append('salesEndDate',   salesDate);
+  params.append('salesData',      JSON.stringify(salesData));
+
+  fetch(DEPLOYED_URL, { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(result => {
+      document.getElementById('btnUpload').disabled = false;
+      if (result.success) {
+        document.getElementById('uploadResult').classList.add('show');
+        document.getElementById('uploadMsg').textContent =
+          result.message || (salesData.length + ' dip items uploaded for ' + salesDate);
+        showStatus('', '');
+        // Reload mappings so any saved UPCs are ready for next upload
+        loadMappings();
+      } else {
+        showStatus('❌ Upload failed: ' + (result.error || 'Unknown error'), 'error');
+        setStep(3);
+      }
+    })
+    .catch(err => {
+      document.getElementById('btnUpload').disabled = false;
+      showStatus('❌ Network error: ' + err, 'error');
+      setStep(3);
+    });
+}
+
+// ── RESET ─────────────────────────────────────────────
+function resetAll() {
+  parsedRows = [];
+  document.getElementById('cardDrop').style.display = 'block';
+  document.getElementById('cardDrop').classList.remove('locked');
+  document.getElementById('resultsArea').style.display = 'none';
+  document.getElementById('uploadResult').classList.remove('show');
+  document.getElementById('unmatchBanner').classList.remove('show');
+  document.getElementById('unmatchedSection').style.display = 'none';
+  document.getElementById('matchedSection').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('salesDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('btnUpload').disabled = false;
+  document.getElementById('previewBody').innerHTML = '';
+  document.getElementById('unmatchedBody').innerHTML = '';
+  document.getElementById('tilesWrap').innerHTML = '';
+  showStatus('', '');
+  setStep(2);
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('step' + i).className =
+      'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  if (!msg) { el.className = 'status'; el.textContent = ''; return; }
+  el.className = 'status show ' + type;
+  el.textContent = msg;
+}
+
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
