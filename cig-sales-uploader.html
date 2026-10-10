@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC9 — Cig Sales Uploader</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+.header {
+  background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 100%);
+  padding: 22px 32px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.header-icon { font-size: 34px; }
+.header h1 { color: #fff; font-size: 21px; margin-bottom: 2px; }
+.header p  { color: #93c5fd; font-size: 12px; }
+
+.body { padding: 26px 32px; }
+
+/* STEPS */
+.steps {
+  display: flex;
+  margin-bottom: 24px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.step {
+  flex: 1; text-align: center; padding: 9px 6px;
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  background: #f8fafc; border-right: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+.step:last-child { border-right: none; }
+.step .num { display: block; font-size: 16px; margin-bottom: 2px; }
+.step.active { background: #1d4ed8; color: #fff; }
+.step.done   { background: #d1fae5; color: #065f46; }
+
+/* STATUS */
+.status {
+  padding: 11px 15px; border-radius: 8px; margin-bottom: 16px;
+  font-weight: 600; font-size: 13px; display: none;
+}
+.status.show    { display: block; }
+.status.success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.status.error   { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+.status.info    { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+.status.warn    { background: #fffbeb; color: #78350f; border: 1px solid #fcd34d; }
+
+/* CARDS */
+.card {
+  border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 20px; margin-bottom: 18px;
+}
+.card-title {
+  font-size: 13px; font-weight: 800; color: #1e293b;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+
+/* LOGIN */
+.login-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.login-row input[type=password] {
+  flex: 1; min-width: 180px; padding: 10px 14px;
+  border: 2px solid #d1d5db; border-radius: 8px; font-size: 15px;
+}
+.login-row input[type=password]:focus { outline: none; border-color: #1d4ed8; }
+
+/* DROP ZONE */
+.drop-zone {
+  border: 3px dashed #93c5fd; border-radius: 10px; padding: 34px 20px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  background: #f0f6ff; position: relative;
+}
+.drop-zone:hover, .drop-zone.drag-over { background: #dbeafe; border-color: #1d4ed8; }
+.drop-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-zone .di { font-size: 38px; margin-bottom: 8px; }
+.drop-zone h3 {
+  color: #1e3a8a; font-size: 16px; margin-bottom: 4px;
+  font-weight: 700; text-transform: none; letter-spacing: normal; border: none;
+}
+.drop-zone p { color: #64748b; font-size: 12px; }
+
+.date-row {
+  display: flex; gap: 12px; align-items: center; margin-top: 14px; flex-wrap: wrap;
+}
+.date-row label { font-weight: 700; font-size: 13px; color: #374151; white-space: nowrap; }
+.date-row input[type=date] {
+  padding: 8px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;
+}
+.date-row input[type=date]:focus { outline: none; border-color: #1d4ed8; }
+
+/* UNMATCHED ALERT BANNER */
+.unmatch-banner {
+  display: none;
+  background: #fff7ed;
+  border: 2px solid #f97316;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.unmatch-banner.show { display: block; }
+.unmatch-banner h4 { color: #c2410c; font-size: 14px; margin-bottom: 6px; }
+.unmatch-banner p  { color: #9a3412; font-size: 13px; line-height: 1.5; }
+.unmatch-banner ul { margin: 6px 0 0 18px; color: #9a3412; font-size: 12px; line-height: 1.8; }
+
+/* SUMMARY TILES */
+.tiles {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px; margin-bottom: 14px;
+}
+.tile {
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 10px; padding: 11px; text-align: center;
+}
+.tile .v { font-size: 22px; font-weight: 800; color: #1d4ed8; }
+.tile .v.warn { color: #f97316; }
+.tile .l { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+
+/* TABLE */
+.tbl-wrap {
+  overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px;
+  max-height: 380px; overflow-y: auto; margin-bottom: 14px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: #1e3a8a; color: #fff; padding: 9px 11px;
+  text-align: left; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.4px; position: sticky; top: 0; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+tbody tr:hover { background: #f8fafc; }
+tbody tr.unmatched { background: #fff7ed; }
+tbody tr.unmatched:hover { background: #ffedd5; }
+tbody tr:last-child { border-bottom: none; }
+td { padding: 8px 11px; color: #1e293b; vertical-align: middle; }
+td.num  { color: #94a3b8; font-size: 11px; }
+td.mono { font-family: monospace; font-size: 12px; }
+td.qty  { font-weight: 700; color: #1d4ed8; text-align: right; }
+td.status-match   { color: #059669; font-weight: 700; font-size: 12px; }
+td.status-no      { color: #f97316; font-weight: 700; font-size: 12px; }
+.item-num-input {
+  padding: 5px 8px; border: 2px solid #f97316; border-radius: 6px;
+  font-size: 12px; width: 90px; background: #fff7ed;
+}
+.item-num-input:focus { outline: none; border-color: #ea580c; background: #fff; }
+.item-num-input.filled { border-color: #22c55e; background: #f0fdf4; }
+
+/* BUTTONS */
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  flex: 1; min-width: 130px; padding: 13px 16px; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary  { background: #1d4ed8; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1e3a8a; }
+.btn-success  { background: #059669; color: #fff; }
+.btn-success:hover:not(:disabled) { background: #047857; }
+.btn-warn     { background: #f97316; color: #fff; }
+.btn-warn:hover:not(:disabled) { background: #ea580c; }
+.btn-secondary { background: #f1f5f9; color: #374151; }
+.btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+.btn-outline  { background: transparent; color: #1d4ed8; border: 2px solid #1d4ed8; }
+.btn-outline:hover:not(:disabled) { background: #eff6ff; }
+
+/* UPLOAD RESULT */
+.upload-result {
+  display: none; background: #d1fae5; border: 2px solid #34d399;
+  border-radius: 10px; padding: 20px; text-align: center; margin-top: 14px;
+}
+.upload-result.show { display: block; }
+.upload-result .big { font-size: 44px; }
+.upload-result h3 { color: #065f46; font-size: 17px; margin: 6px 0 3px; }
+.upload-result p  { color: #047857; font-size: 13px; }
+
+.locked { opacity: 0.4; pointer-events: none; }
+
+@media (max-width: 600px) {
+  .body { padding: 16px; }
+  .header { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-icon">🚬</div>
+    <div>
+      <h1>KC9 — Cig Sales Uploader</h1>
+      <p>PDI CSV → Auto Convert → UPC Check → Upload to Sheets</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="steps">
+      <div class="step active" id="step1"><span class="num">🔑</span>Login</div>
+      <div class="step"        id="step2"><span class="num">📂</span>Drop CSV</div>
+      <div class="step"        id="step3"><span class="num">🔍</span>UPC Check</div>
+      <div class="step"        id="step4"><span class="num">☁️</span>Upload</div>
+    </div>
+
+    <div class="status" id="statusMsg"></div>
+
+    <!-- STEP 1: LOGIN -->
+    <div class="card" id="cardLogin">
+      <div class="card-title">🔑 Manager Password</div>
+      <div class="login-row">
+        <input type="password" id="passwordInput" placeholder="Enter password…" />
+        <button class="btn btn-primary" style="flex:0;min-width:110px;" onclick="doLogin()">Unlock →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: DROP CSV -->
+    <div class="card locked" id="cardDrop">
+      <div class="card-title">📂 Drop PDI CSV File</div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".csv,.txt" />
+        <div class="di">📊</div>
+        <h3>Drop PDI Item Sales CSV here</h3>
+        <p>PDI → Report Center → Item Sales Report → Filter Cigarette PK → Export CSV</p>
+      </div>
+      <div class="date-row">
+        <label>📅 Sales Date:</label>
+        <input type="date" id="salesDate" />
+        <span style="font-size:11px;color:#94a3b8;">Auto-detected from file</span>
+      </div>
+    </div>
+
+    <!-- STEP 3 & 4: PREVIEW + UPLOAD -->
+    <div id="resultsArea" style="display:none;">
+      <div class="card">
+        <div class="card-title">🔍 UPC Check &amp; Preview</div>
+
+        <!-- Unmatched alert banner -->
+        <div class="unmatch-banner" id="unmatchBanner">
+          <h4>⚠️ Unmatched UPCs — Action Required</h4>
+          <p>The following items from PDI were <strong>not found</strong> in your UPC mapping sheet.
+             They are highlighted in orange below. You can still upload — the system will log them —
+             but check your master cig list to make sure these are valid SKUs.</p>
+          <ul id="unmatchList"></ul>
+        </div>
+
+        <div class="tiles" id="tilesWrap"></div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Scan Code (UPC)</th>
+                <th>Description</th>
+                <th style="text-align:right;">Qty Sold</th>
+                <th>UPC Status</th>
+              </tr>
+            </thead>
+            <tbody id="previewBody"></tbody>
+          </table>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-success" id="btnUpload" onclick="doUpload()">
+            ☁️ Upload to Sheets
+          </button>
+          <button class="btn btn-outline" onclick="downloadTXT()">
+            ⬇️ Download TXT
+          </button>
+          <button class="btn btn-secondary" onclick="resetAll()">
+            🔄 New File
+          </button>
+        </div>
+
+        <div class="upload-result" id="uploadResult">
+          <div class="big">✅</div>
+          <h3>Uploaded Successfully!</h3>
+          <p id="uploadMsg"></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
+
+let userPassword = '';
+let parsedRows   = [];
+let upcMapping   = {};   // { "1230000007": { itemNumber, itemName } }
+
+// ── LOGIN ──────────────────────────────────────────────
+function doLogin() {
+  const pw = document.getElementById('passwordInput').value.trim();
+  if (!pw) { showStatus('Enter the manager password first.', 'warn'); return; }
+  userPassword = pw;
+  document.getElementById('cardLogin').style.display = 'none';
+  document.getElementById('cardDrop').classList.remove('locked');
+  setStep(2);
+  showStatus('✅ Ready! Now loading UPC mapping…', 'info');
+  loadUPCMapping();
+}
+document.getElementById('passwordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── LOAD UPC MAPPING FROM GOOGLE SHEET ───────────────
+function loadUPCMapping() {
+  fetch(DEPLOYED_URL + '?action=getUPCMapping')
+    .then(r => r.json())
+    .then(data => {
+      upcMapping = {};
+      const rows = Array.isArray(data) ? data : (data.data || []);
+      rows.forEach(row => {
+        const upc = String(row['CSV UPC Code'] || row[0] || '').trim().replace(/^0+/, '');
+        if (upc) {
+          upcMapping[upc] = {
+            itemNumber: String(row['Item Number'] || row[1] || '').trim(),
+            itemName:   String(row['Item Name']   || row[2] || '').trim()
+          };
+        }
+      });
+      const count = Object.keys(upcMapping).length;
+      if (count > 0) {
+        showStatus('✅ ' + count + ' UPCs loaded from your mapping sheet. Drop your PDI CSV below.', 'success');
+      } else {
+        showStatus('⚠️ UPC mapping loaded but appears empty — all items will show as unmatched.', 'warn');
+      }
+    })
+    .catch(() => {
+      showStatus('⚠️ Could not load UPC mapping — items will not show match status. Upload will still work.', 'warn');
+    });
+}
+
+// ── DRAG & DROP ────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+// ── PARSE CSV ─────────────────────────────────────────
+function processFile(file) {
+  showStatus('Reading file…', 'info');
+  const reader = new FileReader();
+  reader.onload = ev => parseCSV(ev.target.result, file.name);
+  reader.readAsText(file);
+}
+
+function parseCSV(text, fileName) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  parsedRows = [];
+
+  let headerIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const lower = lines[i].toLowerCase();
+    if (lower.includes('scan code') || lower.includes('scan_code')) { headerIdx = i; break; }
+    if (lower.includes('description') && lower.includes('qty')) { headerIdx = i; break; }
+  }
+  if (headerIdx === -1) {
+    showStatus('❌ Header row not found. Make sure this is the PDI Item Sales CSV.', 'error');
+    return;
+  }
+
+  const headers = splitCSV(lines[headerIdx]).map(h => h.toLowerCase().trim());
+  const colScan = headers.findIndex(h => h.includes('scan'));
+  const colDesc = headers.findIndex(h => h.includes('description'));
+  const colQty  = headers.findIndex(h => h.includes('qty sold') || h === 'qty sold' || h === 'qtysold');
+
+  if (colScan < 0 || colDesc < 0 || colQty < 0) {
+    showStatus('❌ Missing columns (Scan Code / Description / Qty Sold).', 'error');
+    return;
+  }
+
+  // Detect date
+  let detectedDate = '';
+  for (let i = 0; i < headerIdx; i++) {
+    const m = lines[i].match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) { detectedDate = m[1]; break; }
+    const m2 = lines[i].match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m2) { detectedDate = m2[3]+'-'+m2[1].padStart(2,'0')+'-'+m2[2].padStart(2,'0'); break; }
+  }
+  if (!detectedDate) {
+    const m = fileName.match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) detectedDate = m[1];
+  }
+  if (detectedDate) document.getElementById('salesDate').value = detectedDate;
+
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const cols    = splitCSV(lines[i]);
+    const scanRaw = (cols[colScan] || '').trim();
+    const desc    = (cols[colDesc]  || '').trim();
+    const qtyRaw  = (cols[colQty]   || '').trim();
+
+    if (!scanRaw || scanRaw.toLowerCase().startsWith('total')) continue;
+    if (!desc || desc.toLowerCase() === 'description') continue;
+
+    const upc = scanRaw.replace(/^0+/, '') || '0';
+    const qty = parseFloat(qtyRaw) || 0;
+    if (qty === 0) continue;
+
+    // Check against UPC mapping
+    const mapped  = upcMapping[upc];
+    const matched = !!mapped;
+
+    parsedRows.push({ upc, desc, qty, matched, mappedName: mapped ? mapped.itemName : '' });
+  }
+
+  if (!parsedRows.length) {
+    showStatus('❌ No items found in this file.', 'error');
+    return;
+  }
+
+  renderResults();
+  setStep(3);
+}
+
+function splitCSV(line) {
+  const res = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { res.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  res.push(cur);
+  return res;
+}
+
+// ── RENDER ─────────────────────────────────────────────
+function renderResults() {
+  document.getElementById('cardDrop').style.display = 'none';
+  document.getElementById('resultsArea').style.display = 'block';
+
+  const totalQty    = parsedRows.reduce((s, r) => s + r.qty, 0);
+  const matchedCnt  = parsedRows.filter(r => r.matched).length;
+  const unmatchedCnt = parsedRows.length - matchedCnt;
+
+  // Tiles
+  document.getElementById('tilesWrap').innerHTML = `
+    <div class="tile"><div class="v">${parsedRows.length}</div><div class="l">Total SKUs</div></div>
+    <div class="tile"><div class="v">${totalQty}</div><div class="l">Total Packs</div></div>
+    <div class="tile"><div class="v">${matchedCnt}</div><div class="l">✅ Matched</div></div>
+    <div class="tile"><div class="v ${unmatchedCnt > 0 ? 'warn' : ''}">${unmatchedCnt}</div><div class="l">⚠️ Unmatched</div></div>
+  `;
+
+  // Unmatched banner
+  const unmatched = parsedRows.filter(r => !r.matched);
+  if (unmatched.length > 0) {
+    document.getElementById('unmatchBanner').classList.add('show');
+    document.getElementById('unmatchList').innerHTML = unmatched.map(r =>
+      `<li><strong>${r.upc}</strong> — ${r.desc} (Qty: ${r.qty})</li>`
+    ).join('');
+    showStatus('⚠️ ' + unmatched.length + ' item(s) not found in your UPC mapping. See details above.', 'warn');
+  } else {
+    showStatus('✅ All ' + parsedRows.length + ' items matched your UPC mapping. Ready to upload.', 'success');
+  }
+
+  // Table
+  document.getElementById('previewBody').innerHTML = parsedRows.map((r, i) => `
+    <tr class="${r.matched ? '' : 'unmatched'}">
+      <td class="num">${i+1}</td>
+      <td class="mono">${r.upc}</td>
+      <td>${r.desc}</td>
+      <td class="qty">${r.qty}</td>
+      <td class="${r.matched ? 'status-match' : 'status-no'}">${r.matched ? '✅ Matched' : '⚠️ Not Found'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── UPLOAD ─────────────────────────────────────────────
+function doUpload() {
+  if (!parsedRows.length) return;
+  const salesDate = document.getElementById('salesDate').value;
+  if (!salesDate) { showStatus('⚠️ Set the Sales Date before uploading.', 'warn'); return; }
+
+  const unmatched = parsedRows.filter(r => !r.matched);
+  if (unmatched.length > 0) {
+    const go = confirm(
+      '⚠️ ' + unmatched.length + ' item(s) are NOT in your UPC mapping:\n\n' +
+      unmatched.map(r => '• ' + r.upc + ' — ' + r.desc).join('\n') +
+      '\n\nThey will still be uploaded. Continue?'
+    );
+    if (!go) return;
+  }
+
+  setStep(4);
+  showStatus('⏳ Uploading to Google Sheets…', 'info');
+  document.getElementById('btnUpload').disabled = true;
+
+  const uploadDate = new Date().toISOString().split('T')[0];
+  const salesData  = parsedRows.map(r => ({
+    upc:         r.upc,
+    description: r.desc,
+    qty:         r.qty
+  }));
+
+  const params = new URLSearchParams();
+  params.append('action',         'uploadSalesHistory');
+  params.append('password',       userPassword);
+  params.append('uploadDate',     uploadDate);
+  params.append('salesStartDate', salesDate);
+  params.append('salesEndDate',   salesDate);
+  params.append('salesData',      JSON.stringify(salesData));
+
+  fetch(DEPLOYED_URL, { method: 'POST', body: params })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showStatus('', '');
+        document.getElementById('uploadResult').classList.add('show');
+        document.getElementById('uploadMsg').textContent =
+          result.message || (parsedRows.length + ' items uploaded for ' + salesDate);
+      } else {
+        showStatus('❌ Upload failed: ' + (result.error || 'unknown error'), 'error');
+        document.getElementById('btnUpload').disabled = false;
+        setStep(3);
+      }
+    })
+    .catch(err => {
+      showStatus('❌ Network error: ' + err, 'error');
+      document.getElementById('btnUpload').disabled = false;
+      setStep(3);
+    });
+}
+
+// ── DOWNLOAD TXT ──────────────────────────────────────
+function downloadTXT() {
+  if (!parsedRows.length) return;
+  const content = ['Scan Code\tDescription\tQty Sold',
+    ...parsedRows.map(r => `${r.upc}\t${r.desc}\t${r.qty}`)
+  ].join('\n');
+  const date = document.getElementById('salesDate').value || 'unknown-date';
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'item-sales-' + date + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── RESET ─────────────────────────────────────────────
+function resetAll() {
+  parsedRows = [];
+  document.getElementById('cardDrop').style.display = 'block';
+  document.getElementById('cardDrop').classList.remove('locked');
+  document.getElementById('resultsArea').style.display = 'none';
+  document.getElementById('uploadResult').classList.remove('show');
+  document.getElementById('unmatchBanner').classList.remove('show');
+  document.getElementById('fileInput').value = '';
+  document.getElementById('salesDate').value = '';
+  document.getElementById('btnUpload').disabled = false;
+  document.getElementById('previewBody').innerHTML = '';
+  document.getElementById('tilesWrap').innerHTML = '';
+  document.getElementById('unmatchList').innerHTML = '';
+  showStatus('', '');
+  setStep(2);
+}
+
+// ── STEPS ─────────────────────────────────────────────
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('step' + i).className =
+      'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  if (!msg) { el.className = 'status'; el.textContent = ''; return; }
+  el.className = 'status show ' + type;
+  el.textContent = msg;
+}
+</script>
+</body>
+</html>
