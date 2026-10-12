@@ -462,7 +462,7 @@ function renderResults() {
   document.getElementById('cardDrop').style.display = 'none';
   document.getElementById('resultsArea').style.display = 'block';
 
-  const totalQty    = parsedRows.reduce((s, r) => s + r.qty, 0);
+  const totalQty    = parsedRows.reduce((s, r, i) => s + (parseFloat(document.getElementById('qty_' + i)?.value) || r.qty), 0);
   const matchedCnt  = parsedRows.filter(r => r.matched).length;
   const unmatchedCnt = parsedRows.length - matchedCnt;
 
@@ -492,7 +492,7 @@ function renderResults() {
       <td class="num">${i+1}</td>
       <td class="mono">${r.upc}</td>
       <td>${r.desc}</td>
-      <td class="qty">${r.qty}</td>
+      <td class="qty"><input type="number" id="qty_${i}" value="${r.qty}" min="0" step="1" style="width:60px;padding:3px 6px;border:1.5px solid #d1d5db;border-radius:5px;font-size:13px;font-weight:700;color:#1d4ed8;text-align:center;" onchange="this.style.borderColor=this.value!==${r.qty}?'#f97316':'#d1d5db'" /></td>
       <td class="${r.matched ? 'status-match' : 'status-no'}">${r.matched ? '✅ Matched' : '⚠️ Not Found'}</td>
     </tr>
   `).join('');
@@ -519,10 +519,10 @@ function doUpload() {
   document.getElementById('btnUpload').disabled = true;
 
   const uploadDate = new Date().toISOString().split('T')[0];
-  const salesData  = parsedRows.map(r => ({
+  const salesData  = parsedRows.map((r, i) => ({
     upc:         r.upc,
     description: r.desc,
-    qty:         r.qty
+    qty:         parseFloat(document.getElementById('qty_' + i)?.value) || r.qty
   }));
 
   const params = new URLSearchParams();
