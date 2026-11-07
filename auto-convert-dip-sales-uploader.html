@@ -411,7 +411,7 @@ document.addEventListener('keydown', e => {
 function loadMappings() {
   Promise.all([
     fetch(DEPLOYED_URL + '?action=getDipUPCMapping').then(r => r.json()),
-    fetch(DEPLOYED_URL + '?action=getDipSpotCheckItems').then(r => r.json())
+    fetch(DEPLOYED_URL + '?action=getDipSpotCheckItems&password=' + encodeURIComponent(userPassword)).then(r => r.json())
   ]).then(([upcData, items]) => {
     upcMap = {};
     if (Array.isArray(upcData)) {
