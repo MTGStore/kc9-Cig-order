@@ -430,7 +430,7 @@ function loadMappings() {
         }
       }
     }
-    dipItems = Array.isArray(items) ? items : [];
+    dipItems = Array.isArray(items) ? items : (items && Array.isArray(items.items) ? items.items : []);
     const count = Object.keys(upcMap).length;
     showStatus('✅ ' + count + ' dip UPCs loaded · ' + dipItems.length + ' dip items loaded. Drop your PDI CSV below.', 'success');
   }).catch(err => {
