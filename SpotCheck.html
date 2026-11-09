@@ -256,13 +256,10 @@ function login() {
     const pw = document.getElementById('pwInput').value.trim();
     if (!pw) return;
     showStatus('Verifying password...', 'loading');
-    const params = new URLSearchParams();
-    params.append('action', 'validatePassword');
-    params.append('password', pw);
-    fetch(DEPLOYED_URL, { method: 'POST', body: params })
+    fetch(DEPLOYED_URL + '?action=validatePassword&password=' + encodeURIComponent(pw))
         .then(r => r.json())
         .then(data => {
-            if (data.success) {
+            if (data.valid) {
                 userPassword = pw;
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('mainTool').classList.remove('hidden');
@@ -279,14 +276,11 @@ function login() {
 // ─── LOAD ITEMS FROM APPS SCRIPT ──────────────────────────────────────────────
 function loadItems() {
     showStatus('Loading items...', 'loading');
-    const params = new URLSearchParams();
-    params.append('action', 'getSpotCheckItems');
-    params.append('password', userPassword);
-    fetch(DEPLOYED_URL, { method: 'POST', body: params })
+    fetch(DEPLOYED_URL + '?action=getSpotCheckItems&password=' + encodeURIComponent(userPassword))
         .then(r => r.json())
         .then(data => {
             if (data.success && data.items) {
-                allItems = data.items;  // [{itemNumber, itemName, expectedQty}]
+                allItems = data.items;
                 clearStatus();
             } else {
                 showStatus('Failed to load items: ' + (data.error || 'Unknown error'), 'error');
