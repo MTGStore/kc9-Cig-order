@@ -409,10 +409,10 @@
     function loadData() {
         showStatus('Loading dip items and UPC mapping...', 'info');
         Promise.all([
-            fetch(DEPLOYED_URL + '?action=getDipSpotCheckItems').then(r => r.json()),
+            fetch(DEPLOYED_URL + '?action=getDipSpotCheckItems&password=' + encodeURIComponent(userPassword)).then(r => r.json()),
             fetch(DEPLOYED_URL + '?action=getDipUPCMapping').then(r => r.json())
         ]).then(([items, upcData]) => {
-            allItems = Array.isArray(items) ? items : [];
+            allItems = Array.isArray(items) ? items : (items && Array.isArray(items.items) ? items.items : []);
 
             // Build UPC lookup
             upcToItem = {};
