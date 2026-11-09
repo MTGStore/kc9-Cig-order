@@ -374,9 +374,9 @@
 <script>
     const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DW0R5nPe6bCVf2FNu-kyx34NOVonDefvaEEzOVAEsHM7tVU4x_Yg/exec';
     let userPassword = null;
-    let allItems = [];       // { itemName, itemNumber, mustHave }
-    let upcToItem = {};      // normalized UPC -> itemNumber
-    let counts = {};         // itemNumber -> rolls entered
+    let allItems = [];
+    let upcToItem = {};
+    let counts = {};
 
     function normalizeUPC(upc) {
         return String(upc || '').trim().replace(/^0+/, '') || '0';
@@ -414,7 +414,6 @@
         ]).then(([items, upcData]) => {
             allItems = Array.isArray(items) ? items : (items && Array.isArray(items.items) ? items.items : []);
 
-            // Build UPC lookup
             upcToItem = {};
             if (Array.isArray(upcData)) {
                 for (let i = 1; i < upcData.length; i++) {
@@ -486,54 +485,34 @@
         const normalized = normalizeUPC(raw);
         let found = false;
 
-        // Try UPC lookup first
         if (upcToItem[normalized]) {
-            const itemNum = upcToItem[normalized];
-            jumpToItem(itemNum);
+            jumpToItem(upcToItem[normalized]);
             found = true;
         } else {
-            // Try numeric-only match against item numbers
             const matchByNum = allItems.find(i => String(i.itemNumber) === raw);
-            if (matchByNum) {
-                jumpToItem(matchByNum.itemNumber);
-                found = true;
-            }
+            if (matchByNum) { jumpToItem(matchByNum.itemNumber); found = true; }
         }
 
-        // Try name search
         if (!found) {
             const lower = raw.toLowerCase();
             const matchByName = allItems.find(i => i.itemName.toLowerCase().includes(lower));
-            if (matchByName) {
-                jumpToItem(matchByName.itemNumber);
-                found = true;
-            }
+            if (matchByName) { jumpToItem(matchByName.itemNumber); found = true; }
         }
 
-        if (!found) {
-            showStatus('UPC / item not found: ' + raw, 'error');
-        }
+        if (!found) showStatus('UPC / item not found: ' + raw, 'error');
 
         document.getElementById('scanInput').value = '';
         document.getElementById('scanInput').focus();
     }
 
     function jumpToItem(itemNum) {
-        // Clear previous highlight
         document.querySelectorAll('.highlighted').forEach(r => r.classList.remove('highlighted'));
-
         const row = document.getElementById('row_' + itemNum);
         if (!row) return;
-
         row.classList.add('highlighted');
         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
         const input = document.getElementById('count_' + itemNum);
-        if (input) {
-            input.focus();
-            input.select();
-        }
-
+        if (input) { input.focus(); input.select(); }
         const item = allItems.find(i => String(i.itemNumber) === String(itemNum));
         if (item) showStatus('📍 Jumped to: ' + item.itemName, 'info');
     }
@@ -541,8 +520,7 @@
     function filterItems() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         document.querySelectorAll('#itemsBody tr').forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(term) ? '' : 'none';
+            row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
         });
     }
 
@@ -550,10 +528,8 @@
         const total = allItems.length;
         const done = Object.keys(counts).length;
         const pct = total > 0 ? (done / total * 100) : 0;
-
         document.getElementById('progressBar').style.width = pct.toFixed(0) + '%';
         document.getElementById('progressText').textContent = done + ' / ' + total + ' counted';
-
         const uncounted = total - done;
         document.getElementById('saveCounts').textContent =
             done + ' items counted' + (uncounted > 0 ? ' · ' + uncounted + ' remaining' : ' · All done ✓');
@@ -563,7 +539,6 @@
         const total = allItems.length;
         const done = Object.keys(counts).length;
         const uncounted = total - done;
-
         document.getElementById('confirmStats').textContent = done + ' of ' + total + ' items';
         document.getElementById('confirmUncounted').textContent =
             uncounted > 0 ? '⚠️ ' + uncounted + ' items have no count entered — they will be skipped.' : '';
@@ -584,7 +559,8 @@
             .map(item => ({
                 itemNumber: item.itemNumber,
                 itemName: item.itemName,
-                qty: counts[item.itemNumber]
+                newQty: counts[item.itemNumber],
+                oldQty: item.mustHave || 0
             }));
 
         if (itemsToSave.length === 0) {
