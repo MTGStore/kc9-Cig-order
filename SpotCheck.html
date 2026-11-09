@@ -440,11 +440,14 @@ function clearAll() {
 
 // ─── SAVE — ONE BULK POST ─────────────────────────────────────────────────────
 function saveAllSpotChecks() {
-    // Only save items where a count was entered
-    const toSave = checkedItems.filter(c => c.countedQty !== '' && c.countedQty !== null);
+    // Only save items where a valid count was entered
+    const toSave = checkedItems.filter(c => {
+        const v = String(c.countedQty).trim();
+        return v !== '' && v !== 'undefined' && v !== 'null' && !isNaN(parseFloat(v));
+    });
     if (toSave.length === 0) {
-        showStatus('Enter at least one count before saving', 'error');
-        setTimeout(clearStatus, 3000);
+        showStatus('❌ Enter at least one count before saving. Type a number in the box next to an item.', 'error');
+        setTimeout(clearStatus, 5000);
         return;
     }
 
@@ -456,7 +459,7 @@ function saveAllSpotChecks() {
         itemNumber:  c.itemNumber,
         itemName:    c.itemName,
         expectedQty: c.expectedOnHand !== undefined ? c.expectedOnHand : (c.expectedQty || 0),
-        countedQty:  parseInt(c.countedQty, 10)
+        countedQty:  parseFloat(c.countedQty)
     }));
 
     const params = new URLSearchParams();
