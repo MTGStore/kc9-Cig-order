@@ -454,19 +454,19 @@ function saveAllSpotChecks() {
     document.getElementById('saveBtn').disabled = true;
     showStatus('Saving ' + toSave.length + ' item(s)...', 'loading');
 
-    // Build counts array: [{itemNumber, itemName, expectedQty, countedQty}]
-    const counts = toSave.map(c => ({
-        itemNumber:  c.itemNumber,
-        itemName:    c.itemName,
-        expectedQty: c.expectedOnHand !== undefined ? c.expectedOnHand : (c.expectedQty || 0),
-        countedQty:  parseFloat(c.countedQty)
+    // Build items array matching script field names: newQty=counted, oldQty=expected
+    const items = toSave.map(c => ({
+        itemNumber: c.itemNumber,
+        itemName:   c.itemName,
+        newQty:     parseFloat(c.countedQty),
+        oldQty:     c.expectedOnHand !== undefined ? parseFloat(c.expectedOnHand) : parseFloat(c.expectedQty || 0)
     }));
 
     const params = new URLSearchParams();
     params.append('action',     'saveBulkSpotCheck');
     params.append('password',   userPassword);
     params.append('countedBy',  'Harry');
-    params.append('counts',     JSON.stringify(counts));
+    params.append('items',      JSON.stringify(items));
 
     fetch(DEPLOYED_URL, { method: 'POST', body: params })
         .then(r => r.json())
