@@ -188,7 +188,7 @@
     <div id="mainTool" class="hidden">
 
         <div class="info-row">
-            Search for an item below, add it to the list, then enter the physical count you see on the shelf. Save when done.
+            Search for specific items — or click <strong>Load All Items</strong> to count everything at once.
         </div>
 
         <!-- SEARCH -->
@@ -199,6 +199,7 @@
                 <div class="dropdown-list" id="dropdownList"></div>
             </div>
             <button class="add-btn" onclick="addSelected()">+ Add Item</button>
+            <button class="add-btn" style="background:#764ba2;" onclick="loadAllItems()">📋 Load All Items</button>
         </div>
 
         <!-- SPOT CHECK TABLE -->
@@ -306,7 +307,7 @@ function filterItems() {
     matches.forEach(it => {
         const div = document.createElement('div');
         div.className = 'dropdown-item';
-        div.textContent = it.itemNumber + ' — ' + it.itemName + '  (Expected: ' + it.expectedQty + ')';
+        div.textContent = it.itemNumber + ' — ' + it.itemName + '  (Expected: ' + it.expectedOnHand + ')';
         div.onclick = () => selectItem(it);
         list.appendChild(div);
     });
@@ -344,7 +345,7 @@ function addSelected() {
         setTimeout(clearStatus, 2500);
         return;
     }
-    checkedItems.push({ ...selectedItem, countedQty: '' });
+    checkedItems.push({ ...selectedItem, expectedQty: selectedItem.expectedOnHand, countedQty: '' });
     renderTable();
     document.getElementById('searchInput').value = '';
     selectedItem = null;
@@ -412,6 +413,25 @@ function removeItem(idx) {
     renderTable();
 }
 
+function loadAllItems() {
+    if (allItems.length === 0) {
+        showStatus('Items still loading — try again in a moment', 'error');
+        setTimeout(clearStatus, 2500);
+        return;
+    }
+    const existing = new Set(checkedItems.map(c => c.itemNumber));
+    let added = 0;
+    allItems.forEach(it => {
+        if (!existing.has(it.itemNumber)) {
+            checkedItems.push({ ...it, expectedQty: it.expectedOnHand, countedQty: '' });
+            added++;
+        }
+    });
+    renderTable();
+    showStatus('✓ ' + added + ' items loaded. Enter your counts!', 'success');
+    setTimeout(clearStatus, 3000);
+}
+
 function clearAll() {
     if (checkedItems.length > 0 && !confirm('Clear all items from the spot check?')) return;
     checkedItems = [];
@@ -435,7 +455,7 @@ function saveAllSpotChecks() {
     const counts = toSave.map(c => ({
         itemNumber:  c.itemNumber,
         itemName:    c.itemName,
-        expectedQty: c.expectedQty,
+        expectedQty: c.expectedOnHand !== undefined ? c.expectedOnHand : (c.expectedQty || 0),
         countedQty:  parseInt(c.countedQty, 10)
     }));
 
