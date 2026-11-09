@@ -28,8 +28,6 @@
         }
         .header h1 { color: #333; font-size: 26px; margin-bottom: 4px; }
         .header p { color: #888; font-size: 13px; }
-
-        /* LOGIN */
         .login-section {
             background: #f8f9fa;
             padding: 20px;
@@ -48,14 +46,8 @@
             cursor: pointer; font-weight: 600;
         }
         .login-section button:hover { background: #764ba2; }
-
-        /* SEARCH BAR */
-        .search-bar {
-            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
-        }
-        .dropdown-wrap {
-            position: relative; flex: 1; min-width: 240px;
-        }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .dropdown-wrap { position: relative; flex: 1; min-width: 240px; }
         .dropdown-wrap input {
             width: 100%; padding: 12px 14px; font-size: 15px;
             border: 2px solid #ddd; border-radius: 6px;
@@ -68,10 +60,7 @@
             display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .dropdown-list.show { display: block; }
-        .dropdown-item {
-            padding: 10px 14px; cursor: pointer;
-            border-bottom: 1px solid #eee; font-size: 14px;
-        }
+        .dropdown-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
         .dropdown-item:hover { background: #f0f4ff; }
         .dropdown-item:last-child { border-bottom: none; }
         .add-btn {
@@ -80,52 +69,35 @@
             font-weight: 600; font-size: 14px; white-space: nowrap;
         }
         .add-btn:hover { background: #059669; }
-
-        /* SPOT CHECK TABLE */
-        .spot-table {
-            width: 100%; border-collapse: collapse; margin-top: 10px;
-        }
+        .spot-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .spot-table thead { background: #f8f9fa; }
         .spot-table th {
             padding: 11px 12px; text-align: left; font-size: 12px;
             text-transform: uppercase; color: #555; font-weight: 700;
             border-bottom: 2px solid #ddd;
         }
-        .spot-table td {
-            padding: 10px 12px; border-bottom: 1px solid #eee;
-            font-size: 14px; vertical-align: middle;
-        }
+        .spot-table td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
         .spot-table tr:hover td { background: #fafafa; }
-
         .expected-qty { font-weight: 700; color: #1e40af; }
         .count-input {
             width: 80px; padding: 7px 10px; font-size: 15px; font-weight: 700;
             border: 2px solid #ddd; border-radius: 6px; text-align: center;
         }
         .count-input:focus { outline: none; border-color: #667eea; }
-
         .variance {
             font-weight: 700; font-size: 14px; padding: 4px 10px;
-            border-radius: 20px; display: inline-block; min-width: 60px;
-            text-align: center;
+            border-radius: 20px; display: inline-block; min-width: 60px; text-align: center;
         }
         .var-match { background: #d1fae5; color: #065f46; }
         .var-low   { background: #fee2e2; color: #991b1b; }
         .var-high  { background: #fef3c7; color: #92400e; }
         .var-empty { background: #f3f4f6; color: #9ca3af; }
-
         .remove-btn {
             background: #ef4444; color: white; border: none;
-            border-radius: 4px; padding: 5px 10px; cursor: pointer;
-            font-size: 12px;
+            border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;
         }
         .remove-btn:hover { background: #dc2626; }
-
-        /* BOTTOM ACTIONS */
-        .actions {
-            display: flex; gap: 12px; margin-top: 24px;
-            justify-content: flex-end; flex-wrap: wrap;
-        }
+        .actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; flex-wrap: wrap; }
         .save-btn {
             padding: 14px 32px; background: #667eea; color: white;
             border: none; border-radius: 8px; font-size: 16px;
@@ -135,32 +107,20 @@
         .save-btn:disabled { background: #9ca3af; cursor: not-allowed; }
         .clear-btn {
             padding: 14px 20px; background: #f3f4f6; color: #374151;
-            border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;
-            cursor: pointer;
+            border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; cursor: pointer;
         }
         .clear-btn:hover { background: #e5e7eb; }
-
-        /* STATUS MESSAGES */
         .status-msg {
             padding: 12px 16px; border-radius: 8px; margin-top: 16px;
-            font-size: 14px; font-weight: 600; text-align: center;
-            display: none;
+            font-size: 14px; font-weight: 600; text-align: center; display: none;
         }
         .status-msg.success { background: #d1fae5; color: #065f46; display: block; }
         .status-msg.error   { background: #fee2e2; color: #991b1b; display: block; }
         .status-msg.loading { background: #dbeafe; color: #1e40af; display: block; }
-
-        /* EMPTY STATE */
-        .empty-state {
-            text-align: center; padding: 40px; color: #9ca3af;
-        }
+        .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
         .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
         .empty-state p { font-size: 15px; }
-
-        /* HIDDEN */
         .hidden { display: none !important; }
-
-        /* INFO ROW */
         .info-row {
             background: #eff6ff; border: 1px solid #bfdbfe;
             border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
@@ -170,13 +130,11 @@
 </head>
 <body>
 <div class="container">
-
     <div class="header">
         <h1>📦 KC9 Spot Check Counter</h1>
         <p id="ts">Loading...</p>
     </div>
 
-    <!-- LOGIN -->
     <div class="login-section" id="loginSection">
         <p style="margin-bottom:12px;color:#555;font-weight:600;">Enter Manager Password</p>
         <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
@@ -184,14 +142,10 @@
         <p id="loginErr" style="color:#ef4444;margin-top:8px;display:none;">Incorrect password</p>
     </div>
 
-    <!-- MAIN TOOL (hidden until login) -->
     <div id="mainTool" class="hidden">
-
         <div class="info-row">
             Search for an item below, add it to the list, then enter the physical count you see on the shelf. Save when done.
         </div>
-
-        <!-- SEARCH -->
         <div class="search-bar">
             <div class="dropdown-wrap">
                 <input type="text" id="searchInput" placeholder="Search item name or item number..."
@@ -200,8 +154,6 @@
             </div>
             <button class="add-btn" onclick="addSelected()">+ Add Item</button>
         </div>
-
-        <!-- SPOT CHECK TABLE -->
         <div id="tableWrap">
             <div class="empty-state" id="emptyState">
                 <div class="icon">🔍</div>
@@ -221,29 +173,21 @@
                 <tbody id="spotBody"></tbody>
             </table>
         </div>
-
-        <!-- ACTIONS -->
         <div class="actions" id="actionRow" style="display:none;">
             <button class="clear-btn" onclick="clearAll()">Clear All</button>
             <button class="save-btn" id="saveBtn" onclick="saveAllSpotChecks()">💾 Save Spot Check</button>
         </div>
-
         <div class="status-msg" id="statusMsg"></div>
-
-    </div><!-- /mainTool -->
-</div><!-- /container -->
+    </div>
+</div>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
 const DEPLOYED_URL = 'https://script.google.com/macros/s/AKfycbxne0r1e3dn2IlVk7DWMJZinbKuMEUHqq6OVSXGUI6kqRF5jWCGMSSIr4wFx_Yg/exec';
-
-// ─── STATE ────────────────────────────────────────────────────────────────────
 let userPassword = '';
-let allItems = [];          // [{itemNumber, itemName, expectedQty}]
-let checkedItems = [];      // items added to the spot-check table
-let selectedItem = null;    // currently highlighted in dropdown
+let allItems = [];
+let checkedItems = [];
+let selectedItem = null;
 
-// ─── TIMESTAMP ────────────────────────────────────────────────────────────────
 (function setTimestamp() {
     const now = new Date();
     document.getElementById('ts').textContent =
@@ -251,7 +195,6 @@ let selectedItem = null;    // currently highlighted in dropdown
         '  ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
 })();
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
 function login() {
     const pw = document.getElementById('pwInput').value.trim();
     if (!pw) return;
@@ -273,7 +216,6 @@ function login() {
         .catch(() => showStatus('Connection error — check internet', 'error'));
 }
 
-// ─── LOAD ITEMS FROM APPS SCRIPT ──────────────────────────────────────────────
 function loadItems() {
     showStatus('Loading items...', 'loading');
     fetch(DEPLOYED_URL + '?action=getSpotCheckItems&password=' + encodeURIComponent(userPassword))
@@ -289,20 +231,16 @@ function loadItems() {
         .catch(err => showStatus('Load error: ' + err.message, 'error'));
 }
 
-// ─── DROPDOWN SEARCH ──────────────────────────────────────────────────────────
 function filterItems() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
     const list = document.getElementById('dropdownList');
     list.innerHTML = '';
     if (!q || allItems.length === 0) { list.classList.remove('show'); return; }
-
     const matches = allItems.filter(it =>
         it.itemName.toLowerCase().includes(q) ||
         String(it.itemNumber).toLowerCase().includes(q)
     ).slice(0, 20);
-
     if (matches.length === 0) { list.classList.remove('show'); return; }
-
     matches.forEach(it => {
         const div = document.createElement('div');
         div.className = 'dropdown-item';
@@ -324,21 +262,18 @@ function selectItem(it) {
     document.getElementById('dropdownList').classList.remove('show');
 }
 
-// Close dropdown when clicking outside
 document.addEventListener('click', e => {
     if (!e.target.closest('.dropdown-wrap')) {
         document.getElementById('dropdownList').classList.remove('show');
     }
 });
 
-// ─── ADD ITEM TO TABLE ────────────────────────────────────────────────────────
 function addSelected() {
     if (!selectedItem) {
         showStatus('Select an item from the dropdown first', 'error');
         setTimeout(clearStatus, 2500);
         return;
     }
-    // Prevent duplicate
     if (checkedItems.find(c => c.itemNumber === selectedItem.itemNumber)) {
         showStatus(selectedItem.itemName + ' is already in the list', 'error');
         setTimeout(clearStatus, 2500);
@@ -350,11 +285,9 @@ function addSelected() {
     selectedItem = null;
 }
 
-// ─── RENDER TABLE ─────────────────────────────────────────────────────────────
 function renderTable() {
     const tbody = document.getElementById('spotBody');
     tbody.innerHTML = '';
-
     checkedItems.forEach((item, idx) => {
         const counted = item.countedQty === '' ? null : parseInt(item.countedQty, 10);
         const expected = parseInt(item.expectedQty, 10) || 0;
@@ -364,7 +297,6 @@ function renderTable() {
             varText = (diff > 0 ? '+' : '') + diff;
             varClass = diff === 0 ? 'var-match' : (diff < 0 ? 'var-low' : 'var-high');
         }
-
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${item.itemNumber}</strong></td>
@@ -372,8 +304,7 @@ function renderTable() {
             <td><span class="expected-qty">${item.expectedQty}</span></td>
             <td>
                 <input class="count-input" type="number" min="0" step="1"
-                       value="${item.countedQty}"
-                       placeholder="0"
+                       value="${item.countedQty}" placeholder="0"
                        oninput="updateCount(${idx}, this.value)"
                        onkeydown="if(event.key==='Enter'){this.blur();}">
             </td>
@@ -382,7 +313,6 @@ function renderTable() {
         `;
         tbody.appendChild(tr);
     });
-
     const isEmpty = checkedItems.length === 0;
     document.getElementById('emptyState').classList.toggle('hidden', !isEmpty);
     document.getElementById('spotTable').classList.toggle('hidden', isEmpty);
@@ -391,7 +321,6 @@ function renderTable() {
 
 function updateCount(idx, val) {
     checkedItems[idx].countedQty = val;
-    // Re-render only the variance cell of this row to avoid losing focus
     const rows = document.getElementById('spotBody').rows;
     if (!rows[idx]) return;
     const expected = parseInt(checkedItems[idx].expectedQty, 10) || 0;
@@ -418,40 +347,32 @@ function clearAll() {
     renderTable();
 }
 
-// ─── SAVE — ONE BULK POST ─────────────────────────────────────────────────────
 function saveAllSpotChecks() {
-    // Only save items where a count was entered
     const toSave = checkedItems.filter(c => c.countedQty !== '' && c.countedQty !== null);
     if (toSave.length === 0) {
         showStatus('Enter at least one count before saving', 'error');
         setTimeout(clearStatus, 3000);
         return;
     }
-
     document.getElementById('saveBtn').disabled = true;
     showStatus('Saving ' + toSave.length + ' item(s)...', 'loading');
-
-    // Build counts array: [{itemNumber, itemName, expectedQty, countedQty}]
     const counts = toSave.map(c => ({
         itemNumber:  c.itemNumber,
         itemName:    c.itemName,
         expectedQty: c.expectedQty,
         countedQty:  parseInt(c.countedQty, 10)
     }));
-
     const params = new URLSearchParams();
-    params.append('action',     'saveBulkSpotCheck');
-    params.append('password',   userPassword);
-    params.append('countedBy',  'Harry');
-    params.append('counts',     JSON.stringify(counts));
-
+    params.append('action',    'saveBulkSpotCheck');
+    params.append('password',  userPassword);
+    params.append('countedBy', 'Harry');
+    params.append('counts',    JSON.stringify(counts));
     fetch(DEPLOYED_URL, { method: 'POST', body: params })
         .then(r => r.json())
         .then(data => {
             document.getElementById('saveBtn').disabled = false;
             if (data.success) {
-                showStatus('✅ Spot check saved! ' + toSave.length + ' item(s) updated in Inventory Baseline.', 'success');
-                // Refresh expected quantities from returned data if provided
+                showStatus('✅ Spot check saved! ' + toSave.length + ' item(s) updated.', 'success');
                 if (data.updatedItems) {
                     data.updatedItems.forEach(u => {
                         const idx = checkedItems.findIndex(c => c.itemNumber === u.itemNumber);
@@ -471,7 +392,6 @@ function saveAllSpotChecks() {
         });
 }
 
-// ─── STATUS HELPERS ───────────────────────────────────────────────────────────
 function showStatus(msg, type) {
     const el = document.getElementById('statusMsg');
     el.textContent = msg;
